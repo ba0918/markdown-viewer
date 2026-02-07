@@ -20,7 +20,6 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   sourcemap: true,
   jsxFactory: 'h',
   jsxFragment: 'Fragment',
-  jsxImportSource: 'preact',
   plugins: [...denoPlugins({
     configPath
   })]
@@ -56,10 +55,26 @@ try {
   });
   console.log('✅ content.js built');
 
+  // Popup Script
+  console.log('📦 Building popup script...');
+  await esbuild.build({
+    ...commonConfig,
+    entryPoints: ['src/settings/popup/index.tsx'],
+    outfile: 'dist/popup.js',
+    platform: 'browser'
+  });
+  console.log('✅ popup.js built');
+
   // manifest.jsonをdist/にコピー
   console.log('📄 Copying manifest.json...');
   await Deno.copyFile('manifest.json', 'dist/manifest.json');
   console.log('✅ manifest.json copied');
+
+  // HTMLファイルをdist/にコピー
+  console.log('📄 Copying HTML files...');
+  await Deno.copyFile('popup.html', 'dist/popup.html');
+  await Deno.copyFile('options.html', 'dist/options.html');
+  console.log('✅ HTML files copied');
 
   // CSSファイルをdist/にコピー
   console.log('🎨 Copying CSS files...');
@@ -73,6 +88,14 @@ try {
     'dist/content/styles/themes/dark.css'
   );
   console.log('✅ CSS files copied');
+
+  // アイコンをdist/にコピー
+  console.log('🎨 Copying icons...');
+  await Deno.mkdir('dist/icons', { recursive: true });
+  await Deno.copyFile('icons/icon16.png', 'dist/icons/icon16.png');
+  await Deno.copyFile('icons/icon48.png', 'dist/icons/icon48.png');
+  await Deno.copyFile('icons/icon128.png', 'dist/icons/icon128.png');
+  console.log('✅ Icons copied');
 
   console.log('\n🎉 Build completed successfully!');
   console.log('\n📋 Next steps:');

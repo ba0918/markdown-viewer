@@ -19,6 +19,87 @@ Markdown Viewer Chrome拡張機能 - セキュリティファーストなロー�
 - **State Management**: Preact Signals
 - **テスト**: Deno標準テストランナー + Playwright (E2E)
 
+## ライブラリ使用時の必須ルール
+
+**⚠️ CRITICAL: 古い情報・記憶による実装は絶対禁止**
+
+ライブラリの使用方法を実装する際は、**必ず以下の手順を踏むこと**：
+
+### 1. Context7 で最新ドキュメントを確認（最優先）
+
+```bash
+# 実装前に必ずContext7で公式ドキュメントを検索
+mcp__plugin_context7_context7__resolve-library-id
+↓
+mcp__plugin_context7_context7__query-docs
+```
+
+**例：Preact の JSX 設定を確認する場合**
+```
+Query: "How to configure JSX with TypeScript and esbuild? JSX pragma setup"
+Library ID: /preactjs/preact-www
+```
+
+### 2. なぜContext7を使うのか
+
+- ❌ **AIの記憶は古い**: 2025年以前の情報で、APIが変わっている可能性が高い
+- ❌ **推測で実装**: 動くかもしれないが、非推奨のパターンやバグを含む危険性
+- ✅ **Context7は最新**: 公式ドキュメントから最新のコードスニペットと設定を取得
+- ✅ **正確性保証**: ベストプラクティスと推奨される方法が明確
+
+### 3. 実装の流れ
+
+1. **調査フェーズ**
+   - Context7でライブラリIDを検索
+   - 公式ドキュメントから該当する設定・使用方法を取得
+   - 複数のコードスニペットを比較検討
+
+2. **実装フェーズ**
+   - Context7で得た情報をベースに実装
+   - 推測や古い記憶に頼らない
+
+3. **ドキュメント化フェーズ**
+   - 調査結果を `docs/` に記録
+   - 他の開発者（未来の自分）のために知見を残す
+
+### 4. 対象ライブラリ（例）
+
+このプロジェクトで使用するライブラリは全て対象：
+
+- **Preact**: JSX設定、hooks使用方法、レンダリング
+- **esbuild**: ビルド設定、プラグイン、最適化
+- **marked**: Markdown変換、拡張機能、オプション
+- **DOMPurify**: サニタイゼーション設定、セキュリティ
+- **Deno**: モジュール、テスト、権限管理
+- **Chrome Extension API**: Manifest V3、Storage API、Messaging
+
+### 5. NG行動パターン
+
+```typescript
+// ❌ NG: 記憶だけで実装
+import { h } from 'preact'; // ← これで合ってたっけ...？
+
+// ✅ OK: Context7で確認してから実装
+// Context7で「Preact JSX classic transform」を検索
+// → jsxFactory: 'h' が必要と確認
+// → import { h } from 'preact' が必須と確認
+import { h } from 'preact';
+```
+
+**この教訓は過去の失敗から学んだもの**：
+- Preact JSX設定で `h is not defined` エラー
+- 古いAPI使用で動かない
+- 非推奨パターンでビルドエラー
+
+### 6. 例外: Context7が使えない場合
+
+- ライブラリが見つからない → コードベースを直接分析
+- それでも不明 → `docs/` に調査結果を記録してから実装
+
+---
+
+**Remember: "動いた" ≠ "正しい"。Context7で最新の公式情報を確認してから実装すること。**
+
 ## コマンド
 
 ### 開発コマンド
