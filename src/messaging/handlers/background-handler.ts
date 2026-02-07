@@ -44,6 +44,31 @@ export const handleBackgroundMessage = async (
         return { success: true, data: null };
       }
 
+      case 'UPDATE_HOT_RELOAD': {
+        // ✅ Hot Reload設定を更新
+        await stateManager.updateHotReload({
+          enabled: message.payload.enabled,
+          interval: message.payload.interval,
+          autoReload: message.payload.autoReload,
+        });
+        return { success: true, data: null };
+      }
+
+      case 'CHECK_FILE_CHANGE': {
+        // ✅ Background Scriptでfile://を読み込み（キャッシュ回避）
+        try {
+          const url = message.payload.url + '?preventCache=' + Date.now();
+          const response = await fetch(url);
+          const content = await response.text();
+          return { success: true, data: content };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to fetch file'
+          };
+        }
+      }
+
       case 'GET_SETTINGS': {
         // ✅ 現在の設定を取得
         const settings = await stateManager.load();

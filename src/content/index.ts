@@ -5,7 +5,6 @@ import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
-import { getLastModified, hasFileChanged } from '../domain/file-watcher/file-watcher.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -35,7 +34,7 @@ let currentMarkdown = '';
 
 // Hot Reload用のグローバル変数
 let hotReloadInterval: number | null = null;
-let lastModifiedTimestamp: string | undefined = undefined;
+let lastFileContent: string | null = null;
 
 /**
  * Markdownファイル判定
@@ -83,7 +82,7 @@ const loadThemeCss = (theme: Theme): void => {
  *
  * @param interval - チェック間隔（ミリ秒、最小1000ms）
  */
-const startHotReload = (interval: number): void => {
+const startHotReload = async (interval: number): Promise<void> => {
   // 既存のインターバルをクリア
   if (hotReloadInterval !== null) {
     clearInterval(hotReloadInterval);
@@ -94,17 +93,39 @@ const startHotReload = (interval: number): void => {
 
   console.log(`Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`);
 
-  // 初回のタイムスタンプを取得
-  lastModifiedTimestamp = getLastModified();
+  // 初回のファイル内容を取得（Background Scriptでfetch）
+  try {
+    lastFileContent = await sendMessage<string>({
+      type: 'CHECK_FILE_CHANGE',
+      payload: { url: location.href }
+    });
+  } catch (error) {
+    console.error('Markdown Viewer: Failed to initialize Hot Reload:', error);
+    return;
+  }
 
   // setIntervalでファイル変更を監視
-  hotReloadInterval = window.setInterval(() => {
-    const currentTimestamp = getLastModified();
+  hotReloadInterval = window.setInterval(async () => {
+    try {
+      // Background Scriptでfile://をfetch
+      const currentContent = await sendMessage<string>({
+        type: 'CHECK_FILE_CHANGE',
+        payload: { url: location.href }
+      });
 
-    if (hasFileChanged(lastModifiedTimestamp, currentTimestamp)) {
-      console.log('Markdown Viewer: File changed detected! Reloading...');
-      lastModifiedTimestamp = currentTimestamp;
-      window.location.reload();
+      // デバッグ: 内容比較
+      const changed = currentContent !== lastFileContent;
+      console.log(`[Hot Reload Debug] Changed: ${changed}, Old length: ${lastFileContent?.length || 0}, New length: ${currentContent.length}`);
+
+      if (changed) {
+        console.log('Markdown Viewer: File changed detected! Reloading...');
+        lastFileContent = currentContent;
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Markdown Viewer: Hot Reload check failed:', error);
+      // エラー時はインターバル停止
+      stopHotReload();
     }
   }, safeInterval);
 };
@@ -116,7 +137,7 @@ const stopHotReload = (): void => {
   if (hotReloadInterval !== null) {
     clearInterval(hotReloadInterval);
     hotReloadInterval = null;
-    lastModifiedTimestamp = undefined;
+    lastFileContent = null;
     console.log('Markdown Viewer: Hot Reload stopped');
   }
 };
@@ -179,7 +200,7 @@ const init = async () => {
 
     // Hot Reload設定を反映
     if (settings.hotReload.enabled) {
-      startHotReload(settings.hotReload.interval);
+      await startHotReload(settings.hotReload.interval);
     }
   } catch (error) {
     console.error('Failed to load settings, using default theme:', error);
@@ -188,7 +209,7 @@ const init = async () => {
   }
 
   // Chrome Storage変更イベントをリッスン
-  chrome.storage.onChanged.addListener((changes, area) => {
+  chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === 'sync' && changes.appState) {
       const newState = changes.appState.newValue as AppState;
       console.log('Settings changed, updating theme CSS:', newState.theme);
@@ -197,7 +218,7 @@ const init = async () => {
 
       // Hot Reload設定の変更を反映
       if (newState.hotReload.enabled) {
-        startHotReload(newState.hotReload.interval);
+        await startHotReload(newState.hotReload.interval);
       } else {
         stopHotReload();
       }

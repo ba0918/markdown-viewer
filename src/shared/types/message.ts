@@ -8,6 +8,8 @@ export type Message =
   | { type: 'RENDER_MARKDOWN'; payload: { markdown: string; themeId?: Theme } }
   | { type: 'LOAD_THEME'; payload: { themeId: Theme } }
   | { type: 'UPDATE_THEME'; payload: { themeId: Theme } }
+  | { type: 'UPDATE_HOT_RELOAD'; payload: { enabled: boolean; interval: number; autoReload: boolean } }
+  | { type: 'CHECK_FILE_CHANGE'; payload: { url: string } }
   | { type: 'GET_SETTINGS'; payload: Record<string, never> }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<AppState> };
 

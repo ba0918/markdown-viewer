@@ -68,8 +68,24 @@ export const App = () => {
       setSaveMessage(null);
 
       // Hot Reload設定の更新
-      // TODO: Phase 3-3で実装
-      console.log('Hot Reload settings:', { enabled, interval, autoReload });
+      await sendMessage({
+        type: 'UPDATE_HOT_RELOAD',
+        payload: {
+          enabled,
+          interval: interval ?? settings!.hotReload.interval,
+          autoReload: autoReload ?? settings!.hotReload.autoReload,
+        },
+      });
+
+      // ローカル状態を更新
+      setSettings({
+        ...settings!,
+        hotReload: {
+          enabled,
+          interval: interval ?? settings!.hotReload.interval,
+          autoReload: autoReload ?? settings!.hotReload.autoReload,
+        },
+      });
 
       setSaveMessage('設定を保存しました ✓');
       setTimeout(() => setSaveMessage(null), 2000);
@@ -125,9 +141,9 @@ export const App = () => {
         <section class="section">
           <h2 class="section-title">開発者向け機能</h2>
           <HotReloadSettings
-            enabled={false}
-            interval={1000}
-            autoReload={true}
+            enabled={settings.hotReload.enabled}
+            interval={settings.hotReload.interval}
+            autoReload={settings.hotReload.autoReload}
             onChange={handleHotReloadChange}
           />
         </section>
