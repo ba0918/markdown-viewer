@@ -37,7 +37,27 @@ Deno.test('GFM: コードブロック', () => {
   const markdown = '```javascript\nconsole.log("hello");\n```';
   const html = parseMarkdown(markdown);
   assertStringIncludes(html, '<code');
-  assertStringIncludes(html, 'console.log');
+  // シンタックスハイライトで分割されるため、個別に確認
+  assertStringIncludes(html, 'console');
+  assertStringIncludes(html, 'log');
+});
+
+Deno.test('シンタックスハイライト: JavaScriptコードブロック', () => {
+  const markdown = '```javascript\nconst x = 42;\n```';
+  const html = parseMarkdown(markdown);
+  // highlight.js が <span> タグでハイライトを適用
+  assertStringIncludes(html, '<span');
+  assertStringIncludes(html, 'const');
+  // class属性に hljs が含まれる
+  assertStringIncludes(html, 'hljs');
+});
+
+Deno.test('シンタックスハイライト: 言語指定なしのコードブロック', () => {
+  const markdown = '```\nplain text\n```';
+  const html = parseMarkdown(markdown);
+  // コードブロックは生成される
+  assertStringIncludes(html, '<code');
+  assertStringIncludes(html, 'plain text');
 });
 
 Deno.test('GFM: リンク', () => {

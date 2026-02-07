@@ -1,4 +1,58 @@
-import DOMPurify from 'isomorphic-dompurify';
+import xss from 'xss';
+
+/**
+ * xss (js-xss) オプション設定
+ * 許可するHTMLタグと属性のホワイトリスト
+ */
+const xssOptions = {
+  // 許可するHTMLタグのホワイトリスト
+  whiteList: {
+    'p': ['class', 'id'],
+    'br': [],
+    'strong': ['class', 'id'],
+    'em': ['class', 'id'],
+    'u': ['class', 'id'],
+    's': ['class', 'id'],
+    'code': ['class', 'id', 'language-*'], // シンタックスハイライト用
+    'pre': ['class', 'id'],
+    'a': ['href', 'title', 'class', 'id'],
+    'img': ['src', 'alt', 'title', 'class', 'id'],
+    'h1': ['class', 'id'],
+    'h2': ['class', 'id'],
+    'h3': ['class', 'id'],
+    'h4': ['class', 'id'],
+    'h5': ['class', 'id'],
+    'h6': ['class', 'id'],
+    'ul': ['class', 'id'],
+    'ol': ['class', 'id'],
+    'li': ['class', 'id'],
+    'blockquote': ['class', 'id'],
+    'table': ['class', 'id'],
+    'thead': ['class', 'id'],
+    'tbody': ['class', 'id'],
+    'tr': ['class', 'id'],
+    'th': ['class', 'id'],
+    'td': ['class', 'id'],
+    'hr': ['class', 'id'],
+    'div': ['class', 'id'],
+    'span': ['class', 'id'] // highlight.js 用
+  },
+  // ホワイトリスト外のタグを完全削除
+  stripIgnoreTag: true,
+  // script と style タグの中身も削除
+  stripIgnoreTagBody: ['script', 'style'],
+  // class 属性のワイルドカード対応（highlight.js の hljs-* クラス用）
+  onTagAttr: (tag: string, name: string, value: string) => {
+    // highlight.js の hljs-* クラスを許可
+    if (name === 'class' && value.includes('hljs')) {
+      return `class="${value}"`;
+    }
+    // language-* クラスを許可
+    if (name === 'class' && value.includes('language-')) {
+      return `class="${value}"`;
+    }
+  }
+};
 
 /**
  * HTMLサニタイゼーション
@@ -12,19 +66,9 @@ import DOMPurify from 'isomorphic-dompurify';
  * - イベントハンドラ属性の除去
  * - 危険なタグの除去
  * - データ属性の禁止
+ * - シンタックスハイライト用のクラス属性を許可
  */
-export const sanitizeHTML = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
-      'a', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'table', 'thead',
-      'tbody', 'tr', 'th', 'td', 'hr', 'div', 'span'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'id'
-    ],
-    ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false
-  });
+export const sanitizeHTML = async (html: string): Promise<string> => {
+  // xss は同期関数だが、インターフェース統一のため async を維持
+  return xss(html, xssOptions);
 };
