@@ -19,86 +19,62 @@ Markdown Viewer Chrome拡張機能 - セキュリティファーストなロー�
 - **State Management**: Preact Signals
 - **テスト**: Deno標準テストランナー + Playwright (E2E)
 
-## ライブラリ使用時の必須ルール
+## 開発フロー必須ルール
 
-**⚠️ CRITICAL: 古い情報・記憶による実装は絶対禁止**
+### 1. ライブラリ使用時: Context7で最新情報確認
 
-ライブラリの使用方法を実装する際は、**必ず以下の手順を踏むこと**：
-
-### 1. Context7 で最新ドキュメントを確認（最優先）
+**⚠️ CRITICAL: AIの記憶は古い。必ずContext7で公式ドキュメント確認**
 
 ```bash
-# 実装前に必ずContext7で公式ドキュメントを検索
+# 実装前にContext7で公式ドキュメント検索
 mcp__plugin_context7_context7__resolve-library-id
-↓
 mcp__plugin_context7_context7__query-docs
 ```
 
-**例：Preact の JSX 設定を確認する場合**
-```
-Query: "How to configure JSX with TypeScript and esbuild? JSX pragma setup"
-Library ID: /preactjs/preact-www
-```
+- ✅ Context7: 最新の公式ドキュメント、ベストプラクティス
+- ❌ AI記憶: 古いAPI、非推奨パターン、ビルドエラーの原因
 
-### 2. なぜContext7を使うのか
+対象: Preact, esbuild, marked, DOMPurify, Deno, Chrome Extension API 全て
 
-- ❌ **AIの記憶は古い**: 2025年以前の情報で、APIが変わっている可能性が高い
-- ❌ **推測で実装**: 動くかもしれないが、非推奨のパターンやバグを含む危険性
-- ✅ **Context7は最新**: 公式ドキュメントから最新のコードスニペットと設定を取得
-- ✅ **正確性保証**: ベストプラクティスと推奨される方法が明確
+### 2. コミット管理: 未コミット蓄積の絶対防止
 
-### 3. 実装の流れ
+**⚠️ CRITICAL: 未コミットの蓄積は技術的負債。こまめなコミット必須**
 
-1. **調査フェーズ**
-   - Context7でライブラリIDを検索
-   - 公式ドキュメントから該当する設定・使用方法を取得
-   - 複数のコードスニペットを比較検討
+#### 必須コミットタイミング
 
-2. **実装フェーズ**
-   - Context7で得た情報をベースに実装
-   - 推測や古い記憶に頼らない
+1. **機能単位の完成時** - テスト通過後、即コミット
+2. **1ファイル以上の変更完了時** - 論理的なまとまりで即コミット
+3. **作業セッション終了時** - 必ず `git status` 確認、コミット
+4. **別タスク開始前** - 現在の変更を確実にコミット
 
-3. **ドキュメント化フェーズ**
-   - 調査結果を `docs/` に記録
-   - 他の開発者（未来の自分）のために知見を残す
+#### コミット前チェック
 
-### 4. 対象ライブラリ（例）
+```bash
+# 毎回実行
+git status
+git diff
 
-このプロジェクトで使用するライブラリは全て対象：
-
-- **Preact**: JSX設定、hooks使用方法、レンダリング
-- **esbuild**: ビルド設定、プラグイン、最適化
-- **marked**: Markdown変換、拡張機能、オプション
-- **DOMPurify**: サニタイゼーション設定、セキュリティ
-- **Deno**: モジュール、テスト、権限管理
-- **Chrome Extension API**: Manifest V3、Storage API、Messaging
-
-### 5. NG行動パターン
-
-```typescript
-// ❌ NG: 記憶だけで実装
-import { h } from 'preact'; // ← これで合ってたっけ...？
-
-// ✅ OK: Context7で確認してから実装
-// Context7で「Preact JSX classic transform」を検索
-// → jsxFactory: 'h' が必要と確認
-// → import { h } from 'preact' が必須と確認
-import { h } from 'preact';
+# 変更が2ファイル以上 or 1時間経過したら即コミット
 ```
 
-**この教訓は過去の失敗から学んだもの**：
-- Preact JSX設定で `h is not defined` エラー
-- 古いAPI使用で動かない
-- 非推奨パターンでビルドエラー
+#### 禁止事項
 
-### 6. 例外: Context7が使えない場合
+- ❌ 複数機能の変更を1コミットにまとめる
+- ❌ 「後でまとめてコミット」の思考
+- ❌ 10ファイル以上の未コミット放置
+- ❌ 異なるレイヤー（domain/services/UI）の変更混在
 
-- ライブラリが見つからない → コードベースを直接分析
-- それでも不明 → `docs/` に調査結果を記録してから実装
+#### `smart-commit` skill の活用
 
----
+```
+ユーザーが「コミットして」と言った時:
+1. git status/diff で変更分析
+2. 論理的な単位に分割（feat/fix/docs/style）
+3. Conventional Commits形式でコミット
+4. 履歴をキレイに保つ
+```
 
-**Remember: "動いた" ≠ "正しい"。Context7で最新の公式情報を確認してから実装すること。**
+**原則: "1機能 = 1コミット"。小さく頻繁にコミットする習慣を徹底。**
 
 ## コマンド
 
@@ -341,150 +317,59 @@ Deno.test('XSS: javascript: protocol', () => {
 }
 ```
 
-## 実装パターン例
+## 実装パターン
 
-### 新しいMarkdown機能の追加
+### Markdown機能追加: domain → services → messaging → UI
 
-```typescript
-// Step 1: domain層に純粋関数を追加 + テスト
-// src/domain/markdown/table-formatter.ts
-export const formatTable = (html: string): string => {
-  // 純粋関数として実装
-  return html;
-};
+1. **domain層**: 純粋関数 + テスト
+2. **services層**: domain組み合わせ
+3. **messaging層**: 変更不要（すでにservice委譲）
+4. **UI層**: 変更不要（messaging使用）
 
-// src/domain/markdown/table-formatter.test.ts
-Deno.test('formatTable: 基本的な整形', () => {
-  const input = '<table>...</table>';
-  const output = formatTable(input);
-  assertEquals(output.includes('formatted'), true);
-});
+### メッセージタイプ追加: types → services → messaging
 
-// Step 2: services層でdomain組み合わせ
-// src/services/markdown-service.ts
-export class MarkdownService {
-  async render(markdown: string, themeId?: string): Promise<string> {
-    const theme = await loadTheme(themeId);
-    const parsed = parseMarkdown(markdown);
-    const sanitized = sanitizeHTML(parsed);
-    const formatted = formatTable(sanitized); // ← 追加
-    return applyTheme(formatted, theme);
-  }
-}
+1. **shared/types/message.ts**: 型定義追加
+2. **services層**: ビジネスロジック実装
+3. **messaging層**: ルーティング追加
 
-// Step 3: messaging層は変更不要（すでにserviceに委譲している）
-// Step 4: UI層も変更不要（messagingを使っている）
-```
+詳細は `docs/IMPLEMENTATION_GUIDE.md` 参照。
 
-### 新しいメッセージタイプの追加
+## デバッグ & トラブルシューティング
 
-```typescript
-// Step 1: 型定義を追加
-// src/shared/types/message.ts
-export type Message =
-  | { type: 'RENDER_MARKDOWN'; payload: { markdown: string; themeId?: string } }
-  | { type: 'EXPORT_PDF'; payload: { markdown: string } }; // ← 追加
+- **Content Script**: DevToolsでconsole.log確認
+- **Background Script**: `chrome://extensions/` → サービスワーカー
+- **ソースマップ**: `sourcemap: true` で元のTypeScriptデバッグ可能
+- **拡張読み込み失敗**: manifest.json構文、ビルドエラー確認
+- **Markdown表示失敗**: `file:///*` 権限、Content Script実行、Consoleエラー
+- **テスト失敗**: 型定義最新化、deno.json imports確認
 
-// Step 2: services層に実装
-// src/services/pdf-service.ts
-export class PdfService {
-  async generate(markdown: string): Promise<Blob> {
-    // PDF生成ロジック
-  }
-}
+## チェックリスト
 
-// Step 3: messaging層にルーティング追加
-// src/messaging/handlers/background-handler.ts
-export const handleBackgroundMessage = async (message: Message) => {
-  switch (message.type) {
-    case 'EXPORT_PDF':
-      const pdf = await pdfService.generate(message.payload.markdown);
-      return { success: true, data: pdf };
-  }
-};
-```
+### 実装前
 
-## デバッグ
+- [ ] レイヤー確認: UI/ui-components/messaging/services/domain/shared?
+- [ ] 責務適切: 各レイヤーの責務を守っているか?
+- [ ] 重複確認: 同じ処理が既存コードにないか? shared/に汎用化すべきか?
+- [ ] 依存方向: import文の方向、循環依存がないか?
+- [ ] セキュリティ: sanitizeHTML使用、XSS対策、入力検証
 
-### Chrome DevTools
+### 作業完了時（コミット前）
 
-```javascript
-// Content Script のデバッグ
-console.log('Content Script loaded');
-
-// Background Script のデバッグ
-// chrome://extensions/ → 「サービスワーカー」をクリック
-```
-
-### ソースマップ
-
-ビルド時に `sourcemap: true` を設定しているため、DevToolsで元のTypeScriptコードをデバッグ可能。
-
-## トラブルシューティング
-
-### 拡張機能が読み込まれない
-
-1. `manifest.json` の構文エラーをチェック
-2. `deno task build` でビルドエラーがないか確認
-3. Chrome拡張のエラーログを確認
-
-### Markdownが表示されない
-
-1. `file:///*` の権限が許可されているか確認
-2. Content Script が実行されているかDevToolsで確認
-3. Console エラーをチェック
-
-### テストが失敗する
-
-1. 型定義が最新か確認
-2. `deno.json` の imports が正しいか確認（まだない場合は作成が必要）
-3. テストファイルのパスが正しいか確認
-
-## 実装前のチェックリスト
-
-### このコードはどのレイヤーか？
-
-- [ ] UI層（background/content/offscreen/settings）
-- [ ] UI部品層（ui-components）
-- [ ] メッセージング層（messaging）
-- [ ] サービス層（services）
-- [ ] ドメイン層（domain）
-- [ ] 共通層（shared）
-
-### 責務は適切か？
-
-- [ ] UI層 → messaging I/O のみ？
-- [ ] messaging層 → ルーティングのみ？
-- [ ] services層 → ドメイン組み合わせ？
-- [ ] domain層 → 純粋関数？
-- [ ] shared層 → ドメイン非依存？
-
-### 既存コード確認
-
-- [ ] 同じ処理が既に存在しないか？
-- [ ] 似た処理が他のファイルにないか？
-- [ ] `shared/`に汎用化できないか？
-
-### 依存関係は正しいか？
-
-- [ ] import文の方向を確認
-- [ ] 逆方向の依存がないか
-- [ ] 循環依存がないか
-
-### セキュリティチェック
-
-- [ ] 全てのMarkdown描画でDOMPurify使用
-- [ ] `javascript:` プロトコル完全ブロック
-- [ ] イベントハンドラ属性除去
-- [ ] ユーザー入力の検証
+- [ ] **テスト全通過**: `deno task test` 実行、全テスト通過確認
+- [ ] **ビルド成功**: `deno task build` 実行、エラーなし確認
+- [ ] **git status確認**: 意図しないファイル変更がないか
+- [ ] **変更レビュー**: `git diff` で変更内容を自己レビュー
+- [ ] **論理的分割**: 複数機能が混在していないか? 分割すべきか?
+- [ ] **即コミット**: 完了したら即コミット（未コミット放置禁止）
 
 ## 重要な心構え
 
-1. **レイヤーを意識** - 今書こうとしているコードはどのレイヤーか
-2. **過去の失敗を繰り返さない** - messaging層にビジネスロジックを書かない
-3. **型を先に定義** - 実装前に型定義、型で設計を表現
-4. **テストを書く** - TDDサイクル遵守、テストできない設計は悪い設計
-5. **迷ったら分離** - 「これは共通化すべきか？」→ Yes
+1. **レイヤー意識** - コードがどのレイヤーか常に意識
+2. **過去の失敗回避** - messaging層にビジネスロジック禁止
+3. **型駆動設計** - 実装前に型定義、型で設計表現
+4. **TDD遵守** - RED→GREEN→REFACTOR、テストできない設計は悪い設計
+5. **迷ったら分離** - 共通化・汎用化を優先
+6. **こまめなコミット** - 1機能完了 = 即コミット、未コミット放置は技術的負債
 
 ## 参考ドキュメント
 
