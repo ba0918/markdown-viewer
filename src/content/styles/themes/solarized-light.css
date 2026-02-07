@@ -177,6 +177,26 @@
   font-style: italic;
 }
 
+/* 打ち消し線 (GFM) */
+.markdown-body del,
+.markdown-body s {
+  text-decoration: line-through;
+  color: #93a1a1;
+}
+
+/* タスクリスト (GFM) */
+.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.markdown-body .task-list-item input[type="checkbox"] {
+  margin: 0 0.5em 0.25em -1.6em;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  cursor: default;
+}
+
 /* ================================================
  * highlight.js Theme: GitHub (Light) - Solarized風に調整
  * ================================================ */

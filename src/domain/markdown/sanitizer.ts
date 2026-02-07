@@ -13,6 +13,7 @@ const xssOptions = {
     'em': ['class', 'id'],
     'u': ['class', 'id'],
     's': ['class', 'id'],
+    'del': ['class', 'id'], // GFM: 打ち消し線
     'code': ['class', 'id', 'language-*'], // シンタックスハイライト用
     'pre': ['class', 'id'],
     'a': ['href', 'title', 'class', 'id'],
@@ -26,6 +27,7 @@ const xssOptions = {
     'ul': ['class', 'id'],
     'ol': ['class', 'id'],
     'li': ['class', 'id'],
+    'input': ['type', 'disabled', 'checked', 'class', 'id'], // GFM: タスクリスト
     'blockquote': ['class', 'id'],
     'table': ['class', 'id'],
     'thead': ['class', 'id'],

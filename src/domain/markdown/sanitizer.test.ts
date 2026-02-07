@@ -58,3 +58,63 @@ Deno.test('正常なHTML: 基本的なマークアップ保持', async () => {
   assertEquals(result.includes('<strong>'), true);
   assertEquals(result.includes('<em>'), true);
 });
+
+/**
+ * GFM要素のサニタイズテスト
+ * 打ち消し線とタスクリストが正しく保持されることを確認
+ */
+
+Deno.test('GFM: 打ち消し線（<del>タグ）保持', async () => {
+  const valid = '<p>This is <del>strikethrough</del> text.</p>';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('<del>'), true);
+  assertEquals(result.includes('strikethrough'), true);
+  assertEquals(result.includes('</del>'), true);
+});
+
+Deno.test('GFM: 打ち消し線（<s>タグ）保持', async () => {
+  const valid = '<p>This is <s>strikethrough</s> text.</p>';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('<s>'), true);
+  assertEquals(result.includes('strikethrough'), true);
+  assertEquals(result.includes('</s>'), true);
+});
+
+Deno.test('GFM: タスクリスト（未完了）保持', async () => {
+  const valid = '<li><input type="checkbox" disabled> Todo item</li>';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('<input'), true);
+  assertEquals(result.includes('type="checkbox"'), true);
+  assertEquals(result.includes('disabled'), true);
+  assertEquals(result.includes('Todo item'), true);
+});
+
+Deno.test('GFM: タスクリスト（完了）保持', async () => {
+  const valid = '<li><input type="checkbox" disabled checked> Done item</li>';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('<input'), true);
+  assertEquals(result.includes('type="checkbox"'), true);
+  assertEquals(result.includes('disabled'), true);
+  assertEquals(result.includes('checked'), true);
+  assertEquals(result.includes('Done item'), true);
+});
+
+Deno.test('GFM: テーブル保持', async () => {
+  const valid = '<table><thead><tr><th>Header</th></tr></thead><tbody><tr><td>Cell</td></tr></tbody></table>';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('<table>'), true);
+  assertEquals(result.includes('<thead>'), true);
+  assertEquals(result.includes('<th>'), true);
+  assertEquals(result.includes('<tbody>'), true);
+  assertEquals(result.includes('<td>'), true);
+});
+
+Deno.test('セキュリティ: タスクリストのinputにイベントハンドラ注入を防ぐ', async () => {
+  const malicious = '<input type="checkbox" onclick="alert(\'XSS\')" disabled>';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes('onclick'), false);
+  assertEquals(result.includes('alert'), false);
+  // type, disabledは保持
+  assertEquals(result.includes('type="checkbox"'), true);
+  assertEquals(result.includes('disabled'), true);
+});

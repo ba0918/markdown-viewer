@@ -86,3 +86,108 @@ const x = 1;
   assertStringIncludes(html, '<ul');
   assertStringIncludes(html, '<code');
 });
+
+/**
+ * GFM拡張機能のテスト
+ * 打ち消し線、タスクリスト、オートリンク
+ */
+
+Deno.test('GFM: 打ち消し線（Strikethrough）', () => {
+  const markdown = 'This is ~~strikethrough~~ text.';
+  const html = parseMarkdown(markdown);
+  // markedは<del>タグを生成する
+  assertStringIncludes(html, '<del>strikethrough</del>');
+});
+
+Deno.test('GFM: 打ち消し線（複数箇所）', () => {
+  const markdown = '~~First~~ normal ~~second~~ text.';
+  const html = parseMarkdown(markdown);
+  assertStringIncludes(html, '<del>First</del>');
+  assertStringIncludes(html, '<del>second</del>');
+  assertStringIncludes(html, 'normal');
+});
+
+Deno.test('GFM: タスクリスト（未完了）', () => {
+  const markdown = '- [ ] Todo item';
+  const html = parseMarkdown(markdown);
+  // チェックボックス（unchecked）が生成される
+  assertStringIncludes(html, '<input');
+  assertStringIncludes(html, 'type="checkbox"');
+  assertStringIncludes(html, 'disabled');
+  // checkedがないことを確認（負のテスト）
+  assertEquals(html.includes('checked'), false);
+  assertStringIncludes(html, 'Todo item');
+});
+
+Deno.test('GFM: タスクリスト（完了）', () => {
+  const markdown = '- [x] Done item';
+  const html = parseMarkdown(markdown);
+  // チェックボックス（checked）が生成される
+  assertStringIncludes(html, '<input');
+  assertStringIncludes(html, 'type="checkbox"');
+  assertStringIncludes(html, 'checked');
+  assertStringIncludes(html, 'disabled');
+  assertStringIncludes(html, 'Done item');
+});
+
+Deno.test('GFM: タスクリスト（混在）', () => {
+  const markdown = `- [x] Completed task
+- [ ] Pending task
+- [x] Another completed`;
+  const html = parseMarkdown(markdown);
+  // チェックボックスが複数存在
+  const checkboxCount = (html.match(/type="checkbox"/g) || []).length;
+  assertEquals(checkboxCount, 3);
+  // checkedが2つ存在
+  const checkedCount = (html.match(/checked/g) || []).length;
+  assertEquals(checkedCount, 2);
+});
+
+Deno.test('GFM: オートリンク（URL）', () => {
+  const markdown = 'Visit https://example.com for more info.';
+  const html = parseMarkdown(markdown);
+  // URLが自動的にリンクになる
+  assertStringIncludes(html, '<a');
+  assertStringIncludes(html, 'https://example.com');
+  assertStringIncludes(html, 'for more info');
+});
+
+Deno.test('GFM: オートリンク（複数URL）', () => {
+  const markdown = 'Check https://example.com and https://github.com';
+  const html = parseMarkdown(markdown);
+  assertStringIncludes(html, 'https://example.com');
+  assertStringIncludes(html, 'https://github.com');
+  // 両方ともリンクになっているか確認
+  const linkCount = (html.match(/<a/g) || []).length;
+  assertEquals(linkCount >= 2, true);
+});
+
+Deno.test('GFM: 複合機能（テーブル + 打ち消し線）', () => {
+  const markdown = `| Feature | Status |
+|---------|--------|
+| ~~Old~~ | Deprecated |
+| New     | Active |`;
+  const html = parseMarkdown(markdown);
+  // テーブルと打ち消し線の両方が機能する
+  assertStringIncludes(html, '<table');
+  assertStringIncludes(html, '<del>Old</del>');
+  assertStringIncludes(html, 'Deprecated');
+  assertStringIncludes(html, 'Active');
+});
+
+Deno.test('GFM: 複合機能（タスクリスト + 打ち消し線 + リンク）', () => {
+  const markdown = `- [x] ~~Complete~~ this task
+- [ ] Visit https://example.com
+- [x] **Bold** and *italic* task`;
+  const html = parseMarkdown(markdown);
+  // タスクリスト
+  assertStringIncludes(html, '<input');
+  assertStringIncludes(html, 'type="checkbox"');
+  // 打ち消し線
+  assertStringIncludes(html, '<del>Complete</del>');
+  // オートリンク
+  assertStringIncludes(html, 'https://example.com');
+  // 太字・斜体
+  assertStringIncludes(html, '<strong>Bold</strong>');
+  assertStringIncludes(html, '<em>italic</em>');
+});
