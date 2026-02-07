@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 03:58:12
+**Last Updated:** 2026-02-08 04:06:00
 
 ---
 
@@ -8,26 +8,25 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208030007` |
-| **Feature** | Markdown Display Quality Improvements |
-| **Started** | 2026-02-08 03:00:07 |
-| **Phase** | 🟢 Completed |
-| **Plan** | [docs/cycles/20260208030007_markdown-display-quality-improvements.md](./cycles/20260208030007_markdown-display-quality-improvements.md) |
+| **Cycle ID** | `20260208010855` |
+| **Feature** | Phase 3: Options UI & Hot Reload |
+| **Started** | 2026-02-08 01:08:55 |
+| **Phase** | 🟡 In Progress (Phase 3-3) |
+| **Plan** | [docs/cycles/20260208010855_phase-3-options-ui-hot-reload.md](./cycles/20260208010855_phase-3-options-ui-hot-reload.md) |
+
+**Current Focus:**
+Phase 3-3: Hot Reload機能の実装
 
 **Completed:**
-✅ Step 1: シンタックスハイライト実装（highlighter.ts, parser.ts, sanitizer.ts）。全テスト48件通過。
-✅ Step 2: 外部CSSファイル読み込み実装（loader.ts, applier.ts, content/index.ts, manifest.json修正）。全テスト50件通過。
-✅ Step 3: テーマ切り替え時の再レンダリング修正（CSSのみ差し替え方式で表示が消えない）。
+✅ Phase 3-1: Theme System（6テーマ実装）
+✅ Phase 3-2: Options UI実装（ThemeSelector, HotReloadSettings）
 
-**Implementation Details:**
-- ThemeData を `css` → `cssPath` にリファクタリング
-- content層で `chrome.runtime.getURL()` を使用してCSS読み込み
-- テーマ変更時は `<link>` タグの `href` のみ更新（再レンダリング不要）
-- レイヤー分離を厳守（domain: 純粋関数、content: Chrome API）
-
-**Next Actions:**
-1. Chrome拡張として読み込んで動作確認
-2. 問題なければサイクル完了
+**Next Steps:**
+1. 🔴 RED: `file-watcher.test.ts` 作成（TDD）
+2. 🟢 GREEN: `file-watcher.ts` 実装
+3. 🔵 REFACTOR: コード品質向上
+4. Content Scriptへのhot reload組み込み
+5. E2Eテスト
 
 ---
 

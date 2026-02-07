@@ -5,6 +5,7 @@ import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
+import { getLastModified, hasFileChanged } from '../domain/file-watcher/file-watcher.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -31,6 +32,10 @@ declare const chrome: {
 
 // グローバル変数でMarkdownコンテンツを保持（再レンダリング用）
 let currentMarkdown = '';
+
+// Hot Reload用のグローバル変数
+let hotReloadInterval: number | null = null;
+let lastModifiedTimestamp: string | undefined = undefined;
 
 /**
  * Markdownファイル判定
@@ -70,6 +75,49 @@ const loadThemeCss = (theme: Theme): void => {
     linkElement.setAttribute('data-markdown-theme', theme);
     linkElement.href = cssUrl;
     console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
+  }
+};
+
+/**
+ * Hot Reloadを開始
+ *
+ * @param interval - チェック間隔（ミリ秒、最小1000ms）
+ */
+const startHotReload = (interval: number): void => {
+  // 既存のインターバルをクリア
+  if (hotReloadInterval !== null) {
+    clearInterval(hotReloadInterval);
+  }
+
+  // 最小間隔1000ms（1秒）を保証
+  const safeInterval = Math.max(interval, 1000);
+
+  console.log(`Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`);
+
+  // 初回のタイムスタンプを取得
+  lastModifiedTimestamp = getLastModified();
+
+  // setIntervalでファイル変更を監視
+  hotReloadInterval = window.setInterval(() => {
+    const currentTimestamp = getLastModified();
+
+    if (hasFileChanged(lastModifiedTimestamp, currentTimestamp)) {
+      console.log('Markdown Viewer: File changed detected! Reloading...');
+      lastModifiedTimestamp = currentTimestamp;
+      window.location.reload();
+    }
+  }, safeInterval);
+};
+
+/**
+ * Hot Reloadを停止
+ */
+const stopHotReload = (): void => {
+  if (hotReloadInterval !== null) {
+    clearInterval(hotReloadInterval);
+    hotReloadInterval = null;
+    lastModifiedTimestamp = undefined;
+    console.log('Markdown Viewer: Hot Reload stopped');
   }
 };
 
@@ -128,6 +176,11 @@ const init = async () => {
     });
 
     await renderMarkdown(currentMarkdown, settings.theme);
+
+    // Hot Reload設定を反映
+    if (settings.hotReload.enabled) {
+      startHotReload(settings.hotReload.interval);
+    }
   } catch (error) {
     console.error('Failed to load settings, using default theme:', error);
     // デフォルトテーマでレンダリング
@@ -141,6 +194,13 @@ const init = async () => {
       console.log('Settings changed, updating theme CSS:', newState.theme);
       // CSSファイルのみ差し替え（高速・表示が消えない！）
       loadThemeCss(newState.theme);
+
+      // Hot Reload設定の変更を反映
+      if (newState.hotReload.enabled) {
+        startHotReload(newState.hotReload.interval);
+      } else {
+        stopHotReload();
+      }
     }
   });
 };
