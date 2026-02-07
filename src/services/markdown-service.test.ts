@@ -7,7 +7,7 @@ import type { ThemeData } from '../domain/theme/types.ts';
  * ドメイン層の組み合わせをテスト
  */
 
-Deno.test('MarkdownService: 基本的なレンダリング', () => {
+Deno.test('MarkdownService: 基本的なレンダリング', async () => {
   const service = new MarkdownService();
   const markdown = '# Hello\n\nThis is **bold**.';
   const theme: ThemeData = {
@@ -15,7 +15,7 @@ Deno.test('MarkdownService: 基本的なレンダリング', () => {
     css: '.markdown-body { color: #000; }'
   };
 
-  const html = service.render(markdown, theme);
+  const html = await service.render(markdown, theme);
 
   // テーマが適用されているか
   assertStringIncludes(html, 'theme-light');
@@ -26,7 +26,7 @@ Deno.test('MarkdownService: 基本的なレンダリング', () => {
   assertStringIncludes(html, '<style>');
 });
 
-Deno.test('MarkdownService: XSS防御統合テスト', () => {
+Deno.test('MarkdownService: XSS防御統合テスト', async () => {
   const service = new MarkdownService();
   const malicious = '[Click me](javascript:alert("XSS"))';
   const theme: ThemeData = {
@@ -34,7 +34,7 @@ Deno.test('MarkdownService: XSS防御統合テスト', () => {
     css: ''
   };
 
-  const html = service.render(malicious, theme);
+  const html = await service.render(malicious, theme);
 
   // javascript:がサニタイズされているか
   assertEquals(html.includes('javascript:'), false);
@@ -42,7 +42,7 @@ Deno.test('MarkdownService: XSS防御統合テスト', () => {
   assertStringIncludes(html, 'Click me');
 });
 
-Deno.test('MarkdownService: 複雑なMarkdown統合テスト', () => {
+Deno.test('MarkdownService: 複雑なMarkdown統合テスト', async () => {
   const service = new MarkdownService();
   const markdown = `# Title
 
@@ -64,7 +64,7 @@ console.log('code');
     css: ''
   };
 
-  const html = service.render(markdown, theme);
+  const html = await service.render(markdown, theme);
 
   // 全ての要素が含まれているか
   assertStringIncludes(html, '<h1');
@@ -78,7 +78,7 @@ console.log('code');
   assertStringIncludes(html, 'theme-dark');
 });
 
-Deno.test('MarkdownService: 空文字列処理', () => {
+Deno.test('MarkdownService: 空文字列処理', async () => {
   const service = new MarkdownService();
   const markdown = '';
   const theme: ThemeData = {
@@ -86,7 +86,7 @@ Deno.test('MarkdownService: 空文字列処理', () => {
     css: ''
   };
 
-  const html = service.render(markdown, theme);
+  const html = await service.render(markdown, theme);
 
   // テーマコンテナは存在するか
   assertStringIncludes(html, 'markdown-body');

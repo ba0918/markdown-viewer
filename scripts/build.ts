@@ -16,13 +16,27 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   bundle: true,
   format: 'esm',
   target: 'chrome120',
+  platform: "browser",
   minify: true,
   sourcemap: true,
+  define: {
+    "global": "globalThis",
+    "process.env.NODE_ENV": '"production"',
+  },
   jsxFactory: 'h',
   jsxFragment: 'Fragment',
+  mainFields: ['browser', 'module', 'main'],
+  conditions: ['browser', 'import', 'module', 'default'],
+  // Node.js の組み込みモジュールを空のモジュールに置き換え
+  alias: {
+    'path': 'https://deno.land/std@0.208.0/path/mod.ts',
+  },
   plugins: [...denoPlugins({
     configPath
-  })]
+  })],
+  supported: {
+    'dynamic-import': true,
+  }
 };
 
 console.log('🔨 Building Markdown Viewer...\n');
@@ -65,6 +79,16 @@ try {
   });
   console.log('✅ popup.js built');
 
+  // Options Script
+  console.log('📦 Building options script...');
+  await esbuild.build({
+    ...commonConfig,
+    entryPoints: ['src/settings/options/index.tsx'],
+    outfile: 'dist/options.js',
+    platform: 'browser'
+  });
+  console.log('✅ options.js built');
+
   // manifest.jsonをdist/にコピー
   console.log('📄 Copying manifest.json...');
   await Deno.copyFile('manifest.json', 'dist/manifest.json');
@@ -72,8 +96,8 @@ try {
 
   // HTMLファイルをdist/にコピー
   console.log('📄 Copying HTML files...');
-  await Deno.copyFile('popup.html', 'dist/popup.html');
-  await Deno.copyFile('options.html', 'dist/options.html');
+  await Deno.copyFile('src/settings/popup/popup.html', 'dist/popup.html');
+  await Deno.copyFile('src/settings/options/options.html', 'dist/options.html');
   console.log('✅ HTML files copied');
 
   // CSSファイルをdist/にコピー (Phase 3: 6テーマ対応)

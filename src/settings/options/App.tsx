@@ -2,14 +2,15 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { sendMessage } from '../../messaging/client.ts';
 import { ThemeSelector } from './components/ThemeSelector.tsx';
+import { HotReloadSettings } from './components/HotReloadSettings.tsx';
 import type { AppState } from '../../shared/types/state.ts';
 import type { Theme } from '../../shared/types/theme.ts';
 
 /**
- * Popup メインコンポーネント
+ * Options メインコンポーネント
  *
  * 責務: messaging I/O のみ、UI状態管理
- * レイヤー: settings/popup層
+ * レイヤー: settings/options層
  *
  * ❌ 絶対禁止: services/domain直接呼び出し
  * ✅ OK: messaging経由でのみ通信
@@ -18,6 +19,7 @@ export const App = () => {
   const [settings, setSettings] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   // 初期設定の読み込み
   useEffect(() => {
@@ -43,19 +45,42 @@ export const App = () => {
   const handleThemeChange = async (theme: Theme) => {
     try {
       setError(null);
+      setSaveMessage(null);
       await sendMessage({
         type: 'UPDATE_THEME',
         payload: { themeId: theme },
       });
       setSettings({ ...settings!, theme });
+      setSaveMessage('テーマを保存しました ✓');
+      setTimeout(() => setSaveMessage(null), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update theme');
     }
   };
 
+  const handleHotReloadChange = async (
+    enabled: boolean,
+    interval?: number,
+    autoReload?: boolean
+  ) => {
+    try {
+      setError(null);
+      setSaveMessage(null);
+
+      // Hot Reload設定の更新
+      // TODO: Phase 3-3で実装
+      console.log('Hot Reload settings:', { enabled, interval, autoReload });
+
+      setSaveMessage('設定を保存しました ✓');
+      setTimeout(() => setSaveMessage(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update hot reload settings');
+    }
+  };
+
   if (loading) {
     return (
-      <div class="popup">
+      <div class="options">
         <div class="loading">読み込み中...</div>
       </div>
     );
@@ -63,7 +88,7 @@ export const App = () => {
 
   if (error) {
     return (
-      <div class="popup">
+      <div class="options">
         <div class="error">
           エラー: {error}
           <button onClick={loadSettings} class="retry-btn">
@@ -76,25 +101,53 @@ export const App = () => {
 
   if (!settings) {
     return (
-      <div class="popup">
+      <div class="options">
         <div class="error">設定を読み込めませんでした</div>
       </div>
     );
   }
 
   return (
-    <div class="popup">
+    <div class="options">
       <header class="header">
-        <h1 class="title">🎨 Markdown Viewer</h1>
-        <p class="subtitle">クイック設定</p>
+        <h1 class="title">⚙️ Markdown Viewer 設定</h1>
+        <p class="subtitle">詳細な設定を行えます</p>
       </header>
 
       <main class="content">
-        <ThemeSelector current={settings.theme} onChange={handleThemeChange} />
+        {saveMessage && <div class="save-message">{saveMessage}</div>}
+
+        <section class="section">
+          <h2 class="section-title">外観</h2>
+          <ThemeSelector current={settings.theme} onChange={handleThemeChange} />
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">開発者向け機能</h2>
+          <HotReloadSettings
+            enabled={false}
+            interval={1000}
+            autoReload={true}
+            onChange={handleHotReloadChange}
+          />
+        </section>
       </main>
 
       <footer class="footer">
         <div class="version">v0.3.0 (Phase 3)</div>
+        <div class="links">
+          <a
+            href="https://github.com/yourusername/ba-markdown-viewer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+          {' | '}
+          <a href="#" onClick={(e) => { e.preventDefault(); chrome.runtime.openOptionsPage(); }}>
+            設定を開く
+          </a>
+        </div>
       </footer>
     </div>
   );

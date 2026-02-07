@@ -25,7 +25,7 @@ export const handleBackgroundMessage = async (
       case 'RENDER_MARKDOWN': {
         // ✅ OK: serviceに委譲するだけ
         const theme = loadTheme(message.payload.themeId);
-        const html = markdownService.render(
+        const html = await markdownService.render(
           message.payload.markdown,
           theme
         );

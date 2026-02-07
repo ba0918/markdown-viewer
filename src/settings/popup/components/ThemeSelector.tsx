@@ -16,6 +16,10 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
   const themes: { id: Theme; label: string; emoji: string }[] = [
     { id: 'light', label: 'Light', emoji: '☀️' },
     { id: 'dark', label: 'Dark', emoji: '🌙' },
+    { id: 'github', label: 'GitHub', emoji: '🐙' },
+    { id: 'minimal', label: 'Minimal', emoji: '📝' },
+    { id: 'solarized-light', label: 'Solarized Light', emoji: '🌅' },
+    { id: 'solarized-dark', label: 'Solarized Dark', emoji: '🌃' },
   ];
 
   return (

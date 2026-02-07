@@ -22,13 +22,13 @@ export class MarkdownService {
    * @param theme - テーマデータ
    * @returns テーマ適用済み・サニタイズ済みHTML文字列
    */
-  render(markdown: string, theme: ThemeData): string {
+  async render(markdown: string, theme: ThemeData): Promise<string> {
     // 1. Markdown解析（domain/markdown）
     const parsed = parseMarkdown(markdown);
 
     // 2. サニタイズ（domain/markdown）
     // セキュリティファースト: 全Markdown描画でDOMPurify必須
-    const sanitized = sanitizeHTML(parsed);
+    const sanitized = await sanitizeHTML(parsed);
 
     // 3. テーマ適用（domain/theme）
     return applyTheme(sanitized, theme);
