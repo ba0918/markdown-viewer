@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 06:46:52
+**Last Updated:** 2026-02-08 07:47:00
 
 ---
 
@@ -8,23 +8,24 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208063257` |
-| **Feature** | GitHub Flavored Markdown (GFM) 完全対応 |
-| **Started** | 2026-02-08 06:32:57 |
-| **Completed** | 2026-02-08 06:46:52 |
-| **Phase** | 🟢 Completed |
-| **Plan** | [docs/cycles/20260208063257_gfm-complete-implementation.md](./cycles/20260208063257_gfm-complete-implementation.md) |
+| **Cycle ID** | `20260208065017` |
+| **Feature** | MathJax数式表示機能 |
+| **Started** | 2026-02-08 06:50:17 |
+| **Phase** | 🟡 In Progress |
+| **Plan** | [docs/cycles/20260208065017_mathjax-math-rendering.md](./cycles/20260208065017_mathjax-math-rendering.md) |
 
-**成果:**
-✅ Unit Tests実装（parser.test.ts +9、sanitizer.test.ts +6）
-✅ CSS Styling実装（全6テーマにGFMスタイル追加）
-✅ Security実装（sanitizer.ts に <del>, <input> ホワイトリスト追加）
-✅ E2E Tests実装（gfm-rendering.spec.ts 7テスト通過）
-✅ 全80テスト通過（Unit 73 + E2E 7）
+**Current Focus:**
+方針転換: CDN版MathJax → mathjax-full + SVG出力。Content Scriptコンテキスト分離問題を回避。完全バンドル可能でフォント情報もJS埋め込み。WIPコミット3つをリセットし、mathjax-full版で再実装開始。
 
 ---
 
 ## 📜 Session History
+
+### 20260208065017 - MathJax数式表示機能
+- **Started:** 2026-02-08 06:50:17
+- **Phase:** 🟡 Planning
+- **Summary:** LaTeX数式（`$...$`, `$$...$$`）をMathJaxで美しくレンダリング。Dynamic Importで必要時のみロード、非同期処理で適切にレンダリング。
+- **Plan:** [docs/cycles/20260208065017_mathjax-math-rendering.md](./cycles/20260208065017_mathjax-math-rendering.md)
 
 ### 20260208063257 - GitHub Flavored Markdown (GFM) 完全対応
 - **Started:** 2026-02-08 06:32:57
