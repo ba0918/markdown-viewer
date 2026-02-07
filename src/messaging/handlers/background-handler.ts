@@ -20,8 +20,8 @@ export const handleBackgroundMessage = async (
     switch (message.type) {
       case 'RENDER_MARKDOWN': {
         // ✅ OK: serviceに委譲するだけ
-        const theme = await loadTheme(message.payload.themeId);
-        const html = await markdownService.render(
+        const theme = loadTheme(message.payload.themeId);
+        const html = markdownService.render(
           message.payload.markdown,
           theme
         );
@@ -30,7 +30,7 @@ export const handleBackgroundMessage = async (
 
       case 'LOAD_THEME': {
         // ✅ OK: domainに委譲するだけ（軽量な処理のため直接呼び出しOK）
-        const theme = await loadTheme(message.payload.themeId);
+        const theme = loadTheme(message.payload.themeId);
         return { success: true, data: theme };
       }
 

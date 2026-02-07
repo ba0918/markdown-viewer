@@ -1,10 +1,16 @@
 import * as esbuild from 'esbuild';
+import { denoPlugins } from 'esbuild-deno-loader';
 import { exists } from 'https://deno.land/std@0.208.0/fs/mod.ts';
+import { fromFileUrl } from 'https://deno.land/std@0.208.0/path/mod.ts';
 
 /**
  * ビルドスクリプト
  * esbuildを使用してTypeScriptをバンドル
  */
+
+// プロジェクトルートの絶対パスを取得
+const projectRoot = fromFileUrl(new URL('../', import.meta.url));
+const configPath = `${projectRoot}deno.json`;
 
 const commonConfig: Partial<esbuild.BuildOptions> = {
   bundle: true,
@@ -14,7 +20,10 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   sourcemap: true,
   jsxFactory: 'h',
   jsxFragment: 'Fragment',
-  jsxImportSource: 'preact'
+  jsxImportSource: 'preact',
+  plugins: [...denoPlugins({
+    configPath
+  })]
 };
 
 console.log('🔨 Building Markdown Viewer...\n');
@@ -47,11 +56,29 @@ try {
   });
   console.log('✅ content.js built');
 
+  // manifest.jsonをdist/にコピー
+  console.log('📄 Copying manifest.json...');
+  await Deno.copyFile('manifest.json', 'dist/manifest.json');
+  console.log('✅ manifest.json copied');
+
+  // CSSファイルをdist/にコピー
+  console.log('🎨 Copying CSS files...');
+  await Deno.mkdir('dist/content/styles/themes', { recursive: true });
+  await Deno.copyFile(
+    'src/content/styles/themes/light.css',
+    'dist/content/styles/themes/light.css'
+  );
+  await Deno.copyFile(
+    'src/content/styles/themes/dark.css',
+    'dist/content/styles/themes/dark.css'
+  );
+  console.log('✅ CSS files copied');
+
   console.log('\n🎉 Build completed successfully!');
   console.log('\n📋 Next steps:');
   console.log('1. Load extension in Chrome: chrome://extensions/');
   console.log('2. Enable "Developer mode"');
-  console.log('3. Click "Load unpacked" and select this directory');
+  console.log('3. Click "Load unpacked" and select the "dist" directory');
 
 } catch (error) {
   console.error('❌ Build failed:', error);

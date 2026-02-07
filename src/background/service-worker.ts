@@ -1,3 +1,5 @@
+/// <reference types="@types/chrome" />
+
 import { handleBackgroundMessage } from '../messaging/handlers/background-handler.ts';
 
 /**

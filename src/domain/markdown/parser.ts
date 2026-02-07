@@ -18,8 +18,9 @@ import { marked } from 'marked';
 export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,           // GitHub Flavored Markdown有効化
-    breaks: true,        // 改行をbrタグに変換
-    sanitize: false      // DOMPurifyで処理するため無効化
+    breaks: true         // 改行をbrタグに変換
+    // sanitizeオプションはmarked v11で削除されたため不要
+    // DOMPurifyで別途サニタイズを実行
   });
 
   return marked.parse(markdown) as string;

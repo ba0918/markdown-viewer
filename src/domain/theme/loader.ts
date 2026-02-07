@@ -48,6 +48,6 @@ const THEMES: Record<string, ThemeData> = {
  * @param themeId - テーマID（未指定時はlight）
  * @returns テーマデータ
  */
-export const loadTheme = async (themeId?: string): Promise<ThemeData> => {
+export const loadTheme = (themeId?: string): ThemeData => {
   return THEMES[themeId || 'light'] || THEMES.light;
 };

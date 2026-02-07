@@ -22,7 +22,7 @@ export class MarkdownService {
    * @param theme - テーマデータ
    * @returns テーマ適用済み・サニタイズ済みHTML文字列
    */
-  async render(markdown: string, theme: ThemeData): Promise<string> {
+  render(markdown: string, theme: ThemeData): string {
     // 1. Markdown解析（domain/markdown）
     const parsed = parseMarkdown(markdown);
 
