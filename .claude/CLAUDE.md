@@ -93,8 +93,14 @@ deno task test
 # テスト（watchモード）
 deno task test:watch
 
-# E2Eテスト
+# E2Eテスト（Playwright）
 deno task test:e2e
+
+# E2Eテスト（WSL2環境下: xvfb使用）
+deno task test:e2e:wsl2
+
+# 特定のE2Eテストファイルを実行
+deno task test:e2e:wsl2 tests/e2e/gfm-rendering.spec.ts
 
 # リンティング
 deno task lint
@@ -120,6 +126,31 @@ deno coverage coverage --lcov > coverage.lcov
 - **特定ファイルのテストの場合のみ**直接実行可
   - 例: `deno test src/background/state-manager.test.ts --no-check --allow-all`
   - ただし、権限とフラグを忘れずに指定すること
+
+**⚠️ E2Eテストの重要情報**
+
+- **E2Eテストの場所**: `tests/e2e/` ディレクトリ
+  - テストファイル: `tests/e2e/*.spec.ts` (例: `gfm-rendering.spec.ts`)
+  - フィクスチャ: `tests/e2e/fixtures/` (テスト用Markdownファイル等)
+  - ヘルパー関数: `tests/e2e/helpers/extension-helpers.ts`
+  - Playwright設定: `playwright.config.ts` (プロジェクトルート)
+
+- **E2Eテストの実行環境**
+  - Playwrightを使用してChrome拡張をロード
+  - ローカルHTTPサーバー経由でテスト（`testServerUrl`）
+  - WSL2環境では `xvfb-run` が必要
+
+- **E2Eテストの書き方**
+  ```typescript
+  import { test, expect } from './fixtures.ts';
+  import { openMarkdownFile, expectMarkdownRendered } from './helpers/extension-helpers.ts';
+
+  test('テスト名', async ({ page, testServerUrl }) => {
+    await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
+    await expectMarkdownRendered(page);
+    // assertions...
+  });
+  ```
 
 ### Chrome拡張として読み込み
 
