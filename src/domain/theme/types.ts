@@ -4,6 +4,6 @@
 export interface ThemeData {
   /** テーマID */
   id: string;
-  /** テーマCSS */
-  css: string;
+  /** テーマCSSファイルのパス（chrome.runtime.getURL() で解決する相対パス） */
+  cssPath: string;
 }

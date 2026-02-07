@@ -5,6 +5,9 @@ import type { ThemeData } from '../domain/theme/types.ts';
 /**
  * Markdown Service テスト
  * ドメイン層の組み合わせをテスト
+ *
+ * 注: CSSファイルの読み込みはcontent層の責務。
+ * services層ではテーマクラスの付与のみをテスト。
  */
 
 Deno.test('MarkdownService: 基本的なレンダリング', async () => {
@@ -12,18 +15,17 @@ Deno.test('MarkdownService: 基本的なレンダリング', async () => {
   const markdown = '# Hello\n\nThis is **bold**.';
   const theme: ThemeData = {
     id: 'light',
-    css: '.markdown-body { color: #000; }'
+    cssPath: 'content/styles/themes/light.css'
   };
 
   const html = await service.render(markdown, theme);
 
   // テーマが適用されているか
   assertStringIncludes(html, 'theme-light');
+  assertStringIncludes(html, 'markdown-body');
   // Markdown変換されているか
   assertStringIncludes(html, '<h1');
   assertStringIncludes(html, '<strong>bold</strong>');
-  // CSSが含まれているか
-  assertStringIncludes(html, '<style>');
 });
 
 Deno.test('MarkdownService: XSS防御統合テスト', async () => {
@@ -31,7 +33,7 @@ Deno.test('MarkdownService: XSS防御統合テスト', async () => {
   const malicious = '[Click me](javascript:alert("XSS"))';
   const theme: ThemeData = {
     id: 'light',
-    css: ''
+    cssPath: 'content/styles/themes/light.css'
   };
 
   const html = await service.render(malicious, theme);
@@ -61,7 +63,7 @@ console.log('code');
 `;
   const theme: ThemeData = {
     id: 'dark',
-    css: ''
+    cssPath: 'content/styles/themes/dark.css'
   };
 
   const html = await service.render(markdown, theme);
@@ -83,7 +85,7 @@ Deno.test('MarkdownService: 空文字列処理', async () => {
   const markdown = '';
   const theme: ThemeData = {
     id: 'light',
-    css: ''
+    cssPath: 'content/styles/themes/light.css'
   };
 
   const html = await service.render(markdown, theme);
@@ -91,4 +93,24 @@ Deno.test('MarkdownService: 空文字列処理', async () => {
   // テーマコンテナは存在するか
   assertStringIncludes(html, 'markdown-body');
   assertStringIncludes(html, 'theme-light');
+});
+
+Deno.test('MarkdownService: シンタックスハイライト統合テスト', async () => {
+  const service = new MarkdownService();
+  const markdown = `\`\`\`javascript
+const hello = "world";
+console.log(hello);
+\`\`\``;
+  const theme: ThemeData = {
+    id: 'github',
+    cssPath: 'content/styles/themes/github.css'
+  };
+
+  const html = await service.render(markdown, theme);
+
+  // シンタックスハイライトが適用されているか（highlight.jsのクラスが含まれる）
+  assertStringIncludes(html, 'hljs');
+  // コードブロックの内容が保持されているか
+  assertStringIncludes(html, 'hello');
+  assertStringIncludes(html, 'world');
 });
