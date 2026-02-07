@@ -85,25 +85,26 @@ src/
 
 ## 📊 Progress
 
-### Phase 3-1: Theme System (1日目)
+### Phase 3-1: Theme System (1日目) ✅
 
 | Task | Status |
 |------|--------|
-| 型定義更新 (theme.ts) | ⚪ |
-| CSS 4ファイル作成 | ⚪ |
-| loader.ts 更新 | ⚪ |
-| テスト追加 | ⚪ |
-| Build script 更新 | ⚪ |
+| 型定義更新 (theme.ts) | 🟢 |
+| CSS 4ファイル作成 | 🟢 |
+| loader.ts 更新 | 🟢 |
+| テスト追加 | 🟢 |
+| Build script 更新 | 🟢 |
 
-### Phase 3-2: Options UI (2日目)
+### Phase 3-2: Options UI (2日目) ✅
 
 | Task | Status |
 |------|--------|
-| Options コンポーネント作成 | ⚪ |
-| ThemeSelector 実装 | ⚪ |
-| HotReloadSettings 実装 | ⚪ |
-| options.html 更新 | ⚪ |
-| Build script 更新 | ⚪ |
+| Options コンポーネント作成 | 🟢 |
+| ThemeSelector 実装 | 🟢 |
+| HotReloadSettings 実装 | 🟢 |
+| options.html 更新 | 🟢 |
+| Build script 更新 | 🟢 |
+| Popup ThemeSelector拡張 | 🟢 |
 
 ### Phase 3-3: Hot Reload (3日目)
 
