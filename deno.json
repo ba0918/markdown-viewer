@@ -4,7 +4,7 @@
     "build": "deno run --allow-all scripts/build.ts",
     "test": "deno test --allow-all",
     "test:watch": "deno test --allow-all --watch",
-    "test:e2e": "playwright test",
+    "test:e2e": "xvfb-run --auto-servernum --server-args=\"-screen 0 1280x960x24\" playwright test",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "bundle": "deno task build && deno run --allow-all scripts/bundle.ts"

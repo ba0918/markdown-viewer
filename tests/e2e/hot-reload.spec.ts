@@ -3,19 +3,16 @@
  * @description Hot Reload機能のE2Eテスト
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.ts';
 import { resolve } from 'node:path';
-import { writeFile, readFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import {
-  waitForExtensionLoad,
   openMarkdownFile,
-  getExtensionId,
   openOptionsPage,
 } from './helpers/extension-helpers.ts';
 
 // テスト用Markdownファイルのパス
 const TEST_MD_PATH = resolve(process.cwd(), 'tests/e2e/fixtures/hot-reload-test.md');
-const TEST_MD_URL = `file://${TEST_MD_PATH}`;
 
 // 元のMarkdownコンテンツ
 const ORIGINAL_CONTENT = `# Hot Reload Test
@@ -30,10 +27,10 @@ const UPDATED_CONTENT = `# Hot Reload Test
 `;
 
 test.describe('Hot Reload', () => {
-  test.beforeEach(async ({ context }) => {
-    // Chrome拡張がロードされるまで待機
-    await waitForExtensionLoad(context);
+  // Hot Reloadテストは時間がかかるため、タイムアウトを120秒に延長
+  test.setTimeout(120000);
 
+  test.beforeEach(async () => {
     // テスト用Markdownファイルを作成（元のコンテンツ）
     await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, 'utf-8');
   });
@@ -43,24 +40,33 @@ test.describe('Hot Reload', () => {
     await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, 'utf-8');
   });
 
-  test('Hot Reload有効時、ファイル変更で自動リロードされる', async ({ page, context }) => {
-    // 拡張機能IDを取得
-    const extensionId = await getExtensionId(context);
+  test('Hot Reload有効時、ファイル変更で自動リロードされる', async ({ page, context, extensionId, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/hot-reload-test.md`;
 
     // Options画面でHot Reloadを有効化
     const optionsPage = await context.newPage();
     await openOptionsPage(optionsPage, extensionId);
 
-    // Hot Reloadトグルを有効化
-    const hotReloadToggle = optionsPage.locator('input[type="checkbox"]#hotReloadEnabled');
-    await hotReloadToggle.check();
+    // Hot Reloadトグルボタンを探す（aria-labelで探す）
+    const hotReloadToggle = optionsPage.getByLabel(/Hot Reload有効化|Hot Reload無効化/);
 
-    // 設定が保存されるまで少し待機
-    await optionsPage.waitForTimeout(500);
+    // トグルボタンが表示されるまで待機
+    await hotReloadToggle.waitFor({ state: 'visible', timeout: 10000 });
+
+    // 現在の状態を確認（activeクラスがあるかチェック）
+    const isActive = await hotReloadToggle.evaluate((el) => el.classList.contains('active'));
+
+    // 無効の場合のみクリック
+    if (!isActive) {
+      await hotReloadToggle.click();
+      // クリック後、設定が反映されるまで待機
+      await optionsPage.waitForTimeout(1000);
+    }
+
     await optionsPage.close();
 
     // Markdownファイルを開く
-    await openMarkdownFile(page, TEST_MD_URL);
+    await openMarkdownFile(page, testUrl);
 
     // 元のコンテンツが表示されているか確認
     await expect(page.locator('p:has-text("Original content.")')).toBeVisible();
@@ -90,23 +96,32 @@ test.describe('Hot Reload', () => {
     expect(hasDetectedLog).toBe(true);
   });
 
-  test('Hot Reload無効時、ファイル変更してもリロードされない', async ({ page, context }) => {
-    // 拡張機能IDを取得
-    const extensionId = await getExtensionId(context);
+  test('Hot Reload無効時、ファイル変更してもリロードされない', async ({ page, context, extensionId, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/hot-reload-test.md`;
 
     // Options画面でHot Reloadを無効化（デフォルトで無効のはず）
     const optionsPage = await context.newPage();
     await openOptionsPage(optionsPage, extensionId);
 
-    // Hot Reloadトグルを無効化
-    const hotReloadToggle = optionsPage.locator('input[type="checkbox"]#hotReloadEnabled');
-    await hotReloadToggle.uncheck();
+    // Hot Reloadトグルボタンを探す
+    const hotReloadToggle = optionsPage.getByLabel(/Hot Reload有効化|Hot Reload無効化/);
 
-    await optionsPage.waitForTimeout(500);
+    // トグルボタンが表示されるまで待機
+    await hotReloadToggle.waitFor({ state: 'visible', timeout: 10000 });
+
+    // 現在の状態を確認
+    const isActive = await hotReloadToggle.evaluate((el) => el.classList.contains('active'));
+
+    // 有効の場合のみクリックして無効化
+    if (isActive) {
+      await hotReloadToggle.click();
+      await optionsPage.waitForTimeout(1000);
+    }
+
     await optionsPage.close();
 
     // Markdownファイルを開く
-    await openMarkdownFile(page, TEST_MD_URL);
+    await openMarkdownFile(page, testUrl);
 
     // 元のコンテンツが表示されているか確認
     await expect(page.locator('p:has-text("Original content.")')).toBeVisible();
