@@ -76,18 +76,18 @@ try {
   await Deno.copyFile('options.html', 'dist/options.html');
   console.log('✅ HTML files copied');
 
-  // CSSファイルをdist/にコピー
+  // CSSファイルをdist/にコピー (Phase 3: 6テーマ対応)
   console.log('🎨 Copying CSS files...');
   await Deno.mkdir('dist/content/styles/themes', { recursive: true });
-  await Deno.copyFile(
-    'src/content/styles/themes/light.css',
-    'dist/content/styles/themes/light.css'
-  );
-  await Deno.copyFile(
-    'src/content/styles/themes/dark.css',
-    'dist/content/styles/themes/dark.css'
-  );
-  console.log('✅ CSS files copied');
+
+  const themes = ['light', 'dark', 'github', 'minimal', 'solarized-light', 'solarized-dark'];
+  for (const theme of themes) {
+    await Deno.copyFile(
+      `src/content/styles/themes/${theme}.css`,
+      `dist/content/styles/themes/${theme}.css`
+    );
+  }
+  console.log('✅ CSS files copied (6 themes)');
 
   // アイコンをdist/にコピー
   console.log('🎨 Copying icons...');

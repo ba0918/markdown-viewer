@@ -6,5 +6,5 @@ export type Theme =
   | 'dark'
   | 'github'
   | 'minimal'
-  | 'solarized_light'
-  | 'solarized_dark';
+  | 'solarized-light'
+  | 'solarized-dark';
