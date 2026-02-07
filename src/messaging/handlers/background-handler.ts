@@ -1,6 +1,10 @@
 import { markdownService } from '../../services/markdown-service.ts';
 import { loadTheme } from '../../domain/theme/loader.ts';
+import { StateManager } from '../../background/state-manager.ts';
 import type { Message, MessageResponse } from '../types.ts';
+
+// StateManagerのインスタンス
+const stateManager = new StateManager();
 
 /**
  * background層のメッセージハンドラ
@@ -35,8 +39,22 @@ export const handleBackgroundMessage = async (
       }
 
       case 'UPDATE_THEME': {
-        // TODO: StateManagerで永続化する（Phase 3で実装）
+        // ✅ StateManagerで永続化
+        await stateManager.updateTheme(message.payload.themeId);
         return { success: true, data: null };
+      }
+
+      case 'GET_SETTINGS': {
+        // ✅ 現在の設定を取得
+        const settings = await stateManager.load();
+        return { success: true, data: settings };
+      }
+
+      case 'UPDATE_SETTINGS': {
+        // ✅ 設定を更新
+        await stateManager.save(message.payload);
+        const updated = await stateManager.load();
+        return { success: true, data: updated };
       }
 
       default:

@@ -1,4 +1,5 @@
 import type { Theme } from './theme.ts';
+import type { AppState } from './state.ts';
 
 /**
  * メッセージ型定義
@@ -6,7 +7,9 @@ import type { Theme } from './theme.ts';
 export type Message =
   | { type: 'RENDER_MARKDOWN'; payload: { markdown: string; themeId?: string } }
   | { type: 'LOAD_THEME'; payload: { themeId: string } }
-  | { type: 'UPDATE_THEME'; payload: Theme };
+  | { type: 'UPDATE_THEME'; payload: { themeId: Theme } }
+  | { type: 'GET_SETTINGS'; payload: Record<string, never> }
+  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppState> };
 
 /**
  * メッセージレスポンス型定義

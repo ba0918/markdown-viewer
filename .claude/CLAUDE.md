@@ -30,14 +30,11 @@ deno task dev
 # ビルド
 deno task build
 
-# テスト実行
+# テスト実行（必ず deno task test を使う！）
 deno task test
 
 # テスト（watchモード）
 deno task test:watch
-
-# 特定ファイルのテスト
-deno test src/domain/markdown/sanitizer.test.ts
 
 # E2Eテスト
 deno task test:e2e
@@ -52,9 +49,20 @@ deno task fmt
 deno task bundle
 
 # テストカバレッジ
-deno test --coverage=coverage
+deno task test --coverage=coverage
 deno coverage coverage --lcov > coverage.lcov
 ```
+
+**⚠️ テスト実行の重要ルール**
+
+- **必ず `deno task test` を使うこと**
+  - `deno test` を直接使うと型チェックで失敗する
+  - `deno.json` の `tasks.test` に `--allow-all` が設定されている
+  - Chrome API モック等、必要な権限が全て含まれている
+
+- **特定ファイルのテストの場合のみ**直接実行可
+  - 例: `deno test src/background/state-manager.test.ts --no-check --allow-all`
+  - ただし、権限とフラグを忘れずに指定すること
 
 ### Chrome拡張として読み込み
 
