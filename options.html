@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Viewer - Options</title>
+  <style>
+    body {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    h1 {
+      font-size: 32px;
+      margin: 0 0 8px 0;
+      color: #1f2937;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 18px;
+      margin-bottom: 32px;
+    }
+    .info-box {
+      padding: 24px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .info-box h2 {
+      margin: 0 0 12px 0;
+      font-size: 20px;
+      color: #374151;
+    }
+    .info-box p {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    .status {
+      padding: 16px;
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      color: #047857;
+    }
+    .status strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .coming-soon {
+      padding: 16px;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      color: #92400e;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚙️ Markdown Viewer Settings</h1>
+  <p class="subtitle">セキュリティファーストなローカルMarkdownビューア</p>
+
+  <div class="status">
+    <strong>✅ Phase 1 (MVP) 完成</strong>
+    基本的なMarkdown表示機能が動作しています
+  </div>
+
+  <div class="info-box">
+    <h2>📋 実装済み機能</h2>
+    <p>
+      ✅ Markdown → HTML変換（marked v11）<br>
+      ✅ XSS対策サニタイゼーション（isomorphic-dompurify）<br>
+      ✅ テーマシステム（light/dark）<br>
+      ✅ セキュリティファースト設計<br>
+      ✅ TDD（全26件テスト通過）
+    </p>
+  </div>
+
+  <div class="info-box">
+    <h2>🎨 使い方</h2>
+    <p>
+      1. .md または .markdown ファイルをChromeで開く<br>
+      2. 自動的にMarkdownがレンダリングされます<br>
+      3. XSS攻撃は自動的にブロックされます
+    </p>
+  </div>
+
+  <div class="coming-soon">
+    <strong>🚧 Phase 2で実装予定</strong><br>
+    - テーマ切り替えUI<br>
+    - ホットリロード機能<br>
+    - 詳細設定オプション
+  </div>
+
+  <div style="margin-top: 32px; text-align: center; color: #9ca3af; font-size: 14px;">
+    Markdown Viewer v0.1.0 | Built with Deno 2.x + esbuild
+  </div>
+</body>
+</html>
