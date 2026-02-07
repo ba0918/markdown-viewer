@@ -32,7 +32,8 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
     'path': 'https://deno.land/std@0.208.0/path/mod.ts',
   },
   plugins: [...denoPlugins({
-    configPath
+    configPath,
+    importMapURL: new URL('../deno.json', import.meta.url).href,
   })],
   supported: {
     'dynamic-import': true,
