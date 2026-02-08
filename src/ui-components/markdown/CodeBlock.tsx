@@ -28,7 +28,7 @@ export const CodeBlock = ({ code, language, className }: Props) => {
     <div class={blockClassName}>
       <CopyButton
         text={code}
-        className="code-block-copy-button"
+        className="copy-button code-block-copy-button"
         ariaLabel="Copy code to clipboard"
         title="Copy code"
       />

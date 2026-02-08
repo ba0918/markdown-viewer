@@ -14,12 +14,9 @@
   top: 0.5rem;
   right: 0.5rem;
   z-index: 10;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.code-block-wrapper:hover .code-block-copy-button {
+  /* 常時表示（Rawモードと統一） */
   opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 /* コードブロックの基本スタイルは既存のmarkdown.cssを使用 */

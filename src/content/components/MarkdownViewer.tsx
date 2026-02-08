@@ -88,7 +88,7 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
       render(
         <CopyButton
           text={code}
-          className="code-block-copy-button"
+          className="copy-button code-block-copy-button"
           ariaLabel="Copy code to clipboard"
           title="Copy code"
         />,
@@ -163,7 +163,7 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
         }
       })();
     }
-  }, [result.html, themeId.value]);
+  }, [result.html, themeId.value, viewMode]);
 
   return (
     <div class={`markdown-viewer-layout theme-${themeId.value}`}>
