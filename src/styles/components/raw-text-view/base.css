@@ -4,17 +4,22 @@
  * シンプルなプレーンテキスト表示 + 控えめなコピーアイコン
  */
 
+/* CopyButton共通スタイルをインポート */
+@import "../copy-button/base.css";
+
 .raw-text-view {
   padding: 0;
   min-height: 100vh;
   position: relative;
 }
 
+/* RawTextView専用のポジショニング（copy-buttonベースを拡張） */
 .raw-text-copy-button {
   position: fixed;
   top: calc(56px + 0.75rem); /* DocumentHeader height + padding */
   right: 1.5rem;
   z-index: 100;
+  /* 基本スタイルは .copy-button から継承 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,11 +50,6 @@
 .raw-text-copy-button:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
-}
-
-.copy-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .raw-text-content {

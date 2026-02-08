@@ -187,11 +187,6 @@ try {
     "solarized-dark",
   ];
 
-  // CopyButton CSS を読み込み（全テーマ共通）
-  const copyButtonCss = await Deno.readTextFile(
-    "src/ui-components/shared/CopyButton.css",
-  );
-
   for (const theme of themeNames) {
     // 1. テーマ固有のエントリーポイント生成（動的に@import）
     const entryContent = `/**
@@ -215,9 +210,6 @@ try {
 ${interFontCss}
 
 ${jetbrainsFontCss}
-
-/* CopyButton (共通スタイル) */
-${copyButtonCss}
 `;
 
     // 2. PostCSS処理（@import解決）

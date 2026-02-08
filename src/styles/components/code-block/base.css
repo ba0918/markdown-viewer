@@ -4,6 +4,9 @@
  * コードブロック + コピーボタンのスタイル
  */
 
+/* CopyButton共通スタイルをインポート */
+@import "../copy-button/base.css";
+
 .code-block-wrapper {
   position: relative;
   margin: 1.5em 0;

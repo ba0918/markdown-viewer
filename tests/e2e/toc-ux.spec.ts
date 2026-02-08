@@ -176,13 +176,14 @@ test.describe("ToC UX Improvements", () => {
     await openMarkdownFile(page, testUrl);
     await expectMarkdownRendered(page);
 
-    // ToCコンテナが存在し、テーマクラスが適用されていることを確認
+    // ToCコンテナが存在することを確認
+    // PostCSS移行後はCSS変数ベースでテーマ切り替えを行うため、
+    // toc-theme-*クラスは不要（テーマ別クラスではなくCSS変数で制御）
     const tocContainer = page.locator(".toc-container");
-    const classes = await tocContainer.getAttribute("class");
+    await expect(tocContainer).toBeVisible();
 
-    // 少なくともtoc-containerクラスとtoc-theme-*クラスが存在することを確認
+    const classes = await tocContainer.getAttribute("class");
     expect(classes).toContain("toc-container");
-    expect(classes).toMatch(/toc-theme-/);
   });
 
   test("折りたたみ状態: リロード後も状態が保持される", async ({ page, testServerUrl }) => {
