@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 08:08:24
+**Last Updated:** 2026-02-08 09:18:35
 
 ---
 
@@ -8,18 +8,24 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208080824` |
-| **Feature** | Mermaidダイアグラム機能（Dynamic Import） |
-| **Started** | 2026-02-08 08:08:24 |
+| **Cycle ID** | `20260208091700` |
+| **Feature** | テーマ設定永続化バグ修正 |
+| **Started** | 2026-02-08 09:17:00 |
 | **Phase** | 🟡 Planning |
-| **Plan** | [docs/cycles/20260208080824_mermaid-diagram-dynamic-import.md](./cycles/20260208080824_mermaid-diagram-dynamic-import.md) |
+| **Plan** | [docs/cycles/20260208091700_theme-persistence-bugfix.md](./cycles/20260208091700_theme-persistence-bugfix.md) |
 
 **現在のフォーカス:**
-Mermaid記法（```mermaid）のダイアグラム描画機能を追加。Dynamic Importで遅延ロード、レイヤー分離を厳守。MathJax実装の成功パターンを活用。
+StateManagerのバリデーションロジックが古く、`light`と`dark`以外のテーマ（`github`, `minimal`, `solarized-light`, `solarized-dark`）がリロード時に`light`へリセットされる不具合を修正。全6テーマの永続化を実現。
 
 ---
 
 ## 📜 Session History
+
+### 20260208080824 - Mermaidダイアグラム機能（Dynamic Import）
+- **Started:** 2026-02-08 08:08:24
+- **Status:** 🟡 Planning (未着手)
+- **Summary:** Mermaid記法（```mermaid）のダイアグラム描画機能を追加予定。Dynamic Importで遅延ロード、レイヤー分離を厳守。MathJax実装の成功パターンを活用。
+- **Plan:** [docs/cycles/20260208080824_mermaid-diagram-dynamic-import.md](./cycles/20260208080824_mermaid-diagram-dynamic-import.md)
 
 ### 20260208065017 - MathJax数式表示機能
 - **Started:** 2026-02-08 06:50:17

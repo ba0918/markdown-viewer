@@ -1,5 +1,6 @@
 import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
+import { VALID_THEMES, DEFAULT_THEME } from '../shared/constants/themes.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
 // テスト時はモックで上書きされる
@@ -27,7 +28,7 @@ export class StateManager {
    * デフォルト状態
    */
   private readonly DEFAULT_STATE: AppState = {
-    theme: 'light',
+    theme: DEFAULT_THEME,
     hotReload: {
       enabled: false,
       interval: 0,
@@ -51,8 +52,7 @@ export class StateManager {
       }
 
       // バリデーション: theme が valid かチェック
-      const validThemes: Theme[] = ['light', 'dark'];
-      const theme = validThemes.includes(stored.theme as Theme)
+      const theme = VALID_THEMES.includes(stored.theme as Theme)
         ? (stored.theme as Theme)
         : this.DEFAULT_STATE.theme;
 

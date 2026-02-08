@@ -150,3 +150,64 @@ Deno.test('StateManager: hotReload設定のみの更新', async () => {
   assertEquals(state.hotReload.interval, 3);
   assertEquals(state.hotReload.autoReload, true);
 });
+
+// 全6テーマの永続化テスト
+Deno.test('StateManager: lightテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('light');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'light');
+});
+
+Deno.test('StateManager: darkテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('dark');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'dark');
+});
+
+Deno.test('StateManager: githubテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('github');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'github');
+});
+
+Deno.test('StateManager: minimalテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('minimal');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'minimal');
+});
+
+Deno.test('StateManager: solarized-lightテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('solarized-light');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'solarized-light');
+});
+
+Deno.test('StateManager: solarized-darkテーマの保存と読み込み', async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  await manager.updateTheme('solarized-dark');
+  const state = await manager.load();
+
+  assertEquals(state.theme, 'solarized-dark');
+});
