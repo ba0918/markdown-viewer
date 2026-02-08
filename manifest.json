@@ -36,8 +36,7 @@
 
   "permissions": [
     "storage",
-    "activeTab",
-    "offscreen"
+    "activeTab"
   ],
 
   "host_permissions": [

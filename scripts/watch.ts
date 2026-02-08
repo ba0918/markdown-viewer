@@ -35,19 +35,10 @@ try {
     platform: 'browser'
   });
 
-  // Offscreen Document Script
-  const ctxOffscreen = await esbuild.context({
-    ...commonConfig,
-    entryPoints: ['src/offscreen/hot-reload/offscreen.ts'],
-    outfile: 'dist/offscreen.js',
-    platform: 'browser'
-  });
-
   // watch開始
   await Promise.all([
     ctxBackground.watch(),
-    ctxContent.watch(),
-    ctxOffscreen.watch()
+    ctxContent.watch()
   ]);
 
   console.log('✅ Watch mode started');
@@ -59,7 +50,6 @@ try {
     console.log('\n🛑 Stopping watch mode...');
     await ctxBackground.dispose();
     await ctxContent.dispose();
-    await ctxOffscreen.dispose();
     esbuild.stop();
     Deno.exit(0);
   };
