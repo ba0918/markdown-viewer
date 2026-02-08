@@ -8,6 +8,7 @@ import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
 import type { RenderResult } from '../shared/types/render.ts';
 import { isWslFile } from '../shared/utils/wsl-detector.ts';
+import { isRelativeLink, resolveRelativeLink } from '../shared/utils/url-resolver.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -156,6 +157,41 @@ const stopHotReload = (): void => {
 };
 
 /**
+ * 相対リンクを絶対パスに解決するイベントハンドラを設定
+ * 例: docs/ARCHITECTURE.md → file://[base-url]/docs/ARCHITECTURE.md
+ *
+ * 責務: messaging I/O のみ、イベントハンドリング
+ * ✅ OK: shared/utils/url-resolver.tsの純粋関数を使用
+ */
+const setupRelativeLinkHandler = (): void => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    // <a>タグのクリックのみ処理
+    const anchor = target.closest('a');
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href');
+    if (!href) return;
+
+    // 絶対URL（http://, https://, file://）や同一ページ内リンク（#）はスキップ
+    if (!isRelativeLink(href)) return;
+
+    // 相対リンクを絶対パスに変換
+    event.preventDefault();
+
+    const absoluteUrl = resolveRelativeLink(location.href, href);
+
+    console.log(`Markdown Viewer: Navigating to ${absoluteUrl}`);
+
+    // 同じタブで遷移
+    location.href = absoluteUrl;
+  }, true); // キャプチャフェーズで処理
+
+  console.log('Markdown Viewer: Relative link handler set up');
+};
+
+/**
  * Markdownをレンダリング
  */
 const renderMarkdown = async (markdown: string, theme: Theme) => {
@@ -185,6 +221,9 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
       ),
       document.body
     );
+
+    // 6. 相対リンクハンドラを設定（レンダリング後に実行）
+    setupRelativeLinkHandler();
 
     console.log(`Markdown Viewer: Rendering completed with theme '${theme}'`);
   } catch (error) {

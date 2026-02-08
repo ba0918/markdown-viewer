@@ -53,6 +53,17 @@ const xssOptions = {
     if (name === 'class' && value.includes('language-')) {
       return `class="${value}"`;
     }
+    // 相対パスのhrefを許可 (xssはデフォルトで相対パスを削除するため)
+    if (tag === 'a' && name === 'href') {
+      // javascript:, data:, vbscript: などの危険なプロトコルをブロック
+      const dangerous = ['javascript:', 'data:', 'vbscript:', 'file:'];
+      const lowerValue = value.toLowerCase().trim();
+      if (dangerous.some(proto => lowerValue.startsWith(proto))) {
+        return; // 危険なプロトコルは削除
+      }
+      // 相対パス、絶対パス、フラグメントを許可
+      return `href="${value}"`;
+    }
   }
 };
 
