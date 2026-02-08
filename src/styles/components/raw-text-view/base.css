@@ -1,0 +1,74 @@
+/**
+ * RawTextView Styles
+ *
+ * シンプルなプレーンテキスト表示 + 控えめなコピーアイコン
+ */
+
+.raw-text-view {
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+.raw-text-copy-button {
+  position: fixed;
+  top: calc(56px + 0.75rem); /* DocumentHeader height + padding */
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--raw-text-copy-button-bg);
+  border: 1px solid var(--raw-text-copy-button-border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--raw-text-copy-button-color);
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: var(--raw-text-copy-button-shadow);
+}
+
+.raw-text-copy-button:hover {
+  background: var(--raw-text-copy-button-hover-bg);
+  border-color: var(--raw-text-copy-button-hover-border);
+  color: var(--raw-text-copy-button-hover-color);
+  box-shadow: var(--raw-text-copy-button-hover-shadow);
+}
+
+.raw-text-copy-button:active {
+  transform: scale(0.95);
+}
+
+.raw-text-copy-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.copy-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.raw-text-content {
+  margin: 0;
+  padding: 1.5rem;
+  background: transparent;
+  border: none;
+  font-family:
+    "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono",
+    "Source Code Pro", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.raw-text-content code {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+}

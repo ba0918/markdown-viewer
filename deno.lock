@@ -1212,7 +1212,10 @@
       "dependencies": [
         "npm:@playwright/test@^1.58.2",
         "npm:@types/node@^25.2.1",
-        "npm:mermaid@^11.12.2"
+        "npm:lightningcss@^1.31.1",
+        "npm:mermaid@^11.12.2",
+        "npm:postcss-import@^16.1.1",
+        "npm:postcss@^8.5.6"
       ]
     }
   }

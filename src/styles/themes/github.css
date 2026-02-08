@@ -1,0 +1,91 @@
+/**
+ * GitHub Theme Variables
+ * 全コンポーネント共通のテーマ変数
+ */
+
+.markdown-viewer-theme-github {
+  /* Background & Surface - GitHub's Classic Look */
+  --toc-bg: #ffffff;
+  --toc-header-bg: #f6f8fa;
+  --toc-header-bg-end: #ffffff;
+  --toc-border: #d0d7de;
+  --toc-border-inner: rgba(0, 0, 0, 0.02);
+  --toc-shadow-1: rgba(31, 35, 40, 0.04);
+  --toc-shadow-2: rgba(31, 35, 40, 0.06);
+
+  /* Typography */
+  --toc-title: #24292f;
+  --toc-title-shadow: rgba(255, 255, 255, 0.8);
+  --toc-link: #57606a;
+  --toc-link-hover: #24292f;
+  --toc-link-hover-bg: rgba(208, 215, 222, 0.32);
+  --toc-link-hover-border: #d0d7de;
+
+  /* Active State - GitHub Blue */
+  --toc-link-active: #0969da;
+  --toc-link-active-bg: rgba(9, 105, 218, 0.12);
+  --toc-link-active-border: #0969da;
+  --toc-link-active-ring: rgba(9, 105, 218, 0.15);
+  --toc-link-active-glow: rgba(9, 105, 218, 0.08);
+
+  /* Icons & Buttons */
+  --toc-icon: #656d76;
+  --toc-icon-hover: #24292f;
+  --toc-btn-hover-bg: rgba(175, 184, 193, 0.2);
+  --toc-btn-hover-glow: rgba(175, 184, 193, 0.15);
+  --toc-collapse-icon: #8c959f;
+  --toc-collapse-icon-hover: #57606a;
+
+  /* Scrollbar */
+  --toc-scrollbar: rgba(0, 0, 0, 0.12);
+  --toc-scrollbar-hover: rgba(0, 0, 0, 0.2);
+  --toc-scrollbar-active: rgba(0, 0, 0, 0.28);
+
+  /* Resize Handle */
+  --toc-resize-handle: #0969da;
+  --toc-resize-handle-ring: rgba(9, 105, 218, 0.2);
+  --toc-resize-handle-glow: rgba(9, 105, 218, 0.4);
+  --toc-resize-handle-glow-far: rgba(9, 105, 218, 0.2);
+
+  /* Level Lines */
+  --toc-level-line: rgba(0, 0, 0, 0.08);
+
+  /* DocumentHeader (same as light) */
+  --document-header-bg: rgba(255, 255, 255, 0.92);
+  --document-header-border: rgba(0, 0, 0, 0.08);
+  --document-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --document-header-tab-color: #6b7280;
+  --document-header-tab-hover-color: #111827;
+  --document-header-tab-hover-bg: rgba(0, 0, 0, 0.04);
+  --document-header-tab-active-color: #111827;
+
+  /* RawTextView (same as light) */
+  --raw-text-copy-button-bg: rgba(255, 255, 255, 0.9);
+  --raw-text-copy-button-border: rgba(0, 0, 0, 0.1);
+  --raw-text-copy-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --raw-text-copy-button-color: #6b7280;
+  --raw-text-copy-button-hover-bg: rgba(255, 255, 255, 1);
+  --raw-text-copy-button-hover-border: rgba(0, 0, 0, 0.2);
+  --raw-text-copy-button-hover-color: #111827;
+  --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  /* Markdown Viewer (same as light) */
+  --markdown-viewer-layout-bg: #ffffff;
+  --markdown-viewer-bg: transparent;
+  --markdown-viewer-color: #24292e;
+  --markdown-heading-border: #eaecef;
+  --markdown-h6-color: #586069;
+  --markdown-link-color: #0366d6;
+  --markdown-code-bg: #f6f8fa;
+  --markdown-pre-bg: #f6f8fa;
+  --markdown-pre-hover-shadow: rgba(0, 0, 0, 0.05);
+  --markdown-blockquote-color: #586069;
+  --markdown-blockquote-border: #dfe2e5;
+  --markdown-table-border: #dfe2e5;
+  --markdown-table-header-bg: #f6f8fa;
+  --markdown-table-row-bg: #fff;
+  --markdown-table-row-border: #c6cbd1;
+  --markdown-table-row-alt-bg: #f6f8fa;
+  --markdown-hr-bg: #e1e4e8;
+  --markdown-strikethrough-color: #6a737d;
+}

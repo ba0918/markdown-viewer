@@ -1,25 +1,40 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 23:50:36
+**Last Updated:** 2026-02-09 02:45:45
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                   |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260208235036`                                                                                                        |
-| **Feature**  | MarkdownViewer UI Refinement                                                                                            |
-| **Started**  | 2026-02-08 23:50:36                                                                                                     |
-| **Phase**    | 🟡 Planning                                                                                                             |
-| **Plan**     | [docs/cycles/20260208235036_markdown-viewer-ui-refinement.md](./cycles/20260208235036_markdown-viewer-ui-refinement.md) |
+| Field        | Value                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Cycle ID** | `20260209024545`                                                                                                      |
+| **Feature**  | CSS Build System Refactoring                                                                                          |
+| **Started**  | 2026-02-09 02:45:45                                                                                                   |
+| **Phase**    | 🟡 Planning                                                                                                           |
+| **Plan**     | [docs/cycles/20260209024545_css-build-system-refactoring.md](./cycles/20260209024545_css-build-system-refactoring.md) |
 
-**Current Focus:** frontend-design
-スキルを使用してMarkdownViewerの見た目を洗練させる。機能は完成しているため、あくまで**調整レベル**の改善。全体的なspacing/padding/margin、typography、色の調和、ホバー/フォーカススタイル等を微調整。全6テーマでの統一感を保ちながら、UIの美しさと使いやすさを向上させる。
+**Current Focus:**
+CSS構造を分割・整理し、ビルドシステムを堅牢に。手動の行数ハードコード +
+括弧カウントから、PostCSS + Lightning CSSによるツール駆動ビルドへ移行。ToC
+CSSファイルを分割（base.css +
+variables/各テーマ.css）し、@importで正しい順序を保証。ダークテーマのホバー色バグ修正も含む。
 
 ---
 
 ## 📜 Session History
+
+### 20260208235036 - MarkdownViewer UI Refinement
+
+- **Started:** 2026-02-08 23:50:36
+- **Completed:** 2026-02-09 02:45:45
+- **Status:** 🟡 Planning（実装未着手）
+- **Summary:**
+  frontend-designスキルを使用してMarkdownViewerの見た目を洗練させる計画。機能は完成しているため、調整レベルの改善。spacing/padding/margin、typography、色の調和、ホバー/フォーカススタイル等を微調整予定。
+- **Plan:**
+  [docs/cycles/20260208235036_markdown-viewer-ui-refinement.md](./cycles/20260208235036_markdown-viewer-ui-refinement.md)
+- **Note:** 計画のみで実装未着手。CSS Build System
+  Refactoringを優先したため保留。
 
 ### 20260208221736 - View/Raw モード切り替え機能
 

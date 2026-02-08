@@ -1,0 +1,91 @@
+/**
+ * Solarized Light Theme Variables
+ * 全コンポーネント共通のテーマ変数
+ */
+
+.markdown-viewer-theme-solarized-light {
+  /* Background & Surface - Warm & Precise */
+  --toc-bg: #fdf6e3;
+  --toc-header-bg: #eee8d5;
+  --toc-header-bg-end: #fdf6e3;
+  --toc-border: #93a1a1;
+  --toc-border-inner: rgba(0, 0, 0, 0.025);
+  --toc-shadow-1: rgba(0, 0, 0, 0.05);
+  --toc-shadow-2: rgba(0, 0, 0, 0.07);
+
+  /* Typography - Solarized Harmony */
+  --toc-title: #073642;
+  --toc-title-shadow: rgba(253, 246, 227, 0.8);
+  --toc-link: #657b83;
+  --toc-link-hover: #073642;
+  --toc-link-hover-bg: rgba(101, 123, 131, 0.12);
+  --toc-link-hover-border: #93a1a1;
+
+  /* Active State - Solarized Blue */
+  --toc-link-active: #268bd2;
+  --toc-link-active-bg: rgba(38, 139, 210, 0.15);
+  --toc-link-active-border: #268bd2;
+  --toc-link-active-ring: rgba(38, 139, 210, 0.18);
+  --toc-link-active-glow: rgba(38, 139, 210, 0.1);
+
+  /* Icons & Buttons */
+  --toc-icon: #839496;
+  --toc-icon-hover: #073642;
+  --toc-btn-hover-bg: rgba(101, 123, 131, 0.12);
+  --toc-btn-hover-glow: rgba(101, 123, 131, 0.08);
+  --toc-collapse-icon: #93a1a1;
+  --toc-collapse-icon-hover: #657b83;
+
+  /* Scrollbar */
+  --toc-scrollbar: rgba(0, 43, 54, 0.15);
+  --toc-scrollbar-hover: rgba(0, 43, 54, 0.25);
+  --toc-scrollbar-active: rgba(0, 43, 54, 0.35);
+
+  /* Resize Handle */
+  --toc-resize-handle: #268bd2;
+  --toc-resize-handle-ring: rgba(38, 139, 210, 0.25);
+  --toc-resize-handle-glow: rgba(38, 139, 210, 0.45);
+  --toc-resize-handle-glow-far: rgba(38, 139, 210, 0.25);
+
+  /* Level Lines */
+  --toc-level-line: rgba(0, 0, 0, 0.1);
+
+  /* DocumentHeader */
+  --document-header-bg: rgba(253, 246, 227, 0.92);
+  --document-header-border: rgba(147, 161, 161, 0.2);
+  --document-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --document-header-tab-color: #657b83;
+  --document-header-tab-hover-color: #586e75;
+  --document-header-tab-hover-bg: rgba(0, 0, 0, 0.04);
+  --document-header-tab-active-color: #586e75;
+
+  /* RawTextView */
+  --raw-text-copy-button-bg: rgba(253, 246, 227, 0.9);
+  --raw-text-copy-button-border: #eee8d5;
+  --raw-text-copy-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --raw-text-copy-button-color: #657b83;
+  --raw-text-copy-button-hover-bg: #fdf6e3;
+  --raw-text-copy-button-hover-border: #93a1a1;
+  --raw-text-copy-button-hover-color: #586e75;
+  --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  /* Markdown Viewer */
+  --markdown-viewer-layout-bg: #fdf6e3;
+  --markdown-viewer-bg: transparent;
+  --markdown-viewer-color: #657b83;
+  --markdown-heading-border: #eee8d5;
+  --markdown-h6-color: #93a1a1;
+  --markdown-link-color: #268bd2;
+  --markdown-code-bg: #eee8d5;
+  --markdown-pre-bg: #eee8d5;
+  --markdown-pre-hover-shadow: rgba(0, 43, 54, 0.05);
+  --markdown-blockquote-color: #93a1a1;
+  --markdown-blockquote-border: #93a1a1;
+  --markdown-table-border: #93a1a1;
+  --markdown-table-header-bg: #eee8d5;
+  --markdown-table-row-bg: #fdf6e3;
+  --markdown-table-row-border: #eee8d5;
+  --markdown-table-row-alt-bg: #eee8d5;
+  --markdown-hr-bg: #93a1a1;
+  --markdown-strikethrough-color: #93a1a1;
+}

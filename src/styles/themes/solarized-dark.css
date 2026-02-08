@@ -1,0 +1,91 @@
+/**
+ * Solarized Dark Theme Variables
+ * 全コンポーネント共通のテーマ変数
+ */
+
+.markdown-viewer-theme-solarized-dark {
+  /* Background & Surface - Deep Ocean */
+  --toc-bg: #002b36;
+  --toc-header-bg: #073642;
+  --toc-header-bg-end: #002b36;
+  --toc-border: #586e75;
+  --toc-border-inner: rgba(147, 161, 161, 0.05);
+  --toc-shadow-1: rgba(0, 0, 0, 0.3);
+  --toc-shadow-2: rgba(0, 0, 0, 0.4);
+
+  /* Typography - Solarized Dark Harmony */
+  --toc-title: #fdf6e3;
+  --toc-title-shadow: rgba(0, 0, 0, 0.6);
+  --toc-link: #93a1a1;
+  --toc-link-hover: #eee8d5;
+  --toc-link-hover-bg: rgba(147, 161, 161, 0.12);
+  --toc-link-hover-border: #657b83;
+
+  /* Active State - Solarized Cyan */
+  --toc-link-active: #2aa198;
+  --toc-link-active-bg: rgba(42, 161, 152, 0.2);
+  --toc-link-active-border: #2aa198;
+  --toc-link-active-ring: rgba(42, 161, 152, 0.25);
+  --toc-link-active-glow: rgba(42, 161, 152, 0.15);
+
+  /* Icons & Buttons */
+  --toc-icon: #657b83;
+  --toc-icon-hover: #fdf6e3;
+  --toc-btn-hover-bg: rgba(147, 161, 161, 0.12);
+  --toc-btn-hover-glow: rgba(147, 161, 161, 0.08);
+  --toc-collapse-icon: #586e75;
+  --toc-collapse-icon-hover: #93a1a1;
+
+  /* Scrollbar */
+  --toc-scrollbar: rgba(147, 161, 161, 0.15);
+  --toc-scrollbar-hover: rgba(147, 161, 161, 0.25);
+  --toc-scrollbar-active: rgba(147, 161, 161, 0.35);
+
+  /* Resize Handle */
+  --toc-resize-handle: #2aa198;
+  --toc-resize-handle-ring: rgba(42, 161, 152, 0.3);
+  --toc-resize-handle-glow: rgba(42, 161, 152, 0.5);
+  --toc-resize-handle-glow-far: rgba(42, 161, 152, 0.3);
+
+  /* Level Lines */
+  --toc-level-line: rgba(147, 161, 161, 0.12);
+
+  /* DocumentHeader */
+  --document-header-bg: rgba(0, 43, 54, 0.92);
+  --document-header-border: rgba(147, 161, 161, 0.2);
+  --document-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --document-header-tab-color: #839496;
+  --document-header-tab-hover-color: #93a1a1;
+  --document-header-tab-hover-bg: rgba(147, 161, 161, 0.12);
+  --document-header-tab-active-color: #93a1a1;
+
+  /* RawTextView */
+  --raw-text-copy-button-bg: rgba(0, 43, 54, 0.9);
+  --raw-text-copy-button-border: rgba(147, 161, 161, 0.3);
+  --raw-text-copy-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --raw-text-copy-button-color: #839496;
+  --raw-text-copy-button-hover-bg: rgba(0, 43, 54, 1);
+  --raw-text-copy-button-hover-border: rgba(147, 161, 161, 0.5);
+  --raw-text-copy-button-hover-color: #93a1a1;
+  --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  /* Markdown Viewer */
+  --markdown-viewer-layout-bg: #002b36;
+  --markdown-viewer-bg: transparent;
+  --markdown-viewer-color: #839496;
+  --markdown-heading-border: #073642;
+  --markdown-h6-color: #657b83;
+  --markdown-link-color: #268bd2;
+  --markdown-code-bg: #073642;
+  --markdown-pre-bg: #073642;
+  --markdown-pre-hover-shadow: rgba(0, 0, 0, 0.2);
+  --markdown-blockquote-color: #657b83;
+  --markdown-blockquote-border: #586e75;
+  --markdown-table-border: #586e75;
+  --markdown-table-header-bg: #073642;
+  --markdown-table-row-bg: #002b36;
+  --markdown-table-row-border: #073642;
+  --markdown-table-row-alt-bg: #073642;
+  --markdown-hr-bg: #586e75;
+  --markdown-strikethrough-color: #657b83;
+}

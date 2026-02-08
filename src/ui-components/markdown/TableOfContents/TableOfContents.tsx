@@ -48,7 +48,7 @@ const collapsedItems = signal<Set<string>>(new Set());
  * - ToC全体の表示/非表示Toggle（×/☰ボタン）
  * - 横幅リサイズ機能（Resize Handle）
  */
-export const TableOfContents = ({ items, themeId }: Props) => {
+export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
   const [activeId, setActiveId] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserClick, setIsUserClick] = useState(false); // クリック直後かどうか
@@ -332,9 +332,7 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 
   return (
     <aside
-      class={`toc-container ${
-        tocState.value.visible ? "visible" : "hidden"
-      } toc-theme-${themeId}`}
+      class={`toc-container ${tocState.value.visible ? "visible" : "hidden"}`}
       style={{ width: tocState.value.visible ? `${width}px` : "40px" }}
     >
       {tocState.value.visible

@@ -1,0 +1,19 @@
+/**
+ * Content Script CSS Entry Point
+ * @layer定義で優先順位を明確化
+ *
+ * このファイルはテンプレートです。
+ * ビルドスクリプトがテーマごとに動的に生成します。
+ */
+
+@layer base, components, utilities;
+
+/* Theme variables (動的に切り替え: ビルドスクリプトで制御) */
+/* @import '../themes/{theme}.css' layer(base); */
+
+/* Components layer */
+@import "../components/markdown-viewer/base.css" layer(components);
+@import "../components/toc/base.css" layer(components);
+@import "../components/document-header/base.css" layer(components);
+@import "../components/raw-text-view/base.css" layer(components);
+@import "../components/code-block/base.css" layer(components);

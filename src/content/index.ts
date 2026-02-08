@@ -69,6 +69,7 @@ const getThemeCssUrl = (theme: Theme): string => {
 /**
  * テーマCSSを読み込む
  * <link>タグを<head>に追加（初回）または更新（テーマ変更時）
+ * bodyにテーマクラスを付与（CSS変数スコープのため）
  */
 const loadThemeCss = (theme: Theme): void => {
   const cssUrl = getThemeCssUrl(theme);
@@ -90,6 +91,14 @@ const loadThemeCss = (theme: Theme): void => {
     linkElement.href = cssUrl;
     console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
   }
+
+  // bodyにテーマクラスを付与（CSS変数のスコープを全ページに拡大）
+  // 既存のテーマクラスを削除してから新しいテーマクラスを追加
+  document.body.className = document.body.className
+    .split(" ")
+    .filter((cls) => !cls.startsWith("markdown-viewer-theme-"))
+    .join(" ");
+  document.body.classList.add(`markdown-viewer-theme-${theme}`);
 };
 
 /**

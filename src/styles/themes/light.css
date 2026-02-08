@@ -1,0 +1,91 @@
+/**
+ * Light Theme Variables
+ * 全コンポーネント共通のテーマ変数
+ */
+
+.markdown-viewer-theme-light {
+  /* Background & Surface */
+  --toc-bg: #ffffff;
+  --toc-header-bg: #fafbfc;
+  --toc-header-bg-end: #ffffff;
+  --toc-border: #e1e4e8;
+  --toc-border-inner: rgba(0, 0, 0, 0.02);
+  --toc-shadow-1: rgba(0, 0, 0, 0.04);
+  --toc-shadow-2: rgba(0, 0, 0, 0.06);
+
+  /* Typography */
+  --toc-title: #0d1117;
+  --toc-title-shadow: rgba(255, 255, 255, 0.8);
+  --toc-link: #57606a;
+  --toc-link-hover: #24292f;
+  --toc-link-hover-bg: rgba(0, 0, 0, 0.04);
+  --toc-link-hover-border: #cbd5e0;
+
+  /* Active State - Vercel Blue */
+  --toc-link-active: #0070f3;
+  --toc-link-active-bg: rgba(0, 112, 243, 0.08);
+  --toc-link-active-border: #0070f3;
+  --toc-link-active-ring: rgba(0, 112, 243, 0.12);
+  --toc-link-active-glow: rgba(0, 112, 243, 0.06);
+
+  /* Icons & Buttons */
+  --toc-icon: #6e7781;
+  --toc-icon-hover: #24292f;
+  --toc-btn-hover-bg: rgba(0, 0, 0, 0.06);
+  --toc-btn-hover-glow: rgba(0, 0, 0, 0.04);
+  --toc-collapse-icon: #8c959f;
+  --toc-collapse-icon-hover: #57606a;
+
+  /* Scrollbar */
+  --toc-scrollbar: rgba(0, 0, 0, 0.12);
+  --toc-scrollbar-hover: rgba(0, 0, 0, 0.2);
+  --toc-scrollbar-active: rgba(0, 0, 0, 0.28);
+
+  /* Resize Handle */
+  --toc-resize-handle: #0070f3;
+  --toc-resize-handle-ring: rgba(0, 112, 243, 0.2);
+  --toc-resize-handle-glow: rgba(0, 112, 243, 0.4);
+  --toc-resize-handle-glow-far: rgba(0, 112, 243, 0.2);
+
+  /* Level Lines */
+  --toc-level-line: rgba(0, 0, 0, 0.08);
+
+  /* DocumentHeader */
+  --document-header-bg: rgba(255, 255, 255, 0.92);
+  --document-header-border: rgba(0, 0, 0, 0.08);
+  --document-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --document-header-tab-color: #6b7280;
+  --document-header-tab-hover-color: #111827;
+  --document-header-tab-hover-bg: rgba(0, 0, 0, 0.04);
+  --document-header-tab-active-color: #111827;
+
+  /* RawTextView */
+  --raw-text-copy-button-bg: rgba(255, 255, 255, 0.9);
+  --raw-text-copy-button-border: rgba(0, 0, 0, 0.1);
+  --raw-text-copy-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --raw-text-copy-button-color: #6b7280;
+  --raw-text-copy-button-hover-bg: rgba(255, 255, 255, 1);
+  --raw-text-copy-button-hover-border: rgba(0, 0, 0, 0.2);
+  --raw-text-copy-button-hover-color: #111827;
+  --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  /* Markdown Viewer */
+  --markdown-viewer-layout-bg: #ffffff;
+  --markdown-viewer-bg: transparent;
+  --markdown-viewer-color: #24292e;
+  --markdown-heading-border: #eaecef;
+  --markdown-h6-color: #586069;
+  --markdown-link-color: #0366d6;
+  --markdown-code-bg: #f6f8fa;
+  --markdown-pre-bg: #f6f8fa;
+  --markdown-pre-hover-shadow: rgba(0, 0, 0, 0.05);
+  --markdown-blockquote-color: #586069;
+  --markdown-blockquote-border: #dfe2e5;
+  --markdown-table-border: #dfe2e5;
+  --markdown-table-header-bg: #f6f8fa;
+  --markdown-table-row-bg: #fff;
+  --markdown-table-row-border: #c6cbd1;
+  --markdown-table-row-alt-bg: #f6f8fa;
+  --markdown-hr-bg: #e1e4e8;
+  --markdown-strikethrough-color: #6a737d;
+}

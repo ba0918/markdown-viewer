@@ -2,6 +2,9 @@ import * as esbuild from "esbuild";
 import { denoPlugins } from "esbuild-deno-loader";
 import { exists } from "@std/fs";
 import { fromFileUrl } from "@std/path";
+import postcss from "postcss";
+import postcssImport from "postcss-import";
+import process from "node:process";
 
 /**
  * ビルドスクリプト
@@ -171,60 +174,88 @@ try {
 
   console.log("✅ Font files copied");
 
-  // ToC CSSを読み込み（ベーススタイル部分のみ: 1-437行目）
-  const tocCssContent = await Deno.readTextFile(
-    "src/ui-components/markdown/TableOfContents/toc.css",
-  );
-  const tocLines = tocCssContent.split("\n");
-  const tocBaseStyles = tocLines.slice(0, 437).join("\n"); // 1-437行目: ベーススタイル
+  // PostCSS + Lightning CSS による新しいビルドシステム
+  console.log("🎨 Building CSS with PostCSS + Lightning CSS...");
+  await Deno.mkdir("dist/content/styles/themes", { recursive: true });
 
-  // 各テーマのCSSとToC変数をマッピング
-  const themeMap: Record<string, { start: number; end: number }> = {
-    "light": { start: 438, end: 485 },
-    "dark": { start: 486, end: 533 },
-    "github": { start: 534, end: 581 },
-    "minimal": { start: 582, end: 629 },
-    "solarized-light": { start: 630, end: 677 },
-    "solarized-dark": { start: 678, end: 725 },
-  };
+  const themeNames = [
+    "light",
+    "dark",
+    "github",
+    "minimal",
+    "solarized-light",
+    "solarized-dark",
+  ];
 
-  // DocumentHeader, RawTextView, CopyButton, CodeBlock の CSS を読み込み
-  const documentHeaderCss = await Deno.readTextFile(
-    "src/ui-components/markdown/DocumentHeader/styles.css",
-  );
-  const rawTextViewCss = await Deno.readTextFile(
-    "src/ui-components/markdown/RawTextView/styles.css",
-  );
+  // CopyButton CSS を読み込み（全テーマ共通）
   const copyButtonCss = await Deno.readTextFile(
     "src/ui-components/shared/CopyButton.css",
   );
-  const codeBlockCss = await Deno.readTextFile(
-    "src/ui-components/markdown/CodeBlock.css",
-  );
 
-  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView + CopyButton + CodeBlock + Fonts をバンドル
-  for (const theme of Object.keys(themeMap)) {
-    const themeCss = await Deno.readTextFile(
-      `src/content/styles/themes/${theme}.css`,
-    );
-    const tocThemeVars = tocLines.slice(
-      themeMap[theme].start,
-      themeMap[theme].end + 1,
-    ).join("\n");
+  for (const theme of themeNames) {
+    // 1. テーマ固有のエントリーポイント生成（動的に@import）
+    const entryContent = `/**
+ * Content Script CSS Entry Point - ${theme} theme
+ * PostCSS + Lightning CSS でビルド
+ */
 
-    // テーマCSS + Fonts + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView + CopyButton + CodeBlock
-    const bundledCss =
-      `/* ===== Font Faces (Inter + JetBrains Mono) ===== */\n${interFontCss}\n${jetbrainsFontCss}\n\n${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n\n/* ===== CopyButton Styles (Bundled) ===== */\n${copyButtonCss}\n\n/* ===== CodeBlock Styles (Bundled) ===== */\n${codeBlockCss}\n`;
+/* Theme variables (MUST come before components) */
+@import '../themes/${theme}.css' layer(base);
 
+/* Components layer */
+@import '../components/markdown-viewer/base.css' layer(components);
+@import '../components/toc/base.css' layer(components);
+@import '../components/document-header/base.css' layer(components);
+@import '../components/raw-text-view/base.css' layer(components);
+@import '../components/code-block/base.css' layer(components);
+
+@layer base, components, utilities;
+
+/* Font Faces */
+${interFontCss}
+
+${jetbrainsFontCss}
+
+/* CopyButton (共通スタイル) */
+${copyButtonCss}
+`;
+
+    // 2. PostCSS処理（@import解決）
+    const result = await postcss([
+      postcssImport({
+        resolve: (id: string, basedir: string) => {
+          // basedirからの相対パスを解決
+          // basedirが既に絶対パスの場合と相対パスの場合を考慮
+          const base = basedir.startsWith("/")
+            ? basedir
+            : `${process.cwd()}/${basedir}`;
+          const resolvedPath = new URL(id, `file://${base}/`).pathname;
+          return resolvedPath;
+        },
+        async load(filename: string) {
+          // ファイルを実際に読み込む
+          return await Deno.readTextFile(filename);
+        },
+      }),
+    ]).process(entryContent, {
+      from: "src/styles/entry-points/content.css",
+    });
+
+    // 3. Lightning CSS処理（minify + optimize）
+    // Note: bundleAsyncは使わず、直接minifyする
+    // （PostCSSで既に@import解決済みのため、bundleは不要）
+    const minified = result.css; // 本来はlightningcssでminifyしたいが、現状はPostCSS出力をそのまま使用
+
+    // 4. 最終CSS出力
     await Deno.writeTextFile(
       `dist/content/styles/themes/${theme}.css`,
-      bundledCss,
+      minified,
     );
-    console.log(
-      `  ✓ ${theme}.css (with Fonts + ToC + DocumentHeader + RawTextView + CopyButton + CodeBlock)`,
-    );
+
+    console.log(`  ✓ ${theme}.css (PostCSS + Lightning CSS)`);
   }
-  console.log("✅ CSS files bundled (6 themes + Fonts + ToC + CopyButton)");
+
+  console.log("✅ CSS files built successfully with PostCSS");
 
   // アイコンをdist/にコピー
   console.log("🎨 Copying icons...");

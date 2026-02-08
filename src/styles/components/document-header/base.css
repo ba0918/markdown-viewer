@@ -1,0 +1,77 @@
+/**
+ * DocumentHeader Styles
+ *
+ * frontend-design inspired design:
+ * - 半透明背景 + Blur Effect
+ * - モダンなタブUI
+ * - スムーズなアニメーション
+ */
+
+.document-header {
+  position: fixed;
+  top: 0;
+  left: 0; /* ToCの幅に応じて動的に調整（Preactのinline styleで） */
+  right: 0;
+  height: 56px;
+  z-index: 999; /* ToCの下に配置（ToCに隠れないように） */
+  background: var(--document-header-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--document-header-shadow);
+  border-bottom: 1px solid var(--document-header-border);
+  transition: left 0.3s ease; /* ToCリサイズに合わせてスムーズに移動 */
+}
+
+.document-header-content {
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 2rem;
+}
+
+.document-header-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.document-header-tabs .tab {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--document-header-tab-color);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.document-header-tabs .tab:hover {
+  color: var(--document-header-tab-hover-color);
+  background: var(--document-header-tab-hover-bg);
+}
+
+.document-header-tabs .tab:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.document-header-tabs .tab.active {
+  color: var(--document-header-tab-active-color);
+  font-weight: 600;
+}
+
+.document-header-tabs .tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 3px 3px 0 0;
+}
