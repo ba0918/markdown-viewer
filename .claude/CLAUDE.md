@@ -14,6 +14,7 @@ offscreen）から学んだ教訓を活かした設計になっています。�
 ## 技術スタック
 
 - **開発環境**: Deno 2.x以上
+- **パッケージ管理**: mise経由でPlaywright等のNode.jsパッケージをインストール
 - **ビルド**: esbuild
 - **実行環境**: Chrome Extension (Manifest V3)
 - **UI Framework**: Preact
@@ -23,6 +24,39 @@ offscreen）から学んだ教訓を活かした設計になっています。�
 - **テスト**: Deno標準テストランナー + Playwright (E2E)
 
 ## 開発フロー必須ルール
+
+### 0. パッケージ管理: mise経由での管理
+
+**⚠️ CRITICAL: Node.jsパッケージは必ずmise経由で管理すること**
+
+#### Playwright等のNode.jsパッケージインストール
+
+```bash
+# mise経由でpnpm installを実行
+mise exec -- pnpm install
+
+# Chromiumブラウザのインストール（必要に応じて）
+mise exec -- pnpm exec playwright install chromium
+```
+
+#### 絶対禁止事項
+
+- ❌ **npm install を直接実行しない** - mise経由で実行すること
+- ❌ **pnpm install を直接実行しない** - mise経由で実行すること
+- ❌ **package.json/pnpm-lock.yamlを削除しない** -
+  これらはPlaywright等のNode.jsツールに必須
+- ❌ **"Deno一元管理"と称してNode.jsパッケージを削除しない** -
+  Playwright等は必要
+
+#### package.json/pnpm-lock.yamlの役割
+
+- **package.json**: Playwright等のNode.jsツールのバージョン管理
+- **pnpm-lock.yaml**: 正確なバージョンと依存関係のロック
+- **node_modules/**: pnpmが構築する実際のファイル構造
+- **削除厳禁**: これらを削除するとE2Eテストが完全に壊れる
+
+**原則:
+Node.jsパッケージはmise経由でpnpmを使用。package.json等は絶対に削除しない。**
 
 ### 1. ライブラリ使用時: Context7で最新情報確認
 
@@ -78,6 +112,59 @@ git diff
 ```
 
 **原則: "1機能 = 1コミット"。小さく頻繁にコミットする習慣を徹底。**
+
+### 3. コミット時の絶対ルール
+
+**⚠️ CRITICAL: コミット前に必ず実行。テスト破壊を絶対に防ぐ**
+
+#### コミット前の必須チェックリスト
+
+```bash
+# 1. Lintエラーを0件にする（pre-commitの必須条件）
+deno task lint
+
+# 2. Lint修正後、必ずテスト全通過を確認
+deno task test              # Unit tests
+deno task test:e2e:wsl2     # E2E tests (WSL2環境)
+
+# 3. すべて通過したらコミット
+git add .
+git commit -m "..."
+```
+
+#### テスト破壊の防止
+
+**重要**: Lint修正が原因でテストが破壊される事件が多発している！
+
+- ✅ **Unit test + E2E test 両方の通過を確認すること**
+- ✅ **Lint修正後は必ずテスト再実行**
+- ❌ **Lint修正だけしてテスト実行しない** → これが破壊の原因
+
+#### pre-commitフックの動作
+
+```bash
+# pre-commitで自動実行される（.git/hooks/pre-commit）
+1. deno task fmt    # フォーマット修正
+2. deno task lint   # Lintチェック（0件必須）
+3. deno task test   # Unit testの実行
+
+# E2Eテストはpre-commitで実行されないため、手動確認必須！
+```
+
+#### E2Eテストの実行タイミング
+
+- ✅ **コミット前に必ず手動実行**
+- ✅ **UI層・messaging層・content層の変更時は特に重要**
+- ✅ **E2Eテストが失敗したら絶対にコミットしない**
+
+#### 禁止事項
+
+- ❌ Lintエラーがある状態でコミット
+- ❌ Lint修正後にテストを実行しない
+- ❌ Unit testだけ通ってE2Eテストを確認しない
+- ❌ pre-commitフックをスキップ（`--no-verify`）
+
+**原則: "Lint 0件 + Unit test全通過 + E2E test全通過" を確認してからコミット。**
 
 ## コマンド
 
