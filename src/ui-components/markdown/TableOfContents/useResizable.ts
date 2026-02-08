@@ -72,6 +72,10 @@ export const useResizable = ({
   useEffect(() => {
     if (!isResizing) return;
 
+    // リサイズ中はbody全体でテキスト選択を無効化
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ew-resize'; // カーソルもリサイズ用に変更
+
     /**
      * マウス移動ハンドラ
      */
@@ -86,6 +90,9 @@ export const useResizable = ({
      */
     const handleMouseUp = () => {
       setIsResizing(false);
+      // リサイズ終了時にテキスト選択とカーソルを元に戻す
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
       // リサイズ終了時にコールバックを実行
       onWidthChange?.(width);
     };
@@ -98,6 +105,9 @@ export const useResizable = ({
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      // クリーンアップ時もスタイルを元に戻す
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
     };
   }, [isResizing, minWidth, maxWidth, width, onWidthChange]);
 
