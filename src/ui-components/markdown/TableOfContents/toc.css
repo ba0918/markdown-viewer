@@ -355,6 +355,21 @@
   border-radius: 1px;
 }
 
+/* h1がない場合は縦線を非表示（親なし子要素の違和感を解消） */
+.toc-list:not(:has(> .toc-level-1)) .toc-level-2::before,
+.toc-list:not(:has(> .toc-level-1)) .toc-level-3::before {
+  display: none;
+}
+
+/* h1がない場合はインデントも削除（全てフラット表示） */
+.toc-list:not(:has(> .toc-level-1)) .toc-level-2 {
+  padding-left: 0;
+}
+
+.toc-list:not(:has(> .toc-level-1)) .toc-level-3 {
+  padding-left: 0;
+}
+
 /* レベル別のフォントサイズ調整 - ヒエラルキーを明確に */
 .toc-level-1 .toc-link {
   font-size: 0.9375rem;
