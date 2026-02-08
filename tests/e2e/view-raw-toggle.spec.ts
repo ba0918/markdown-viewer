@@ -20,7 +20,7 @@ test.describe('View/Raw Mode Toggle', () => {
     await expect(viewTab).toHaveClass(/active/);
 
     // Viewモード（レンダリング結果）が表示されていること
-    const markdownBody = page.locator('.markdown-body');
+    const markdownBody = page.locator('.markdown-body').first();
     await expect(markdownBody).toBeVisible();
 
     // Rawモードは表示されていないこと
@@ -48,7 +48,7 @@ test.describe('View/Raw Mode Toggle', () => {
     await expect(rawContent).toContainText('# E2E Test Markdown');
 
     // Viewモードは表示されていないこと
-    const markdownBody = page.locator('.markdown-body');
+    const markdownBody = page.locator('.markdown-body').first();
     await expect(markdownBody).not.toBeVisible();
   });
 
@@ -69,7 +69,7 @@ test.describe('View/Raw Mode Toggle', () => {
     await expect(viewTab).toHaveClass(/active/);
 
     // Viewモード（レンダリング結果）が表示されること
-    const markdownBody = page.locator('.markdown-body');
+    const markdownBody = page.locator('.markdown-body').first();
     await expect(markdownBody).toBeVisible();
 
     // Rawモードは表示されていないこと

@@ -84,9 +84,13 @@ export const TableOfContents = ({ items, themeId }: Props) => {
       // 横幅変更時に永続化
       const newState = { ...tocState.value, width: newWidth };
       tocState.value = newState;
-      chrome.storage.sync.set({ tocState: newState }).catch(() => {
-        // 保存失敗時は無視
-      });
+
+      // E2E環境などでchrome.storageが使えない場合はスキップ
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        chrome.storage.sync.set({ tocState: newState }).catch(() => {
+          // 保存失敗時は無視
+        });
+      }
     },
   });
 
@@ -103,9 +107,13 @@ export const TableOfContents = ({ items, themeId }: Props) => {
   const toggleVisibility = useCallback(() => {
     const newState = { ...tocState.value, visible: !tocState.value.visible };
     tocState.value = newState;
-    chrome.storage.sync.set({ tocState: newState }).catch(() => {
-      // 保存失敗時は無視
-    });
+
+    // E2E環境などでchrome.storageが使えない場合はスキップ
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+      chrome.storage.sync.set({ tocState: newState }).catch(() => {
+        // 保存失敗時は無視
+      });
+    }
   }, []);
 
   /**
@@ -122,9 +130,13 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 
     const newState = { ...tocState.value, collapsedItems: Array.from(newSet) };
     tocState.value = newState;
-    chrome.storage.sync.set({ tocState: newState }).catch(() => {
-      // 保存失敗時は無視
-    });
+
+    // E2E環境などでchrome.storageが使えない場合はスキップ
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+      chrome.storage.sync.set({ tocState: newState }).catch(() => {
+        // 保存失敗時は無視
+      });
+    }
   }, []);
 
   /**

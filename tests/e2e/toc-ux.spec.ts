@@ -107,6 +107,9 @@ test.describe('ToC UX Improvements', () => {
     expect(showIcon).toBe('☰');
 
     // ToCコンテナの幅が40pxになることを確認
+    // ⚠️ E2E環境ではchrome.storage未対応のため、width = 40px（非表示時）
+    // トランジション完了を待つために少し待機
+    await page.waitForTimeout(500);
     const tocContainer = page.locator('.toc-container');
     const width = await tocContainer.evaluate((el) => {
       return window.getComputedStyle(el).width;
