@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
-        run: deno install
+        run: deno install  # Deno 2.x only (release uses 2.x)
 
       - name: Run linter
         run: deno task lint
