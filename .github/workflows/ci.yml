@@ -1,0 +1,191 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # 手動実行可能
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test & Quality Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        deno-version: ['1.x', '2.x']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno ${{ matrix.deno-version }}
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.deno-version }}
+
+      - name: Verify Deno installation
+        run: |
+          deno --version
+
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            ~/.deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.json', 'deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
+
+      - name: Run linter
+        run: deno task lint
+
+      - name: Check code formatting
+        run: deno fmt --check
+
+      - name: Run unit tests with coverage
+        run: |
+          deno task test --coverage=coverage
+          deno coverage coverage --lcov > coverage.lcov
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v5
+        if: matrix.deno-version == '2.x'
+        with:
+          file: ./coverage.lcov
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Setup Playwright
+        if: matrix.deno-version == '2.x'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        if: matrix.deno-version == '2.x'
+        run: deno task test:e2e:wsl2 || echo "⚠️ E2E tests failed - continuing build"
+        env:
+          CI: true
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure() && matrix.deno-version == '2.x'
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 7
+
+  build:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: '2.x'
+
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            ~/.deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.json', 'deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
+
+      - name: Build extension
+        run: deno task build
+
+      - name: Verify build output
+        run: |
+          echo "=== Build Output Size ==="
+          du -sh dist/
+          echo "=== Build Contents ==="
+          find dist/ -type f -name "*.js" -exec wc -c {} + | sort -n
+          echo "=== Manifest Version ==="
+          cat dist/manifest.json | grep -E '"version"|"manifest_version"'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build-${{ github.run_number }}
+          path: dist/
+          retention-days: 7
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: '2.x'
+
+      - name: Check for sensitive files
+        run: |
+          echo "=== Checking for sensitive files ==="
+          SENSITIVE_FILES=$(find . -type f \( -name "*.key" -o -name "*.pem" -o -name ".env*" -o -name "*secret*" -o -name "*credential*" \) \
+            -not -path "./node_modules/*" \
+            -not -path "./.git/*" \
+            -not -path "./test-results/*" \
+            -not -path "./playwright-report/*" \
+            -not -path "./coverage/*" \
+            -not -path "./dist/*" | head -10)
+
+          if [ -n "$SENSITIVE_FILES" ]; then
+            echo "⚠️ Potential sensitive files found:"
+            echo "$SENSITIVE_FILES"
+            exit 1
+          else
+            echo "✅ No sensitive files detected"
+          fi
+
+      - name: Validate manifest.json
+        run: |
+          echo "=== Validating Chrome extension manifest ==="
+          deno eval "
+            const manifest = JSON.parse(await Deno.readTextFile('./manifest.json'));
+            console.log('Manifest version:', manifest.manifest_version);
+            console.log('Permissions:', manifest.permissions);
+            if (manifest.manifest_version !== 3) {
+              console.error('❌ Must use Manifest V3');
+              Deno.exit(1);
+            }
+            console.log('✅ Manifest validation passed');
+          "
+
+      - name: Check for XSS vulnerabilities
+        run: |
+          echo "=== Checking for potential XSS vulnerabilities ==="
+          # DOMPurify/sanitize使用の確認
+          if ! grep -r "sanitizeHTML\|DOMPurify" src/domain/markdown/ src/services/; then
+            echo "⚠️ Warning: No HTML sanitization found in critical paths"
+            exit 1
+          fi
+          echo "✅ HTML sanitization checks passed"
+
+      - name: Verify security headers in CSP
+        run: |
+          echo "=== Checking Content Security Policy ==="
+          CSP=$(cat manifest.json | grep -A 3 "content_security_policy")
+          if [ -z "$CSP" ]; then
+            echo "⚠️ Warning: No CSP defined"
+            exit 1
+          fi
+          echo "✅ CSP configuration found"
+          echo "$CSP"

@@ -1,5 +1,8 @@
 # Markdown Viewer
 
+[![CI/CD Pipeline](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/ci.yml)
+[![Release](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/release.yml/badge.svg)](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/release.yml)
+
 セキュアなローカルMarkdownファイルビューアーChrome拡張機能
 
 ## 特徴
@@ -50,6 +53,35 @@ deno task build
 
 - [Deno](https://deno.land/) 2.x以上
 - Chrome/Chromium ブラウザ
+
+### CI/CD
+
+このプロジェクトではGitHub Actionsを使用して自動テスト・ビルドを実行しています。
+
+#### CI Pipeline (`.github/workflows/ci.yml`)
+- **トリガー**: Pull Request / `main`・`develop`ブランチへのpush
+- **実行内容**:
+  - リント (`deno lint`)
+  - フォーマットチェック (`deno fmt --check`)
+  - 単体テスト + カバレッジ測定
+  - E2Eテスト (Playwright)
+  - ビルド検証
+  - セキュリティチェック (XSS/CSP/manifest検証)
+- **マトリックス**: Deno 1.x, 2.x
+
+#### Release Pipeline (`.github/workflows/release.yml`)
+- **トリガー**: `v*.*.*` タグpush / 手動実行
+- **実行内容**:
+  - 全テスト実行
+  - プロダクションビルド
+  - manifest.json バージョン更新
+  - ZIPパッケージ作成
+  - GitHub Release 自動作成
+- **リリース方法**:
+  ```bash
+  git tag v1.0.0
+  git push origin v1.0.0
+  ```
 
 ### コマンド
 
