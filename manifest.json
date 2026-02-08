@@ -16,7 +16,7 @@
   },
 
   "content_scripts": [{
-    "matches": ["file:///*.md", "file:///*.markdown", "http://localhost:*/*.md", "http://localhost:*/*.markdown"],
+    "matches": ["file://*/*.md", "file://*/*.markdown", "http://localhost:*/*.md", "http://localhost:*/*.markdown"],
     "js": ["content.js"],
     "run_at": "document_end"
   }],
@@ -49,6 +49,6 @@
 
   "web_accessible_resources": [{
     "resources": ["content/styles/themes/*.css"],
-    "matches": ["file:///*", "http://localhost:*/*"]
+    "matches": ["file://*/*", "http://localhost:*/*"]
   }]
 }

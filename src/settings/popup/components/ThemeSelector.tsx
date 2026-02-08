@@ -18,8 +18,8 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
     { id: 'dark', label: 'Dark', emoji: '🌙' },
     { id: 'github', label: 'GitHub', emoji: '🐙' },
     { id: 'minimal', label: 'Minimal', emoji: '📝' },
-    { id: 'solarized-light', label: 'Solarized Light', emoji: '🌅' },
-    { id: 'solarized-dark', label: 'Solarized Dark', emoji: '🌃' },
+    { id: 'solarized-light', label: 'Sol. Light', emoji: '🌅' },
+    { id: 'solarized-dark', label: 'Sol. Dark', emoji: '🌃' },
   ];
 
   return (

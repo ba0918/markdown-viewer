@@ -86,16 +86,11 @@ export const App = () => {
     <div class="popup">
       <header class="header">
         <h1 class="title">🎨 Markdown Viewer</h1>
-        <p class="subtitle">クイック設定</p>
       </header>
 
       <main class="content">
         <ThemeSelector current={settings.theme} onChange={handleThemeChange} />
       </main>
-
-      <footer class="footer">
-        <div class="version">v0.3.0 (Phase 3)</div>
-      </footer>
     </div>
   );
 };

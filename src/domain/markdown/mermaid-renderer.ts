@@ -31,7 +31,7 @@ interface MermaidAPI {
  * Mermaid configuration
  */
 interface MermaidConfig {
-  theme?: 'default' | 'dark' | 'forest' | 'neutral';
+  theme?: 'default' | 'dark' | 'forest' | 'neutral' | 'base';
   startOnLoad?: boolean;
   securityLevel?: 'strict' | 'loose' | 'antiscript';
   flowchart?: {
@@ -48,14 +48,14 @@ const mermaidInstance = mermaid as unknown as MermaidAPI;
 /**
  * Current initialized theme
  */
-let currentTheme: 'default' | 'dark' | null = null;
+let currentTheme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' | null = null;
 
 /**
  * Initializes Mermaid library
  *
- * @param theme - Mermaid theme ('default' or 'dark')
+ * @param theme - Mermaid theme
  */
-function initializeMermaid(theme: 'default' | 'dark' = 'default'): void {
+function initializeMermaid(theme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' = 'default'): void {
   // テーマが変わった場合は再初期化
   if (currentTheme !== theme) {
     mermaidInstance.initialize({
@@ -74,7 +74,7 @@ function initializeMermaid(theme: 'default' | 'dark' = 'default'): void {
  * Renders a Mermaid diagram code to SVG
  *
  * @param code - Mermaid diagram code
- * @param theme - Theme ('default' or 'dark')
+ * @param theme - Mermaid theme
  * @returns SVG string
  *
  * @throws Error if rendering fails
@@ -87,7 +87,7 @@ function initializeMermaid(theme: 'default' | 'dark' = 'default'): void {
  */
 export async function renderMermaid(
   code: string,
-  theme: 'default' | 'dark' = 'default'
+  theme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' = 'default'
 ): Promise<string> {
   try {
     // Initialize mermaid with theme
@@ -109,17 +109,33 @@ export async function renderMermaid(
  * Maps app theme to Mermaid theme
  *
  * @param appTheme - App theme ID
- * @returns Mermaid theme ('default' or 'dark')
+ * @returns Mermaid theme
+ *
+ * Mapping strategy:
+ * - light → 'base' (clean, modern light theme)
+ * - dark → 'dark' (dark background)
+ * - github → 'neutral' (GitHub-like neutral colors)
+ * - minimal → 'base' (minimal, clean)
+ * - solarized-light → 'forest' (warm, earthy tones match solarized palette)
+ * - solarized-dark → 'dark' (dark background)
  *
  * @example
  * ```ts
  * getMermaidTheme('dark') // 'dark'
- * getMermaidTheme('github') // 'default'
- * getMermaidTheme('solarized_dark') // 'dark'
+ * getMermaidTheme('github') // 'neutral'
+ * getMermaidTheme('solarized-light') // 'forest'
  * ```
  */
-export function getMermaidTheme(appTheme: string): 'default' | 'dark' {
+export function getMermaidTheme(appTheme: string): 'default' | 'dark' | 'forest' | 'neutral' | 'base' {
   // Map app themes to Mermaid themes
-  const darkThemes = ['dark', 'solarized_dark'];
-  return darkThemes.includes(appTheme) ? 'dark' : 'default';
+  const themeMap: Record<string, 'default' | 'dark' | 'forest' | 'neutral' | 'base'> = {
+    'light': 'base',
+    'dark': 'dark',
+    'github': 'neutral',
+    'minimal': 'base',
+    'solarized-light': 'forest',
+    'solarized-dark': 'dark',
+  };
+
+  return themeMap[appTheme] || 'default';
 }

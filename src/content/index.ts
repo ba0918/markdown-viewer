@@ -95,18 +95,20 @@ const startHotReload = async (interval: number): Promise<void> => {
   // 最小間隔1000ms（1秒）を保証
   const safeInterval = Math.max(interval, 1000);
 
-  console.log(`Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`);
-
   // 初回のファイル内容を取得（Background Scriptでfetch）
+  // Note: Windows local files (file:///C:/...) work fine
+  // Note: WSL2 files (file://wsl.localhost/...) fail with "Not allowed to load local resource"
   try {
     lastFileContent = await sendMessage<string>({
       type: 'CHECK_FILE_CHANGE',
       payload: { url: location.href }
     });
-  } catch (error) {
-    console.error('Markdown Viewer: Failed to initialize Hot Reload:', error);
+  } catch {
+    // Hot Reload not available for this file (silently fail)
     return;
   }
+
+  console.log(`Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`);
 
   // setIntervalでファイル変更を監視
   hotReloadInterval = window.setInterval(async () => {
@@ -117,18 +119,16 @@ const startHotReload = async (interval: number): Promise<void> => {
         payload: { url: location.href }
       });
 
-      // デバッグ: 内容比較
+      // 内容比較
       const changed = currentContent !== lastFileContent;
-      console.log(`[Hot Reload Debug] Changed: ${changed}, Old length: ${lastFileContent?.length || 0}, New length: ${currentContent.length}`);
 
       if (changed) {
         console.log('Markdown Viewer: File changed detected! Reloading...');
         lastFileContent = currentContent;
         window.location.reload();
       }
-    } catch (error) {
-      console.error('Markdown Viewer: Hot Reload check failed:', error);
-      // エラー時はインターバル停止
+    } catch {
+      // Fetch failed, stop Hot Reload (silently)
       stopHotReload();
     }
   }, safeInterval);
