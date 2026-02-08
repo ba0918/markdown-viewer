@@ -10,6 +10,9 @@
 
 前回実装したTable of Contents (ToC) 機能に5つのUX改善を実施する。階層の折りたたみ、全体の表示/非表示、スクロール追従の最適化、横幅調整機能、そしてプロフェッショナルなデザイン刷新により、実用的で美しいナビゲーション体験を実現する。
 
+**⚠️ 追加問題（Resume時に判明）:**
+ToCリサイズ時に `markdown-viewer` がレイアウト可変じゃないため、ToCがMarkdownコンテンツに被さってしまう。ToCの幅に合わせて `markdown-viewer` に動的な `margin-left` を設定し、レイアウトを可変対応させる必要がある。
+
 ## 🎯 Goals
 
 1. **階層の折りたたみ機能** - h1/h2/h3レベル単位で開閉可能に（▶/▼アイコン）
@@ -17,6 +20,7 @@
 3. **スクロール追従の改善** - 下にスクロールしてもToCが常に見える（固定位置最適化）
 4. **横幅調整機能** - ドラッグ可能なResize Handleで横幅を自由に調整（150px〜500px）
 5. **デザイン刷新** - frontend-designによるプロフェッショナルなUI/UX、全6テーマ対応
+6. **レイアウト可変対応** - ToCリサイズ時に `markdown-viewer` が被らないよう、動的 `margin-left` でレイアウトを調整
 
 ## 📐 Design
 
@@ -48,6 +52,8 @@ src/
         useResizable.ts             # (新規) Resize Hook（ドラッグ操作ロジック）
 
   content/
+    components/
+      MarkdownViewer.tsx            # (修正) ToCの幅に合わせてmargin-left動的設定
     styles/
       themes/
         *.css                       # 各テーマのToC配色調整（必要に応じて）
@@ -106,6 +112,17 @@ tests/
   - ホバーエフェクトの洗練
   - スクロールバーのカスタムスタイリング強化
 
+#### 6. レイアウト可変対応（ToCリサイズ時の被り防止）
+- **問題**: ToCが `position: fixed` で固定されているため、ToCをリサイズしても `markdown-viewer` の幅が変わらず、ToCがMarkdownコンテンツに被さってしまう
+- **解決策**: `MarkdownViewer.tsx` で `markdown-viewer` に動的な `margin-left` を設定
+  - ToCが表示されている場合: `margin-left: {tocWidth}px`
+  - ToCが非表示の場合: `margin-left: 40px` （最小サイドバー幅）
+- **実装方法**:
+  - `TableOfContents.tsx` から `tocState` SignalをPropsで `MarkdownViewer.tsx` に渡す
+  - `MarkdownViewer.tsx` で `tocState.value.visible` と `tocState.value.width` を監視
+  - `.markdown-viewer` のスタイルに動的に `marginLeft` を設定
+- **トランジション**: ToCのリサイズに合わせてスムーズに `margin-left` を変化させる（CSS `transition`）
+
 ## ✅ Tests
 
 ### Unit Tests (domain/toc/types.test.ts)
@@ -152,6 +169,7 @@ tests/
 | ui-components/useResizable.ts - Resize Hook実装 | ⚪ |
 | ui-components/TableOfContents.tsx - Resize統合 | ⚪ |
 | ui-components/toc.css - アニメーション・デザイン刷新 | ⚪ |
+| content/components/MarkdownViewer.tsx - レイアウト可変対応 | ⚪ |
 | content/styles/themes/*.css - テーマ調整 | ⚪ |
 | Tests (Unit) | ⚪ |
 | Tests (E2E) | ⚪ |

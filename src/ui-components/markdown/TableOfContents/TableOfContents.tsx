@@ -32,7 +32,8 @@ interface Props {
 }
 
 // ToC状態をSignalで管理（グローバル）
-const tocState = signal<TocState>(DEFAULT_TOC_STATE);
+// ⚠️ エクスポートして MarkdownViewer.tsx から参照可能にする（レイアウト可変対応）
+export const tocState = signal<TocState>(DEFAULT_TOC_STATE);
 const collapsedItems = signal<Set<string>>(new Set());
 
 /**

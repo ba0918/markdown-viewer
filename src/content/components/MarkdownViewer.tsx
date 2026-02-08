@@ -5,15 +5,19 @@ import { renderMath } from '../../domain/math/renderer.ts';
 import { hasMathExpression } from '../../domain/math/detector.ts';
 import { detectMermaidBlocks } from '../../domain/markdown/mermaid-detector.ts';
 import { renderMermaid, getMermaidTheme } from '../../domain/markdown/mermaid-renderer.ts';
-import { TableOfContents } from '../../ui-components/markdown/TableOfContents/TableOfContents.tsx';
+import { TableOfContents, tocState } from '../../ui-components/markdown/TableOfContents/TableOfContents.tsx';
 import { tocService } from '../../services/toc-service.ts';
 import type { TocItem } from '../../domain/toc/types.ts';
 
 /**
  * MarkdownViewerコンポーネント
  *
- * 責務: Markdownの表示、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示
+ * 責務: Markdownの表示、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示、レイアウト可変対応
  * ❌ 禁止: ビジネスロジック
+ *
+ * レイアウト可変対応:
+ * - ToCの幅に合わせて `.markdown-viewer` の `margin-left` を動的に調整
+ * - ToCがリサイズされても、Markdownコンテンツに被らないようにする
  */
 
 interface Props {
@@ -31,6 +35,12 @@ export const MarkdownViewer = ({ html, markdown, themeId }: Props) => {
     const items = tocService.generate(markdown);
     setTocItems(items);
   }, [markdown]);
+
+  // ToCの状態に合わせて動的に margin-left を計算
+  // ⚠️ tocState.value を使うことで、Signalの変更を自動検知（リアクティブ）
+  // - ToCが表示されている場合: ToCの幅 + パディング
+  // - ToCが非表示の場合: 最小サイドバー幅（40px）
+  const marginLeft = tocState.value.visible ? tocState.value.width : 40;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -104,7 +114,13 @@ export const MarkdownViewer = ({ html, markdown, themeId }: Props) => {
   return (
     <div class="markdown-viewer-layout">
       <TableOfContents items={tocItems} themeId={themeId.value} />
-      <div class="markdown-viewer">
+      <div
+        class="markdown-viewer"
+        style={{
+          marginLeft: `${marginLeft}px`,
+          transition: 'margin-left 0.3s ease', // ToCリサイズに合わせてスムーズに変化
+        }}
+      >
         <div
           ref={containerRef}
           class="markdown-body"

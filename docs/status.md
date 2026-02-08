@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 11:42:00
+**Last Updated:** 2026-02-08 12:28:40
 
 ---
 
@@ -15,7 +15,7 @@
 | **Plan** | [docs/cycles/20260208111558_toc-ux-improvements.md](./cycles/20260208111558_toc-ux-improvements.md) |
 
 **Current Focus:**
-ToC UX改善機能の実装中。(1) 階層の折りたたみ機能（▶/▼アイコン）、(2) ToC全体の表示/非表示Toggle（×/☰ボタン）、(3) position:fixedによる固定表示、(4) 横幅調整機能（Resize Handle、150px-500px）、(5) プロフェッショナルなデザイン刷新（全6テーマ対応）。実装完了、CSS読み込み調整中。E2Eテスト要修正、デザインfrontend-design適用予定。
+ToC UX改善機能の実装中。(1) 階層の折りたたみ機能（▶/▼アイコン）、(2) ToC全体の表示/非表示Toggle（×/☰ボタン）、(3) position:fixedによる固定表示、(4) 横幅調整機能（Resize Handle、150px-500px）、(5) プロフェッショナルなデザイン刷新（全6テーマ対応）、**(6) レイアウト可変対応（ToCリサイズ時にmarkdown-viewerが被らないよう動的margin-left設定）**。前回のセッションから引き継ぎ、未実装のレイアウト被り問題を解決します。
 
 ---
 
