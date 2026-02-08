@@ -450,6 +450,17 @@
     0 0 24px var(--toc-resize-handle-glow-far, rgba(59, 130, 246, 0.2));
 }
 
+/* リサイズ中はテキスト選択を無効化（ドラッグ時の文字列選択を防止） */
+.toc-container:has(.toc-resize-handle.resizing) ~ * {
+  user-select: none;
+}
+
+/* リサイズ中は全画面でテキスト選択を無効化（確実に防止） */
+body:has(.toc-resize-handle.resizing) {
+  user-select: none;
+  cursor: ew-resize; /* リサイズカーソルを全画面に適用 */
+}
+
 /* ===== Theme Variables (Default: Light) ===== */
 .toc-theme-light {
   /* Background & Surface */
