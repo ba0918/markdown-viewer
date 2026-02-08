@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 13:05:45
+**Last Updated:** 2026-02-08 13:29:18
 
 ---
 
@@ -8,18 +8,28 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208130545` |
-| **Feature** | YAML Frontmatter処理とView/Rawモード切り替え |
-| **Started** | 2026-02-08 13:05:45 |
-| **Phase** | 🟡 Planning |
-| **Plan** | [docs/cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md](./cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md) |
+| **Cycle ID** | - |
+| **Feature** | - |
+| **Started** | - |
+| **Phase** | - |
+| **Plan** | - |
 
 **Current Focus:**
-YAML Frontmatter（`---`で囲まれたメタデータ）を解析してレンダリング結果から除外（GitHub互換）。View/Rawモード切り替え機能を実装し、レンダリング結果と元のMarkdownテキストを簡単に確認できるようにする。
+セッション待機中。次のタスクを開始してください。
 
 ---
 
 ## 📜 Session History
+
+### 20260208130545 - YAML Frontmatter処理とView/Rawモード切り替え
+- **Started:** 2026-02-08 13:05:45
+- **Completed:** 2026-02-08 13:29:18
+- **Status:** 🟡 In Progress（Part 1完了）
+- **Summary:** YAML Frontmatter解析機能を実装完了。gray-matterライブラリでFrontmatterを解析し、レンダリング結果から除外（GitHub互換）。domain/frontmatter層の実装、services/messaging/content層の統合、全テスト通過、ビルド成功。次はView/Rawモード切り替えUI実装。
+- **Plan:** [docs/cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md](./cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md)
+- **Commits:**
+  - `[237e020]` feat: YAML Frontmatter解析機能を実装（レンダリング結果から除外）
+- **Next:** View/Rawモード切り替えUI実装（DocumentHeader, RawTextView, frontend-design使用）
 
 ### 20260208111558 - ToC レイアウト可変対応（リサイズ時の被り防止）
 - **Started:** 2026-02-08 11:15:58
