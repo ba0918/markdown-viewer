@@ -54,6 +54,21 @@ deno task build
 - [Deno](https://deno.land/) 2.x以上
 - Chrome/Chromium ブラウザ
 
+### 初回セットアップ
+
+リポジトリをクローンした後、Git hooksをセットアップしてください：
+
+```bash
+deno task setup-hooks
+```
+
+これにより、以下のフックが有効化されます：
+
+- **pre-commit**: フォーマット、リント、単体テストを実行
+- **pre-push**: ビルド確認、E2Eテストを実行
+
+これらのフックにより、品質基準を満たさないコードのコミット・プッシュを防ぎます。
+
 ### CI/CD
 
 このプロジェクトではGitHub Actionsを使用して自動テスト・ビルドを実行しています。
@@ -88,6 +103,9 @@ deno task build
 ### コマンド
 
 ```bash
+# Git hooks セットアップ（初回のみ）
+deno task setup-hooks
+
 # 開発モード（ファイル監視）
 deno task dev
 

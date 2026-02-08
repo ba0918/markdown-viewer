@@ -1,0 +1,35 @@
+#!/bin/sh
+# Pre-push hook: ビルド確認とE2Eテスト実行
+
+set -e
+
+echo "🚀 Pre-push checks running..."
+
+# Build check
+echo "🏗️  Checking build..."
+if ! deno task build; then
+  echo "❌ Build failed!"
+  echo "💡 Fix build errors before pushing."
+  exit 1
+fi
+
+# E2E tests (WSL2環境を考慮)
+echo "🎭 Running E2E tests..."
+if command -v xvfb-run > /dev/null; then
+  # WSL2環境
+  if ! deno task test:e2e:wsl2; then
+    echo "❌ E2E tests failed!"
+    echo "💡 Fix E2E test failures before pushing."
+    exit 1
+  fi
+else
+  # 通常環境
+  if ! deno task test:e2e; then
+    echo "❌ E2E tests failed!"
+    echo "💡 Fix E2E test failures before pushing."
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-push checks passed!"
+exit 0

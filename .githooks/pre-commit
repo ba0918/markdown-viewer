@@ -1,0 +1,33 @@
+#!/bin/sh
+# Pre-commit hook: lint, fmt, test を実行してNG時にブロック
+
+set -e
+
+echo "🔍 Pre-commit checks running..."
+
+# Format check
+echo "📝 Checking formatting..."
+if ! deno fmt --check; then
+  echo "❌ Formatting check failed!"
+  echo "💡 Run 'deno task fmt' to fix formatting issues."
+  exit 1
+fi
+
+# Lint
+echo "🧹 Running linter..."
+if ! deno task lint; then
+  echo "❌ Lint check failed!"
+  echo "💡 Fix linting issues before committing."
+  exit 1
+fi
+
+# Unit tests
+echo "🧪 Running unit tests..."
+if ! deno task test; then
+  echo "❌ Unit tests failed!"
+  echo "💡 Fix failing tests before committing."
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"
+exit 0
