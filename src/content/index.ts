@@ -6,6 +6,7 @@ import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
+import { isWslFile } from '../shared/utils/wsl-detector.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -87,6 +88,12 @@ const loadThemeCss = (theme: Theme): void => {
  * @param interval - チェック間隔（ミリ秒、最小1000ms）
  */
 const startHotReload = async (interval: number): Promise<void> => {
+  // WSL2ファイルはHot Reload非対応（Chromeセキュリティ制限）
+  if (isWslFile(location.href)) {
+    console.log('Markdown Viewer: Hot Reload is not available for WSL2 files (file://wsl.localhost/...). Please use a localhost HTTP server instead.');
+    return;
+  }
+
   // 既存のインターバルをクリア
   if (hotReloadInterval !== null) {
     clearInterval(hotReloadInterval);
@@ -97,7 +104,7 @@ const startHotReload = async (interval: number): Promise<void> => {
 
   // 初回のファイル内容を取得（Background Scriptでfetch）
   // Note: Windows local files (file:///C:/...) work fine
-  // Note: WSL2 files (file://wsl.localhost/...) fail with "Not allowed to load local resource"
+  // Note: WSL2 files (file://wsl.localhost/...) are blocked by Chrome security policy
   try {
     lastFileContent = await sendMessage<string>({
       type: 'CHECK_FILE_CHANGE',
