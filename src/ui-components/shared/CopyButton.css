@@ -1,0 +1,86 @@
+/**
+ * CopyButton Styles
+ *
+ * 汎用コピーボタンのスタイル
+ */
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #111827;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+.copy-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.copy-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Dark theme */
+.theme-dark .copy-button {
+  background: rgba(30, 30, 30, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #c9d1d9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .copy-button:hover {
+  background: rgba(40, 40, 40, 1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #f0f6fc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Solarized Light */
+.theme-solarized-light .copy-button {
+  background: rgba(253, 246, 227, 0.9);
+  border-color: #eee8d5;
+  color: #657b83;
+}
+
+.theme-solarized-light .copy-button:hover {
+  background: #fdf6e3;
+  border-color: #93a1a1;
+  color: #586e75;
+}
+
+/* Solarized Dark */
+.theme-solarized-dark .copy-button {
+  background: rgba(0, 43, 54, 0.9);
+  border-color: rgba(147, 161, 161, 0.3);
+  color: #839496;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.theme-solarized-dark .copy-button:hover {
+  background: rgba(0, 43, 54, 1);
+  border-color: rgba(147, 161, 161, 0.5);
+  color: #93a1a1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}

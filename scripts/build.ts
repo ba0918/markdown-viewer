@@ -120,22 +120,24 @@ try {
     'solarized-dark': { start: 678, end: 725 },
   };
 
-  // DocumentHeader と RawTextView の CSS を読み込み
+  // DocumentHeader, RawTextView, CopyButton, CodeBlock の CSS を読み込み
   const documentHeaderCss = await Deno.readTextFile('src/ui-components/markdown/DocumentHeader/styles.css');
   const rawTextViewCss = await Deno.readTextFile('src/ui-components/markdown/RawTextView/styles.css');
+  const copyButtonCss = await Deno.readTextFile('src/ui-components/shared/CopyButton.css');
+  const codeBlockCss = await Deno.readTextFile('src/ui-components/markdown/CodeBlock.css');
 
-  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView をバンドル
+  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView + CopyButton + CodeBlock をバンドル
   for (const theme of Object.keys(themeMap)) {
     const themeCss = await Deno.readTextFile(`src/content/styles/themes/${theme}.css`);
     const tocThemeVars = tocLines.slice(themeMap[theme].start, themeMap[theme].end + 1).join('\n');
 
-    // テーマCSS + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView
-    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n`;
+    // テーマCSS + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView + CopyButton + CodeBlock
+    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n\n/* ===== CopyButton Styles (Bundled) ===== */\n${copyButtonCss}\n\n/* ===== CodeBlock Styles (Bundled) ===== */\n${codeBlockCss}\n`;
 
     await Deno.writeTextFile(`dist/content/styles/themes/${theme}.css`, bundledCss);
-    console.log(`  ✓ ${theme}.css (with ToC + DocumentHeader + RawTextView)`);
+    console.log(`  ✓ ${theme}.css (with ToC + DocumentHeader + RawTextView + CopyButton + CodeBlock)`);
   }
-  console.log('✅ CSS files bundled (6 themes + ToC)');
+  console.log('✅ CSS files bundled (6 themes + ToC + CopyButton)');
 
   // アイコンをdist/にコピー
   console.log('🎨 Copying icons...');

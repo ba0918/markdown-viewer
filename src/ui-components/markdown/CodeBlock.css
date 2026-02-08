@@ -1,0 +1,25 @@
+/**
+ * CodeBlock Styles
+ *
+ * コードブロック + コピーボタンのスタイル
+ */
+
+.code-block-wrapper {
+  position: relative;
+  margin: 1.5em 0;
+}
+
+.code-block-copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.code-block-wrapper:hover .code-block-copy-button {
+  opacity: 1;
+}
+
+/* コードブロックの基本スタイルは既存のmarkdown.cssを使用 */

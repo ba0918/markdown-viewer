@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Signal } from '@preact/signals';
 import { renderMath } from '../../domain/math/renderer.ts';
@@ -12,6 +12,7 @@ import type { RenderResult } from '../../shared/types/render.ts';
 import { DocumentHeader } from '../../ui-components/markdown/DocumentHeader/DocumentHeader.tsx';
 import { RawTextView } from '../../ui-components/markdown/RawTextView/RawTextView.tsx';
 import { DEFAULT_VIEW_MODE, type ViewMode } from '../../shared/types/view-mode.ts';
+import { CopyButton } from '../../ui-components/shared/CopyButton.tsx';
 
 /**
  * MarkdownViewerコンポーネント
@@ -48,6 +49,43 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // コードブロックにコピーボタンを追加
+    const codeBlocks = containerRef.current.querySelectorAll('pre > code');
+    codeBlocks.forEach((codeElement) => {
+      const preElement = codeElement.parentElement;
+      if (!preElement) return;
+
+      // 既にコピーボタンが追加されている場合はスキップ
+      if (preElement.querySelector('.code-block-copy-button')) return;
+
+      // Mermaidブロックはスキップ（専用のダイアグラム表示になるため）
+      if (codeElement.classList.contains('language-mermaid')) return;
+
+      // コードの内容を取得
+      const code = codeElement.textContent || '';
+
+      // ラッパーdivを作成
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+
+      // preElementをwrapperで囲む
+      preElement.parentNode?.insertBefore(wrapper, preElement);
+      wrapper.appendChild(preElement);
+
+      // コピーボタンをPreactコンポーネントとして追加
+      const buttonContainer = document.createElement('div');
+      wrapper.insertBefore(buttonContainer, preElement);
+      render(
+        <CopyButton
+          text={code}
+          className="code-block-copy-button"
+          ariaLabel="Copy code to clipboard"
+          title="Copy code"
+        />,
+        buttonContainer
+      );
+    });
 
     // MathJax数式レンダリング
     if (hasMathExpression(result.html)) {
