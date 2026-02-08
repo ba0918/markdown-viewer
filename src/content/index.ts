@@ -58,23 +58,6 @@ const getThemeCssUrl = (theme: Theme): string => {
   return chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
 };
 
-/**
- * ToC CSSを読み込む
- * <link>タグを<head>に追加（初回のみ）
- */
-const loadTocCss = (): void => {
-  const tocCssUrl = chrome.runtime.getURL('ui-components/markdown/TableOfContents/toc.css');
-  let linkElement = document.querySelector('link[data-toc-css]') as HTMLLinkElement;
-
-  if (!linkElement) {
-    linkElement = document.createElement('link');
-    linkElement.rel = 'stylesheet';
-    linkElement.setAttribute('data-toc-css', 'true');
-    linkElement.href = tocCssUrl;
-    document.head.appendChild(linkElement);
-    console.log('Markdown Viewer: ToC CSS loaded');
-  }
-};
 
 /**
  * テーマCSSを読み込む
@@ -217,9 +200,6 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
 const init = async () => {
   // Markdownファイル以外は処理しない
   if (!isMarkdownFile()) return;
-
-  // ToC CSSを読み込み（初回のみ）
-  loadTocCss();
 
   // Markdownコンテンツを保存
   currentMarkdown = document.body.textContent || '';

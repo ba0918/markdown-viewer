@@ -101,27 +101,37 @@ try {
   await Deno.copyFile('src/settings/options/options.html', 'dist/options.html');
   console.log('✅ HTML files copied');
 
-  // CSSファイルをdist/にコピー (Phase 3: 6テーマ対応)
-  console.log('🎨 Copying CSS files...');
+  // CSSファイルをバンドルしてdist/にコピー (Phase 3: 6テーマ対応 + ToC統合)
+  console.log('🎨 Bundling CSS files with ToC styles...');
   await Deno.mkdir('dist/content/styles/themes', { recursive: true });
 
-  const themes = ['light', 'dark', 'github', 'minimal', 'solarized-light', 'solarized-dark'];
-  for (const theme of themes) {
-    await Deno.copyFile(
-      `src/content/styles/themes/${theme}.css`,
-      `dist/content/styles/themes/${theme}.css`
-    );
-  }
-  console.log('✅ CSS files copied (6 themes)');
+  // ToC CSSを読み込み（ベーススタイル部分のみ: 1-437行目）
+  const tocCssContent = await Deno.readTextFile('src/ui-components/markdown/TableOfContents/toc.css');
+  const tocLines = tocCssContent.split('\n');
+  const tocBaseStyles = tocLines.slice(0, 437).join('\n'); // 1-437行目: ベーススタイル
 
-  // ToC CSSファイルをdist/にコピー
-  console.log('🎨 Copying ToC CSS...');
-  await Deno.mkdir('dist/ui-components/markdown/TableOfContents', { recursive: true });
-  await Deno.copyFile(
-    'src/ui-components/markdown/TableOfContents/toc.css',
-    'dist/ui-components/markdown/TableOfContents/toc.css'
-  );
-  console.log('✅ ToC CSS copied');
+  // 各テーマのCSSとToC変数をマッピング
+  const themeMap: Record<string, { start: number; end: number }> = {
+    'light': { start: 438, end: 485 },
+    'dark': { start: 486, end: 533 },
+    'github': { start: 534, end: 581 },
+    'minimal': { start: 582, end: 629 },
+    'solarized-light': { start: 630, end: 677 },
+    'solarized-dark': { start: 678, end: 725 },
+  };
+
+  // 各テーマファイルにToC CSSをバンドル
+  for (const theme of Object.keys(themeMap)) {
+    const themeCss = await Deno.readTextFile(`src/content/styles/themes/${theme}.css`);
+    const tocThemeVars = tocLines.slice(themeMap[theme].start, themeMap[theme].end + 1).join('\n');
+
+    // テーマCSS + ToC Base + ToC Theme Variables
+    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n`;
+
+    await Deno.writeTextFile(`dist/content/styles/themes/${theme}.css`, bundledCss);
+    console.log(`  ✓ ${theme}.css (with ToC)`);
+  }
+  console.log('✅ CSS files bundled (6 themes + ToC)');
 
   // アイコンをdist/にコピー
   console.log('🎨 Copying icons...');

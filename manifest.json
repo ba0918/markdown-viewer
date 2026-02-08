@@ -48,7 +48,9 @@
   },
 
   "web_accessible_resources": [{
-    "resources": ["content/styles/themes/*.css"],
+    "resources": [
+      "content/styles/themes/*.css"
+    ],
     "matches": ["file://*/*", "http://localhost:*/*"]
   }]
 }

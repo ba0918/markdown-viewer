@@ -50,6 +50,7 @@ const collapsedItems = signal<Set<string>>(new Set());
 export const TableOfContents = ({ items, themeId }: Props) => {
   const [activeId, setActiveId] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isUserClick, setIsUserClick] = useState(false); // クリック直後かどうか
 
   // 永続化された状態を読み込み
   useEffect(() => {
@@ -127,16 +128,34 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 
   /**
    * IntersectionObserverで現在表示中の見出しを検出
+   *
+   * 改善: クリック後は手動スクロールまでIntersectionObserverの更新を無視
+   * - ユーザーがクリック → クリックした見出しがアクティブ
+   * - スクロール完了後もそのまま維持
+   * - ユーザーが手動スクロール → 自動追従再開
    */
   useEffect(() => {
     if (items.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
+        // クリック直後は手動スクロールまでIntersectionObserverの更新を無視
+        if (isUserClick) {
+          return;
+        }
+
+        // 現在画面内にある見出しを収集
+        const visibleHeadings = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => ({
+            id: entry.target.id,
+            top: entry.boundingClientRect.top,
+          }))
+          .sort((a, b) => a.top - b.top); // 画面上部に近い順にソート
+
+        // 画面上部に最も近い見出しをアクティブにする
+        if (visibleHeadings.length > 0) {
+          setActiveId(visibleHeadings[0].id);
         }
       },
       {
@@ -150,15 +169,94 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     headings.forEach((h) => observer.observe(h));
 
     return () => observer.disconnect();
-  }, [items]);
+  }, [items, isUserClick]);
+
+  /**
+   * アクティブ項目が変わったら、ToCコンテナ内でスクロールして表示
+   * ユーザーがページをスクロール → 新しい見出しがアクティブ → ToCも自動追従
+   *
+   * ToCが表示されている時のみスムーススクロール
+   */
+  useEffect(() => {
+    if (!activeId || isUserClick || !tocState.value.visible) return;
+
+    // アクティブなToCリンクを取得
+    const activeLink = document.querySelector(`.toc-link.active`);
+    if (activeLink) {
+      // ToCコンテナ内でスムーススクロール
+      activeLink.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest', // 上下どちらか近い方に配置
+        inline: 'nearest',
+      });
+    }
+  }, [activeId, isUserClick]);
+
+  /**
+   * ToCを表示した瞬間に、現在のアクティブ項目までスクロール
+   * 隠してる間にページスクロールしてた場合でも、表示時に正しい位置に同期
+   */
+  useEffect(() => {
+    // ToCが表示状態になった瞬間のみ実行
+    if (!tocState.value.visible || !activeId) return;
+
+    // 少し遅延させてDOMが安定してから実行
+    const timer = setTimeout(() => {
+      const activeLink = document.querySelector(`.toc-link.active`);
+      if (activeLink) {
+        activeLink.scrollIntoView({
+          behavior: 'auto', // 即座に移動(スムーズなし)
+          block: 'center', // 画面中央に配置
+          inline: 'nearest',
+        });
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [tocState.value.visible]); // visible が変わった時のみ
+
+  /**
+   * ユーザーの手動スクロールを検出
+   * wheelイベント（マウスホイール/トラックパッド）やtouchイベント（スワイプ）で自動追従を再開
+   */
+  useEffect(() => {
+    if (!isUserClick) return;
+
+    const handleManualScroll = () => {
+      // 手動スクロール検出 → 自動追従再開
+      setIsUserClick(false);
+    };
+
+    // マウスホイール、トラックパッド
+    window.addEventListener('wheel', handleManualScroll, { passive: true });
+    // タッチスワイプ
+    window.addEventListener('touchmove', handleManualScroll, { passive: true });
+    // キーボードスクロール（↑↓, PageUp/Down, Space）
+    window.addEventListener('keydown', handleManualScroll);
+
+    return () => {
+      window.removeEventListener('wheel', handleManualScroll);
+      window.removeEventListener('touchmove', handleManualScroll);
+      window.removeEventListener('keydown', handleManualScroll);
+    };
+  }, [isUserClick]);
 
   /**
    * TOCアイテムクリック時のハンドラ
    * 対象の見出しまでスムーススクロール
+   * クリックした見出しを即座にアクティブにし、手動スクロールまで維持
    */
   const handleClick = (id: string) => {
+    // クリックした見出しを即座にアクティブにする
+    setActiveId(id);
+
+    // 手動スクロールまでIntersectionObserverの更新を無視
+    setIsUserClick(true);
+
     const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   /**
