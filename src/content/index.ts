@@ -179,8 +179,7 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
     render(
       h(ErrorBoundary, null,
         h(MarkdownViewer, {
-          html: result.html,
-          rawMarkdown: result.rawMarkdown,
+          result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
           themeId: currentTheme
         })
       ),

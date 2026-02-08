@@ -8,6 +8,7 @@ import { renderMermaid, getMermaidTheme } from '../../domain/markdown/mermaid-re
 import { TableOfContents, tocState } from '../../ui-components/markdown/TableOfContents/TableOfContents.tsx';
 import { tocService } from '../../services/toc-service.ts';
 import type { TocItem } from '../../domain/toc/types.ts';
+import type { RenderResult } from '../../shared/types/render.ts';
 
 /**
  * MarkdownViewerコンポーネント
@@ -21,20 +22,19 @@ import type { TocItem } from '../../domain/toc/types.ts';
  */
 
 interface Props {
-  html: string;
-  rawMarkdown: string;
+  result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<string>;
 }
 
-export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
+export const MarkdownViewer = ({ result, themeId }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
 
-  // TOC生成（Frontmatter除外済みのcontentではなく、元のmarkdownを使用）
+  // TOC生成（Frontmatter除外済みのcontentを使用）
   useEffect(() => {
-    const items = tocService.generate(rawMarkdown);
+    const items = tocService.generate(result.content);
     setTocItems(items);
-  }, [rawMarkdown]);
+  }, [result.content]);
 
   // ToCの状態に合わせて動的に margin-left を計算
   // ⚠️ tocState.value を使うことで、Signalの変更を自動検知（リアクティブ）
@@ -46,7 +46,7 @@ export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
     if (!containerRef.current) return;
 
     // MathJax数式レンダリング
-    if (hasMathExpression(html)) {
+    if (hasMathExpression(result.html)) {
       try {
         renderMath(containerRef.current);
       } catch (error) {
@@ -55,7 +55,7 @@ export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
     }
 
     // Mermaidダイアグラムレンダリング
-    const mermaidBlocks = detectMermaidBlocks(html);
+    const mermaidBlocks = detectMermaidBlocks(result.html);
     const existingDiagrams = containerRef.current?.querySelectorAll('.mermaid-diagram');
 
     // アプリテーマからMermaidテーマを取得
@@ -109,7 +109,7 @@ export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
         }
       })();
     }
-  }, [html, themeId.value]);
+  }, [result.html, themeId.value]);
 
   return (
     <div class="markdown-viewer-layout">
@@ -124,7 +124,7 @@ export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
         <div
           ref={containerRef}
           class="markdown-body"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: result.html }}
         />
       </div>
     </div>
