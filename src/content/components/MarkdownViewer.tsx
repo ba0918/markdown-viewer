@@ -9,11 +9,14 @@ import { TableOfContents, tocState } from '../../ui-components/markdown/TableOfC
 import { tocService } from '../../services/toc-service.ts';
 import type { TocItem } from '../../domain/toc/types.ts';
 import type { RenderResult } from '../../shared/types/render.ts';
+import { DocumentHeader } from '../../ui-components/markdown/DocumentHeader/DocumentHeader.tsx';
+import { RawTextView } from '../../ui-components/markdown/RawTextView/RawTextView.tsx';
+import { DEFAULT_VIEW_MODE, type ViewMode } from '../../shared/types/view-mode.ts';
 
 /**
  * MarkdownViewerコンポーネント
  *
- * 責務: Markdownの表示、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示、レイアウト可変対応
+ * 責務: Markdownの表示、View/Raw切り替え、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示、レイアウト可変対応
  * ❌ 禁止: ビジネスロジック
  *
  * レイアウト可変対応:
@@ -29,6 +32,7 @@ interface Props {
 export const MarkdownViewer = ({ result, themeId }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>(DEFAULT_VIEW_MODE);
 
   // TOC生成（Frontmatter除外済みのcontentを使用）
   useEffect(() => {
@@ -112,7 +116,15 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
   }, [result.html, themeId.value]);
 
   return (
-    <div class="markdown-viewer-layout">
+    <div class={`markdown-viewer-layout theme-${themeId.value}`}>
+      <DocumentHeader
+        currentMode={viewMode}
+        onModeChange={setViewMode}
+        style={{
+          left: `${marginLeft - 20}px`, // ToCの幅（marginLeft - gap 20px）
+        }}
+        themeId={themeId.value}
+      />
       <TableOfContents items={tocItems} themeId={themeId.value} />
       <div
         class="markdown-viewer"
@@ -121,11 +133,15 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
           transition: 'margin-left 0.3s ease', // ToCリサイズに合わせてスムーズに変化
         }}
       >
-        <div
-          ref={containerRef}
-          class="markdown-body"
-          dangerouslySetInnerHTML={{ __html: result.html }}
-        />
+        {viewMode === 'view' ? (
+          <div
+            ref={containerRef}
+            class="markdown-body"
+            dangerouslySetInnerHTML={{ __html: result.html }}
+          />
+        ) : (
+          <RawTextView rawMarkdown={result.rawMarkdown} />
+        )}
       </div>
     </div>
   );

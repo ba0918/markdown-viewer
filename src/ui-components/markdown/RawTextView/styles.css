@@ -1,0 +1,115 @@
+/**
+ * RawTextView Styles
+ *
+ * シンプルなプレーンテキスト表示 + 控えめなコピーアイコン
+ */
+
+.raw-text-view {
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+.raw-text-copy-button {
+  position: fixed;
+  top: calc(56px + 0.75rem); /* DocumentHeader height + padding */
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.raw-text-copy-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #111827;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.raw-text-copy-button:active {
+  transform: scale(0.95);
+}
+
+.raw-text-copy-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.copy-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.raw-text-content {
+  margin: 0;
+  padding: 1.5rem;
+  background: transparent;
+  border: none;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.raw-text-content code {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+/* Dark theme */
+.theme-dark .raw-text-copy-button {
+  background: rgba(30, 30, 30, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #c9d1d9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .raw-text-copy-button:hover {
+  background: rgba(40, 40, 40, 1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #f0f6fc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Solarized Light */
+.theme-solarized-light .raw-text-copy-button {
+  background: rgba(253, 246, 227, 0.9);
+  border-color: #eee8d5;
+  color: #657b83;
+}
+
+.theme-solarized-light .raw-text-copy-button:hover {
+  background: #fdf6e3;
+  border-color: #93a1a1;
+  color: #586e75;
+}
+
+/* Solarized Dark */
+.theme-solarized-dark .raw-text-copy-button {
+  background: rgba(0, 43, 54, 0.9);
+  border-color: rgba(147, 161, 161, 0.3);
+  color: #839496;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.theme-solarized-dark .raw-text-copy-button:hover {
+  background: rgba(0, 43, 54, 1);
+  border-color: rgba(147, 161, 161, 0.5);
+  color: #93a1a1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}

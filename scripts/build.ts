@@ -120,16 +120,20 @@ try {
     'solarized-dark': { start: 678, end: 725 },
   };
 
-  // 各テーマファイルにToC CSSをバンドル
+  // DocumentHeader と RawTextView の CSS を読み込み
+  const documentHeaderCss = await Deno.readTextFile('src/ui-components/markdown/DocumentHeader/styles.css');
+  const rawTextViewCss = await Deno.readTextFile('src/ui-components/markdown/RawTextView/styles.css');
+
+  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView をバンドル
   for (const theme of Object.keys(themeMap)) {
     const themeCss = await Deno.readTextFile(`src/content/styles/themes/${theme}.css`);
     const tocThemeVars = tocLines.slice(themeMap[theme].start, themeMap[theme].end + 1).join('\n');
 
-    // テーマCSS + ToC Base + ToC Theme Variables
-    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n`;
+    // テーマCSS + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView
+    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n`;
 
     await Deno.writeTextFile(`dist/content/styles/themes/${theme}.css`, bundledCss);
-    console.log(`  ✓ ${theme}.css (with ToC)`);
+    console.log(`  ✓ ${theme}.css (with ToC + DocumentHeader + RawTextView)`);
   }
   console.log('✅ CSS files bundled (6 themes + ToC)');
 

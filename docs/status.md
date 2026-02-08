@@ -1,12 +1,21 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 22:04:22
+**Last Updated:** 2026-02-08 22:20:39
 
 ---
 
 ## 🎯 Current Session
 
-現在作業中のセッションはありません。新しいセッションを開始してください。
+| Field | Value |
+|-------|-------|
+| **Cycle ID** | `20260208221736` |
+| **Feature** | View/Raw モード切り替え機能 |
+| **Started** | 2026-02-08 22:17:36 |
+| **Phase** | 🟡 Planning |
+| **Plan** | [docs/cycles/20260208221736_view-raw-mode-toggle.md](./cycles/20260208221736_view-raw-mode-toggle.md) |
+
+**Current Focus:**
+Markdownビューア上で「View（プレビュー）」と「Raw（原文テキスト）」を切り替える機能を実装。薄く固定された半透明ヘッダーに `[ View | Raw ]` タブを配置し、レンダリング結果の確認やソースコピーを容易にする。frontend-designスキルを活用した美しいデザインを実現。
 
 ---
 

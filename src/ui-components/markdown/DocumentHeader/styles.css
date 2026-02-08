@@ -1,0 +1,144 @@
+/**
+ * DocumentHeader Styles
+ *
+ * frontend-design inspired design:
+ * - 半透明背景 + Blur Effect
+ * - モダンなタブUI
+ * - スムーズなアニメーション
+ */
+
+.document-header {
+  position: fixed;
+  top: 0;
+  left: 0; /* ToCの幅に応じて動的に調整（Preactのinline styleで） */
+  right: 0;
+  height: 56px;
+  z-index: 999; /* ToCの下に配置（ToCに隠れないように） */
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: left 0.3s ease; /* ToCリサイズに合わせてスムーズに移動 */
+}
+
+.document-header-content {
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 2rem;
+}
+
+.document-header-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.document-header-tabs .tab {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.document-header-tabs .tab:hover {
+  color: #111827;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.document-header-tabs .tab:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.document-header-tabs .tab.active {
+  color: #111827;
+  font-weight: 600;
+}
+
+.document-header-tabs .tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Theme-specific styles */
+
+/* Dark theme (GitHub Dark): #0d1117 */
+.document-header-theme-dark {
+  background: rgba(13, 17, 23, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.document-header-theme-dark .tab {
+  color: #c9d1d9;
+}
+
+.document-header-theme-dark .tab:hover {
+  color: #f0f6fc;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.document-header-theme-dark .tab.active {
+  color: #f0f6fc;
+}
+
+/* GitHub theme (same as light): #ffffff */
+.document-header-theme-github {
+  /* Uses default light styles */
+}
+
+/* Minimal theme: #fafafa */
+.document-header-theme-minimal {
+  background: rgba(250, 250, 250, 0.92);
+  /* Other styles use default light theme */
+}
+
+/* Solarized Light theme: #fdf6e3 */
+.document-header-theme-solarized-light {
+  background: rgba(253, 246, 227, 0.92);
+  border-bottom: 1px solid rgba(147, 161, 161, 0.2);
+}
+
+.document-header-theme-solarized-light .tab {
+  color: #657b83;
+}
+
+.document-header-theme-solarized-light .tab:hover {
+  color: #586e75;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.document-header-theme-solarized-light .tab.active {
+  color: #586e75;
+}
+
+/* Solarized Dark theme: #002b36 */
+.document-header-theme-solarized-dark {
+  background: rgba(0, 43, 54, 0.92);
+  border-bottom: 1px solid rgba(147, 161, 161, 0.2);
+}
+
+.document-header-theme-solarized-dark .tab {
+  color: #839496;
+}
+
+.document-header-theme-solarized-dark .tab:hover,
+.document-header-theme-solarized-dark .tab.active {
+  color: #93a1a1;
+}
