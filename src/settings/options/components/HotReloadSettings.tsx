@@ -25,6 +25,7 @@ export const HotReloadSettings = ({
   const [localEnabled, setLocalEnabled] = useState(enabled);
   const [localInterval, setLocalInterval] = useState(interval);
   const [localAutoReload, setLocalAutoReload] = useState(autoReload);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleToggle = () => {
     const newEnabled = !localEnabled;
@@ -35,10 +36,22 @@ export const HotReloadSettings = ({
   const handleIntervalChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     const value = parseInt(target.value, 10);
-    if (value >= 1000) {
-      setLocalInterval(value);
-      onChange(localEnabled, value, localAutoReload);
+
+    // バリデーション
+    if (isNaN(value) || value === 0) {
+      setValidationError("チェック間隔は1以上の数値を入力してください");
+      return;
     }
+
+    if (value < 1000) {
+      setValidationError("チェック間隔は最小1000ms（1秒）以上にしてください");
+      return;
+    }
+
+    // バリデーションOK
+    setValidationError(null);
+    setLocalInterval(value);
+    onChange(localEnabled, value, localAutoReload);
   };
 
   const handleAutoReloadToggle = () => {
@@ -85,7 +98,9 @@ export const HotReloadSettings = ({
               onInput={handleIntervalChange}
               class="slider"
             />
-            <p class="hint">最小: 1000ms（1秒）</p>
+            {validationError
+              ? <p class="error-message">{validationError}</p>
+              : <p class="hint">最小: 1000ms（1秒）</p>}
           </div>
 
           <div class="setting-group">
