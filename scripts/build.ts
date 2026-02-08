@@ -105,6 +105,54 @@ try {
   console.log('🎨 Bundling CSS files with ToC styles...');
   await Deno.mkdir('dist/content/styles/themes', { recursive: true });
 
+  // フォントファイルをコピー (Inter + JetBrains Mono)
+  console.log('🔤 Copying font files...');
+  await Deno.mkdir('dist/content/styles/fonts', { recursive: true });
+
+  const interPath = 'node_modules/.deno/@fontsource+inter@5.2.8/node_modules/@fontsource/inter';
+  const jetbrainsPath = 'node_modules/.deno/@fontsource+jetbrains-mono@5.2.8/node_modules/@fontsource/jetbrains-mono';
+
+  // Inter fonts (400, 600)
+  let interFontCss400 = await Deno.readTextFile(`${interPath}/400.css`);
+  let interFontCss600 = await Deno.readTextFile(`${interPath}/600.css`);
+  // パスを Chrome Extension の相対パスに変換
+  interFontCss400 = interFontCss400.replace(/url\(\.\/files\//g, 'url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/');
+  interFontCss600 = interFontCss600.replace(/url\(\.\/files\//g, 'url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/');
+  const interFontCss = interFontCss400 + '\n' + interFontCss600;
+
+  // JetBrains Mono fonts (400, 500)
+  let jetbrainsFontCss400 = await Deno.readTextFile(`${jetbrainsPath}/400.css`);
+  let jetbrainsFontCss500 = await Deno.readTextFile(`${jetbrainsPath}/500.css`);
+  // パスを Chrome Extension の相対パスに変換
+  jetbrainsFontCss400 = jetbrainsFontCss400.replace(/url\(\.\/files\//g, 'url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/');
+  jetbrainsFontCss500 = jetbrainsFontCss500.replace(/url\(\.\/files\//g, 'url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/');
+  const jetbrainsFontCss = jetbrainsFontCss400 + '\n' + jetbrainsFontCss500;
+
+  // フォント files ディレクトリをコピー
+  await Deno.mkdir('dist/content/styles/fonts/files', { recursive: true });
+
+  // Inter WOFF2ファイルをコピー
+  for await (const entry of Deno.readDir(`${interPath}/files`)) {
+    if (entry.name.includes('400-normal') || entry.name.includes('600-normal')) {
+      await Deno.copyFile(
+        `${interPath}/files/${entry.name}`,
+        `dist/content/styles/fonts/files/${entry.name}`
+      );
+    }
+  }
+
+  // JetBrains Mono WOFF2ファイルをコピー
+  for await (const entry of Deno.readDir(`${jetbrainsPath}/files`)) {
+    if (entry.name.includes('400-normal') || entry.name.includes('500-normal')) {
+      await Deno.copyFile(
+        `${jetbrainsPath}/files/${entry.name}`,
+        `dist/content/styles/fonts/files/${entry.name}`
+      );
+    }
+  }
+
+  console.log('✅ Font files copied');
+
   // ToC CSSを読み込み（ベーススタイル部分のみ: 1-437行目）
   const tocCssContent = await Deno.readTextFile('src/ui-components/markdown/TableOfContents/toc.css');
   const tocLines = tocCssContent.split('\n');
@@ -126,18 +174,18 @@ try {
   const copyButtonCss = await Deno.readTextFile('src/ui-components/shared/CopyButton.css');
   const codeBlockCss = await Deno.readTextFile('src/ui-components/markdown/CodeBlock.css');
 
-  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView + CopyButton + CodeBlock をバンドル
+  // 各テーマファイルにToC CSS + DocumentHeader + RawTextView + CopyButton + CodeBlock + Fonts をバンドル
   for (const theme of Object.keys(themeMap)) {
     const themeCss = await Deno.readTextFile(`src/content/styles/themes/${theme}.css`);
     const tocThemeVars = tocLines.slice(themeMap[theme].start, themeMap[theme].end + 1).join('\n');
 
-    // テーマCSS + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView + CopyButton + CodeBlock
-    const bundledCss = `${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n\n/* ===== CopyButton Styles (Bundled) ===== */\n${copyButtonCss}\n\n/* ===== CodeBlock Styles (Bundled) ===== */\n${codeBlockCss}\n`;
+    // テーマCSS + Fonts + ToC Base + ToC Theme Variables + DocumentHeader + RawTextView + CopyButton + CodeBlock
+    const bundledCss = `/* ===== Font Faces (Inter + JetBrains Mono) ===== */\n${interFontCss}\n${jetbrainsFontCss}\n\n${themeCss}\n\n/* ===== ToC Styles (Bundled) ===== */\n${tocBaseStyles}\n${tocThemeVars}\n}\n\n/* ===== DocumentHeader Styles (Bundled) ===== */\n${documentHeaderCss}\n\n/* ===== RawTextView Styles (Bundled) ===== */\n${rawTextViewCss}\n\n/* ===== CopyButton Styles (Bundled) ===== */\n${copyButtonCss}\n\n/* ===== CodeBlock Styles (Bundled) ===== */\n${codeBlockCss}\n`;
 
     await Deno.writeTextFile(`dist/content/styles/themes/${theme}.css`, bundledCss);
-    console.log(`  ✓ ${theme}.css (with ToC + DocumentHeader + RawTextView + CopyButton + CodeBlock)`);
+    console.log(`  ✓ ${theme}.css (with Fonts + ToC + DocumentHeader + RawTextView + CopyButton + CodeBlock)`);
   }
-  console.log('✅ CSS files bundled (6 themes + ToC + CopyButton)');
+  console.log('✅ CSS files bundled (6 themes + Fonts + ToC + CopyButton)');
 
   // アイコンをdist/にコピー
   console.log('🎨 Copying icons...');

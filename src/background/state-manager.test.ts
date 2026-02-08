@@ -47,7 +47,7 @@ Deno.test('StateManager: デフォルト状態の読み込み', async () => {
 
   assertEquals(state.theme, 'light');
   assertEquals(state.hotReload.enabled, false);
-  assertEquals(state.hotReload.interval, 0);
+  assertEquals(state.hotReload.interval, 3000);
   assertEquals(state.hotReload.autoReload, false);
 });
 

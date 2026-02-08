@@ -16,10 +16,22 @@
   padding-top: calc(56px + 2rem); /* DocumentHeader height (56px) + original padding (2rem) */
   margin-left: 270px; /* ToC width (250px) + gap (20px) */
   max-width: 900px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   transition: margin-left 0.3s ease;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 見出し */
@@ -29,10 +41,10 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  margin-top: 24px;
-  margin-bottom: 16px;
+  margin-top: 28px;
+  margin-bottom: 18px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   color: #93a1a1;
 }
 
@@ -62,17 +74,19 @@
 
 .markdown-body h6 {
   font-size: 0.85rem;
-  color: #586e75;
+  color: #657b83;
 }
 
 /* リンク */
 .markdown-body a {
   color: #268bd2;
   text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
 .markdown-body a:hover {
   text-decoration: underline;
+  opacity: 0.8;
 }
 
 /* コードブロック */
@@ -80,19 +94,25 @@
   background: #073642;
   padding: 0.2em 0.4em;
   border-radius: 3px;
-  font-family: 'Courier New', Consolas, Monaco, monospace;
-  font-size: 85%;
+  font-family: 'JetBrains Mono', 'Courier New', Consolas, Monaco, monospace;
+  font-size: 87%;
   color: #2aa198;
 }
 
 .markdown-body pre {
   background: #073642;
-  padding: 16px;
+  padding: 20px;
   border-radius: 6px;
   overflow-x: auto;
-  font-size: 85%;
+  font-size: 87%;
   line-height: 1.45;
+  margin-bottom: 20px;
+  transition: box-shadow 0.2s ease;
   border: 1px solid #0a4552;
+}
+
+.markdown-body pre:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .markdown-body pre code {
@@ -106,19 +126,19 @@
 .markdown-body ol {
   padding-left: 2em;
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .markdown-body li {
-  margin-top: 0.25em;
+  margin-top: 0.3em;
 }
 
 /* 引用 */
 .markdown-body blockquote {
   padding: 0 1em;
-  color: #586e75;
+  color: #657b83;
   border-left: 0.25em solid #859900;
-  margin: 0 0 16px 0;
+  margin: 0 0 18px 0;
 }
 
 /* テーブル */
@@ -126,21 +146,21 @@
   border-spacing: 0;
   border-collapse: collapse;
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   width: 100%;
   overflow: auto;
 }
 
 .markdown-body table th {
   font-weight: 600;
-  padding: 6px 13px;
+  padding: 8px 14px;
   border: 1px solid #0a4552;
   background: #073642;
   color: #93a1a1;
 }
 
 .markdown-body table td {
-  padding: 6px 13px;
+  padding: 8px 14px;
   border: 1px solid #0a4552;
 }
 
@@ -171,7 +191,7 @@
 /* パラグラフ */
 .markdown-body p {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 /* 強調 */
@@ -189,7 +209,7 @@
 .markdown-body del,
 .markdown-body s {
   text-decoration: line-through;
-  color: #586e75;
+  color: #657b83;
 }
 
 /* タスクリスト (GFM) */

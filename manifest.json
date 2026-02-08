@@ -49,7 +49,9 @@
 
   "web_accessible_resources": [{
     "resources": [
-      "content/styles/themes/*.css"
+      "content/styles/themes/*.css",
+      "content/styles/fonts/files/*.woff2",
+      "content/styles/fonts/files/*.woff"
     ],
     "matches": ["file://*/*", "http://localhost:*/*"]
   }]
