@@ -146,6 +146,7 @@ This is the actual content.`;
   assertEquals(result.rawMarkdown, markdown);
   // Frontmatterデータが解析されている
   assertEquals(result.frontmatter.title, 'Test Document');
+  // @std/yaml は日付を Date オブジェクトに変換する
   assertEquals(result.frontmatter.date instanceof Date, true);
   assertEquals(Array.isArray(result.frontmatter.tags), true);
 });

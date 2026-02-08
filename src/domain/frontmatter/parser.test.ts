@@ -22,7 +22,7 @@ Content here.`;
   const result = parseFrontmatter(markdown);
 
   assertEquals(result.data.title, 'Test Document');
-  // gray-matterはYAML日付フォーマットをDateオブジェクトに自動変換する
+  // @std/yaml は日付を Date オブジェクトに変換する
   assertEquals(result.data.date instanceof Date, true);
   assertEquals(result.data.tags, ['yaml', 'frontmatter', 'test']);
   assertEquals(result.content.trim(), '# Heading 1\n\nContent here.');
