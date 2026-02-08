@@ -628,7 +628,7 @@
   --toc-level-line: rgba(0, 0, 0, 0.08);
 }
 
-.toc-theme-solarized_light {
+.toc-theme-solarized-light {
   /* Background & Surface - Warm & Precise */
   --toc-bg: #fdf6e3;
   --toc-header-bg: #eee8d5;
@@ -676,7 +676,7 @@
   --toc-level-line: rgba(0, 0, 0, 0.1);
 }
 
-.toc-theme-solarized_dark {
+.toc-theme-solarized-dark {
   /* Background & Surface - Deep Ocean */
   --toc-bg: #002b36;
   --toc-header-bg: #073642;
