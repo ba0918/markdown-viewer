@@ -68,7 +68,7 @@ deno task build
   - E2Eテスト (Playwright)
   - ビルド検証
   - セキュリティチェック (XSS/CSP/manifest検証)
-- **マトリックス**: Deno 1.x, 2.x
+- **マトリックス**: Deno 2.x
 
 #### Release Pipeline (`.github/workflows/release.yml`)
 

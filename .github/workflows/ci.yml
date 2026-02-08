@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        deno-version: ["1.x", "2.x"]
+        deno-version: ["2.x"]
 
     steps:
       - name: Checkout repository
@@ -42,14 +42,7 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
-        run: |
-          # Deno 2.x: deno install (no args)
-          # Deno 1.x: deno cache
-          if [ "${{ matrix.deno-version }}" = "2.x" ]; then
-            deno install
-          else
-            deno cache src/**/*.ts tests/**/*.ts scripts/**/*.ts
-          fi
+        run: deno install
 
       - name: Run linter
         run: deno task lint
@@ -116,14 +109,7 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
-        run: |
-          # Deno 2.x: deno install (no args)
-          # Deno 1.x: deno cache
-          if [ "${{ matrix.deno-version }}" = "2.x" ]; then
-            deno install
-          else
-            deno cache src/**/*.ts tests/**/*.ts scripts/**/*.ts
-          fi
+        run: deno install
 
       - name: Build extension
         run: deno task build
