@@ -1,10 +1,10 @@
-import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import { sendMessage } from '../../messaging/client.ts';
-import { ThemeSelector } from './components/ThemeSelector.tsx';
-import { HotReloadSettings } from './components/HotReloadSettings.tsx';
-import type { AppState } from '../../shared/types/state.ts';
-import type { Theme } from '../../shared/types/theme.ts';
+import { h as _h } from "preact";
+import { useEffect, useState } from "preact/hooks";
+import { sendMessage } from "../../messaging/client.ts";
+import { ThemeSelector } from "./components/ThemeSelector.tsx";
+import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
+import type { AppState } from "../../shared/types/state.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * Options メインコンポーネント
@@ -31,12 +31,12 @@ export const App = () => {
       setLoading(true);
       setError(null);
       const response = await sendMessage<AppState>({
-        type: 'GET_SETTINGS',
+        type: "GET_SETTINGS",
         payload: {},
       });
       setSettings(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load settings');
+      setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
       setLoading(false);
     }
@@ -47,21 +47,21 @@ export const App = () => {
       setError(null);
       setSaveMessage(null);
       await sendMessage({
-        type: 'UPDATE_THEME',
+        type: "UPDATE_THEME",
         payload: { themeId: theme },
       });
       setSettings({ ...settings!, theme });
-      setSaveMessage('テーマを保存しました ✓');
+      setSaveMessage("テーマを保存しました ✓");
       setTimeout(() => setSaveMessage(null), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update theme');
+      setError(err instanceof Error ? err.message : "Failed to update theme");
     }
   };
 
   const handleHotReloadChange = async (
     enabled: boolean,
     interval?: number,
-    autoReload?: boolean
+    autoReload?: boolean,
   ) => {
     try {
       setError(null);
@@ -69,7 +69,7 @@ export const App = () => {
 
       // Hot Reload設定の更新
       await sendMessage({
-        type: 'UPDATE_HOT_RELOAD',
+        type: "UPDATE_HOT_RELOAD",
         payload: {
           enabled,
           interval: interval ?? settings!.hotReload.interval,
@@ -87,10 +87,14 @@ export const App = () => {
         },
       });
 
-      setSaveMessage('設定を保存しました ✓');
+      setSaveMessage("設定を保存しました ✓");
       setTimeout(() => setSaveMessage(null), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update hot reload settings');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update hot reload settings",
+      );
     }
   };
 
@@ -107,7 +111,7 @@ export const App = () => {
       <div class="options">
         <div class="error">
           エラー: {error}
-          <button onClick={loadSettings} class="retry-btn">
+          <button type="button" onClick={loadSettings} class="retry-btn">
             再試行
           </button>
         </div>
@@ -135,7 +139,10 @@ export const App = () => {
 
         <section class="section">
           <h2 class="section-title">外観</h2>
-          <ThemeSelector current={settings.theme} onChange={handleThemeChange} />
+          <ThemeSelector
+            current={settings.theme}
+            onChange={handleThemeChange}
+          />
         </section>
 
         <section class="section">

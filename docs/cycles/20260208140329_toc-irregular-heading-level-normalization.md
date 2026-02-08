@@ -1,9 +1,7 @@
 # ToC不正見出しレベル正規化
 
-**Cycle ID:** `20260208140329`
-**Started:** 2026-02-08 14:03:29
-**Completed:** 2026-02-08 22:04:22
-**Status:** 🟢 Completed
+**Cycle ID:** `20260208140329` **Started:** 2026-02-08 14:03:29 **Completed:**
+2026-02-08 22:04:22 **Status:** 🟢 Completed
 
 ---
 
@@ -57,10 +55,13 @@ src/
 
 ### Key Points
 
-- **正規化アルゴリズム**: 親検出方式 - 1レベル上の親が存在するかチェック、親なしは h2 に変換
+- **正規化アルゴリズム**: 親検出方式 -
+  1レベル上の親が存在するかチェック、親なしは h2 に変換
 - **親の定義**: h1は親不要、h2はh1が必要、h3はh2が必要
-- **CSS対応**: h1がない文書では縦線（`::before`）とインデント（`padding-left`）を非表示（`:not(:has(> .toc-level-1))`）
-- **分離・責務**: normalizer.ts（正規化）、tree-builder.ts（ツリー構築）、toc.css（プレゼンテーション）
+- **CSS対応**:
+  h1がない文書では縦線（`::before`）とインデント（`padding-left`）を非表示（`:not(:has(> .toc-level-1))`）
+- **分離・責務**:
+  normalizer.ts（正規化）、tree-builder.ts（ツリー構築）、toc.css（プレゼンテーション）
 - **後方互換性**: h1から始まる正常な文書は正規化の影響なし
 - **テスト駆動**: RED→GREEN→REFACTOR で実装（全163テスト通過）
 
@@ -68,8 +69,10 @@ src/
 
 1. **Phase 1: normalizer.ts実装（TDD）** ✅
    - `normalizeHeadingLevels(headings: TocHeading[]): TocHeading[]`
-   - 親検出アルゴリズム実装: `hasImmediateParent(level, index)` 関数で1レベル上の親チェック
-   - テストケース: h1開始、dig.mdケース（h3→h3→h2）、h1+h3（h2欠け）、h2→h3→h2、空配列、h2開始、単一h3、text/id保持
+   - 親検出アルゴリズム実装: `hasImmediateParent(level, index)`
+     関数で1レベル上の親チェック
+   - テストケース:
+     h1開始、dig.mdケース（h3→h3→h2）、h1+h3（h2欠け）、h2→h3→h2、空配列、h2開始、単一h3、text/id保持
    - 全8テスト追加・通過
 
 2. **Phase 2: tree-builder.ts分離（Refactor）** ✅
@@ -130,19 +133,19 @@ src/
 
 ## 📊 Progress
 
-| Step | Status | Note |
-|------|--------|------|
-| normalizer.ts実装（TDD） | 🟢 | RED→GREEN→REFACTOR完了（最小レベル正規化） |
-| tree-builder.ts分離（Refactor） | 🟢 | 既存テスト通過確認済み |
-| services統合 | 🟢 | toc-service.ts修正完了 |
-| Commit 1 | 🟢 | `[b3ed3fc]` feat: ToC不正見出しレベル正規化機能を実装 |
-| dig.mdケース視覚的違和感発見 | 🟢 | h3→h3→h2で縦線が親なし子要素を示唆 |
-| アルゴリズム書き換え | 🟢 | 最小レベル正規化 → 親検出アルゴリズムに完全書き換え |
-| normalizer.test.ts更新 | 🟢 | 全8テスト更新・通過（親検出ロジック対応） |
-| CSS修正 | 🟢 | h1なし文書で縦線・インデント非表示（toc.css） |
-| テスト全通過確認 | 🟢 | 全163テスト通過 |
-| Commit 2 | 🟢 | `[0159b3f]` fix: ToC生成時にFrontmatter除外済みcontentを使用 |
-| Commit 3 | 🟢 | `[38468ee]` feat: ToC親検出アルゴリズムとCSS修正（h1なし文書の視覚的違和感を解消） |
+| Step                            | Status | Note                                                                               |
+| ------------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| normalizer.ts実装（TDD）        | 🟢     | RED→GREEN→REFACTOR完了（最小レベル正規化）                                         |
+| tree-builder.ts分離（Refactor） | 🟢     | 既存テスト通過確認済み                                                             |
+| services統合                    | 🟢     | toc-service.ts修正完了                                                             |
+| Commit 1                        | 🟢     | `[b3ed3fc]` feat: ToC不正見出しレベル正規化機能を実装                              |
+| dig.mdケース視覚的違和感発見    | 🟢     | h3→h3→h2で縦線が親なし子要素を示唆                                                 |
+| アルゴリズム書き換え            | 🟢     | 最小レベル正規化 → 親検出アルゴリズムに完全書き換え                                |
+| normalizer.test.ts更新          | 🟢     | 全8テスト更新・通過（親検出ロジック対応）                                          |
+| CSS修正                         | 🟢     | h1なし文書で縦線・インデント非表示（toc.css）                                      |
+| テスト全通過確認                | 🟢     | 全163テスト通過                                                                    |
+| Commit 2                        | 🟢     | `[0159b3f]` fix: ToC生成時にFrontmatter除外済みcontentを使用                       |
+| Commit 3                        | 🟢     | `[38468ee]` feat: ToC親検出アルゴリズムとCSS修正（h1なし文書の視覚的違和感を解消） |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -213,6 +216,7 @@ export function normalizeHeadingLevels(headings: TocHeading[]): TocHeading[] {
 #### ケース1: dig.mdケース（h3→h3→h2）
 
 **入力:**
+
 ```
 h3: Phase 2
 h3: Phase 3
@@ -220,6 +224,7 @@ h2: Decisions
 ```
 
 **正規化後（親検出）:**
+
 ```
 h2: Phase 2    (h3 → h2) ← 親(h2)いない
 h2: Phase 3    (h3 → h2) ← 親(h2)いない
@@ -227,6 +232,7 @@ h2: Decisions  (h2 → h2) ← 親(h1)いない、そのまま
 ```
 
 **ツリー表示（フラット、縦線なし）:**
+
 ```
 Phase 2
 Phase 3
@@ -236,6 +242,7 @@ Decisions
 #### ケース2: h2から始まる（親あり子あり混在）
 
 **入力:**
+
 ```
 h2: Introduction
 h3: Overview
@@ -244,6 +251,7 @@ h2: Setup
 ```
 
 **正規化後（親検出）:**
+
 ```
 h2: Introduction  (h2 → h2) ← 親(h1)いない、そのまま
 h3: Overview      (h3 → h3) ← 親(h2=Introduction)あり、保持
@@ -252,6 +260,7 @@ h2: Setup         (h2 → h2) ← 親(h1)いない、そのまま
 ```
 
 **ツリー表示（縦線なし、親ありh3は階層表示）:**
+
 ```
 Introduction
   Overview
@@ -262,6 +271,7 @@ Setup
 #### ケース3: h1から始まる（正常）
 
 **入力:**
+
 ```
 h1: Title
 h2: Section 1
@@ -269,6 +279,7 @@ h3: Sub 1.1
 ```
 
 **正規化後（親検出）:**
+
 ```
 h1: Title       (h1 → h1) ← 親不要、そのまま
 h2: Section 1   (h2 → h2) ← 親(h1=Title)あり、保持
@@ -276,6 +287,7 @@ h3: Sub 1.1     (h3 → h3) ← 親(h2=Section 1)あり、保持
 ```
 
 **ツリー表示（通常、縦線あり）:**
+
 ```
 Title
 └─ Section 1
@@ -285,6 +297,7 @@ Title
 #### ケース4: h1+h3（h2欠け）
 
 **入力:**
+
 ```
 h1: Title
 h3: Detail A
@@ -292,6 +305,7 @@ h3: Detail B
 ```
 
 **正規化後（親検出）:**
+
 ```
 h1: Title      (h1 → h1) ← 親不要、そのまま
 h2: Detail A   (h3 → h2) ← 親(h2)いない
@@ -299,6 +313,7 @@ h2: Detail B   (h3 → h2) ← 親(h2)いない
 ```
 
 **ツリー表示:**
+
 ```
 Title
   Detail A

@@ -49,12 +49,12 @@
 
 ```typescript
 export type Theme =
-  | 'light'
-  | 'dark'
-  | 'github'
-  | 'minimal'
-  | 'solarized-light'
-  | 'solarized-dark';
+  | "light"
+  | "dark"
+  | "github"
+  | "minimal"
+  | "solarized-light"
+  | "solarized-dark";
 ```
 
 ### 1.3 Theme Loaderの更新
@@ -65,12 +65,32 @@ export type Theme =
 
 ```typescript
 const THEMES: Record<Theme, ThemeConfig> = {
-  light: { id: 'light', name: 'Light', cssPath: 'content/styles/themes/light.css' },
-  dark: { id: 'dark', name: 'Dark', cssPath: 'content/styles/themes/dark.css' },
-  github: { id: 'github', name: 'GitHub', cssPath: 'content/styles/themes/github.css' },
-  minimal: { id: 'minimal', name: 'Minimal', cssPath: 'content/styles/themes/minimal.css' },
-  'solarized-light': { id: 'solarized-light', name: 'Solarized Light', cssPath: 'content/styles/themes/solarized-light.css' },
-  'solarized-dark': { id: 'solarized-dark', name: 'Solarized Dark', cssPath: 'content/styles/themes/solarized-dark.css' },
+  light: {
+    id: "light",
+    name: "Light",
+    cssPath: "content/styles/themes/light.css",
+  },
+  dark: { id: "dark", name: "Dark", cssPath: "content/styles/themes/dark.css" },
+  github: {
+    id: "github",
+    name: "GitHub",
+    cssPath: "content/styles/themes/github.css",
+  },
+  minimal: {
+    id: "minimal",
+    name: "Minimal",
+    cssPath: "content/styles/themes/minimal.css",
+  },
+  "solarized-light": {
+    id: "solarized-light",
+    name: "Solarized Light",
+    cssPath: "content/styles/themes/solarized-light.css",
+  },
+  "solarized-dark": {
+    id: "solarized-dark",
+    name: "Solarized Dark",
+    cssPath: "content/styles/themes/solarized-dark.css",
+  },
 };
 ```
 
@@ -82,17 +102,24 @@ const THEMES: Record<Theme, ThemeConfig> = {
 
 ```typescript
 // CSSファイルをdist/にコピー
-console.log('🎨 Copying CSS files...');
-await Deno.mkdir('dist/content/styles/themes', { recursive: true });
+console.log("🎨 Copying CSS files...");
+await Deno.mkdir("dist/content/styles/themes", { recursive: true });
 
-const themes = ['light', 'dark', 'github', 'minimal', 'solarized-light', 'solarized-dark'];
+const themes = [
+  "light",
+  "dark",
+  "github",
+  "minimal",
+  "solarized-light",
+  "solarized-dark",
+];
 for (const theme of themes) {
   await Deno.copyFile(
     `src/content/styles/themes/${theme}.css`,
-    `dist/content/styles/themes/${theme}.css`
+    `dist/content/styles/themes/${theme}.css`,
   );
 }
-console.log('✅ CSS files copied');
+console.log("✅ CSS files copied");
 ```
 
 ### 1.5 テスト追加
@@ -102,11 +129,11 @@ console.log('✅ CSS files copied');
 **新規テーマのバリデーションテスト**:
 
 ```typescript
-Deno.test('loadTheme: GitHub テーマの読み込み', async () => {
-  const theme = await loadTheme('github');
-  assertEquals(theme.id, 'github');
-  assertEquals(theme.name, 'GitHub');
-  assert(theme.cssPath.includes('github.css'));
+Deno.test("loadTheme: GitHub テーマの読み込み", async () => {
+  const theme = await loadTheme("github");
+  assertEquals(theme.id, "github");
+  assertEquals(theme.name, "GitHub");
+  assert(theme.cssPath.includes("github.css"));
 });
 
 // minimal, solarized-light, solarized-dark も同様に追加
@@ -134,14 +161,14 @@ src/settings/options/
 **Popup と同じパターン**:
 
 ```typescript
-import { h, render } from 'preact';
-import { App } from './App.tsx';
+import { h, render } from "preact";
+import { App } from "./App.tsx";
 
-const root = document.getElementById('app');
+const root = document.getElementById("app");
 if (root) {
   render(<App />, root);
 } else {
-  console.error('Failed to find #app element');
+  console.error("Failed to find #app element");
 }
 ```
 
@@ -150,13 +177,13 @@ if (root) {
 **Popup.App.tsx を参考にした実装**:
 
 ```typescript
-import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import { sendMessage } from '../../messaging/client.ts';
-import { ThemeSelector } from './components/ThemeSelector.tsx';
-import { HotReloadSettings } from './components/HotReloadSettings.tsx';
-import type { AppState } from '../../shared/types/state.ts';
-import type { Theme } from '../../shared/types/theme.ts';
+import { h } from "preact";
+import { useEffect, useState } from "preact/hooks";
+import { sendMessage } from "../../messaging/client.ts";
+import { ThemeSelector } from "./components/ThemeSelector.tsx";
+import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
+import type { AppState } from "../../shared/types/state.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * Options メインコンポーネント
@@ -181,12 +208,12 @@ export const App = () => {
       setLoading(true);
       setError(null);
       const response = await sendMessage<AppState>({
-        type: 'GET_SETTINGS',
+        type: "GET_SETTINGS",
         payload: {},
       });
       setSettings(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load settings');
+      setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
       setLoading(false);
     }
@@ -196,25 +223,29 @@ export const App = () => {
     try {
       setError(null);
       await sendMessage({
-        type: 'UPDATE_THEME',
+        type: "UPDATE_THEME",
         payload: { themeId: theme },
       });
       setSettings({ ...settings!, theme });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update theme');
+      setError(err instanceof Error ? err.message : "Failed to update theme");
     }
   };
 
-  const handleHotReloadChange = async (hotReload: AppState['hotReload']) => {
+  const handleHotReloadChange = async (hotReload: AppState["hotReload"]) => {
     try {
       setError(null);
       await sendMessage({
-        type: 'UPDATE_SETTINGS',
+        type: "UPDATE_SETTINGS",
         payload: { hotReload },
       });
       setSettings({ ...settings!, hotReload });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update hot reload settings');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update hot reload settings",
+      );
     }
   };
 
@@ -256,7 +287,10 @@ export const App = () => {
       <main class="content">
         <section class="section">
           <h2 class="section-title">テーマ</h2>
-          <ThemeSelector current={settings.theme} onChange={handleThemeChange} />
+          <ThemeSelector
+            current={settings.theme}
+            onChange={handleThemeChange}
+          />
         </section>
 
         <section class="section">
@@ -281,8 +315,8 @@ export const App = () => {
 **全6テーマ対応版**:
 
 ```typescript
-import { h } from 'preact';
-import type { Theme } from '../../../shared/types/theme.ts';
+import { h } from "preact";
+import type { Theme } from "../../../shared/types/theme.ts";
 
 interface ThemeSelectorProps {
   current: Theme;
@@ -296,13 +330,38 @@ interface ThemeSelectorProps {
  * レイヤー: ui-components層
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
-  const themes: { id: Theme; label: string; emoji: string; description: string }[] = [
-    { id: 'light', label: 'Light', emoji: '☀️', description: '明るいテーマ' },
-    { id: 'dark', label: 'Dark', emoji: '🌙', description: '暗いテーマ' },
-    { id: 'github', label: 'GitHub', emoji: '🐙', description: 'GitHub風のテーマ' },
-    { id: 'minimal', label: 'Minimal', emoji: '📄', description: 'ミニマルなテーマ' },
-    { id: 'solarized-light', label: 'Solarized Light', emoji: '🌞', description: 'Solarized明るいテーマ' },
-    { id: 'solarized-dark', label: 'Solarized Dark', emoji: '🌚', description: 'Solarized暗いテーマ' },
+  const themes: {
+    id: Theme;
+    label: string;
+    emoji: string;
+    description: string;
+  }[] = [
+    { id: "light", label: "Light", emoji: "☀️", description: "明るいテーマ" },
+    { id: "dark", label: "Dark", emoji: "🌙", description: "暗いテーマ" },
+    {
+      id: "github",
+      label: "GitHub",
+      emoji: "🐙",
+      description: "GitHub風のテーマ",
+    },
+    {
+      id: "minimal",
+      label: "Minimal",
+      emoji: "📄",
+      description: "ミニマルなテーマ",
+    },
+    {
+      id: "solarized-light",
+      label: "Solarized Light",
+      emoji: "🌞",
+      description: "Solarized明るいテーマ",
+    },
+    {
+      id: "solarized-dark",
+      label: "Solarized Dark",
+      emoji: "🌚",
+      description: "Solarized暗いテーマ",
+    },
   ];
 
   return (
@@ -311,7 +370,7 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
         {themes.map((theme) => (
           <button
             key={theme.id}
-            class={`theme-card ${current === theme.id ? 'active' : ''}`}
+            class={`theme-card ${current === theme.id ? "active" : ""}`}
             onClick={() => onChange(theme.id)}
             type="button"
           >
@@ -329,12 +388,12 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
 #### 2.2.4 `src/settings/options/components/HotReloadSettings.tsx` (NEW)
 
 ```typescript
-import { h } from 'preact';
-import type { AppState } from '../../../shared/types/state.ts';
+import { h } from "preact";
+import type { AppState } from "../../../shared/types/state.ts";
 
 interface HotReloadSettingsProps {
-  config: AppState['hotReload'];
-  onChange: (config: AppState['hotReload']) => void;
+  config: AppState["hotReload"];
+  onChange: (config: AppState["hotReload"]) => void;
 }
 
 /**
@@ -343,7 +402,9 @@ interface HotReloadSettingsProps {
  * 責務: Hot Reload設定UIのみ
  * レイヤー: ui-components層
  */
-export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) => {
+export const HotReloadSettings = (
+  { config, onChange }: HotReloadSettingsProps,
+) => {
   const handleEnabledChange = (enabled: boolean) => {
     onChange({ ...config, enabled });
   };
@@ -363,7 +424,8 @@ export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) 
           <input
             type="checkbox"
             checked={config.enabled}
-            onChange={(e) => handleEnabledChange((e.target as HTMLInputElement).checked)}
+            onChange={(e) =>
+              handleEnabledChange((e.target as HTMLInputElement).checked)}
           />
           <span>Hot Reload を有効化</span>
         </label>
@@ -377,7 +439,10 @@ export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) 
               <input
                 type="number"
                 value={config.interval}
-                onChange={(e) => handleIntervalChange(Number((e.target as HTMLInputElement).value))}
+                onChange={(e) =>
+                  handleIntervalChange(
+                    Number((e.target as HTMLInputElement).value),
+                  )}
                 min="1000"
                 max="60000"
                 step="1000"
@@ -391,7 +456,10 @@ export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) 
               <input
                 type="checkbox"
                 checked={config.autoReload}
-                onChange={(e) => handleAutoReloadChange((e.target as HTMLInputElement).checked)}
+                onChange={(e) =>
+                  handleAutoReloadChange(
+                    (e.target as HTMLInputElement).checked,
+                  )}
               />
               <span>ファイル変更時に自動リロード</span>
             </label>
@@ -412,185 +480,186 @@ export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) 
 ```html
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdown Viewer - 詳細設定</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Viewer - 詳細設定</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      line-height: 1.6;
-    }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+      }
 
-    .options-page {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
+      .options-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
 
-    .header {
-      margin-bottom: 32px;
-    }
+      .header {
+        margin-bottom: 32px;
+      }
 
-    .title {
-      font-size: 28px;
-      font-weight: 600;
-      color: #1a1a1a;
-    }
+      .title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
 
-    .content {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 32px;
-    }
+      .content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 32px;
+      }
 
-    .section {
-      margin-bottom: 32px;
-    }
+      .section {
+        margin-bottom: 32px;
+      }
 
-    .section:last-child {
-      margin-bottom: 0;
-    }
+      .section:last-child {
+        margin-bottom: 0;
+      }
 
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #1a1a1a;
-    }
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #1a1a1a;
+      }
 
-    /* Theme Selector Styles */
-    .theme-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
-    }
+      /* Theme Selector Styles */
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      }
 
-    .theme-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      background: white;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+      .theme-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
 
-    .theme-card:hover {
-      border-color: #007bff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-    }
+      .theme-card:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+      }
 
-    .theme-card.active {
-      border-color: #007bff;
-      background: #f0f8ff;
-    }
+      .theme-card.active {
+        border-color: #007bff;
+        background: #f0f8ff;
+      }
 
-    .theme-card .emoji {
-      font-size: 32px;
-      margin-bottom: 8px;
-    }
+      .theme-card .emoji {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
 
-    .theme-card .label {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
+      .theme-card .label {
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
 
-    .theme-card .description {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-    }
+      .theme-card .description {
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+      }
 
-    /* Hot Reload Settings Styles */
-    .hot-reload-settings {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+      /* Hot Reload Settings Styles */
+      .hot-reload-settings {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-    .setting-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+      .setting-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
 
-    .setting-row .label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-    }
+      .setting-row .label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+      }
 
-    .setting-row input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
+      .setting-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
 
-    .setting-row input[type="number"] {
-      width: 150px;
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      margin-top: 4px;
-    }
+      .setting-row input[type="number"] {
+        width: 150px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-top: 4px;
+      }
 
-    .setting-row .hint {
-      font-size: 12px;
-      color: #666;
-    }
+      .setting-row .hint {
+        font-size: 12px;
+        color: #666;
+      }
 
-    /* Loading & Error States */
-    .loading, .error {
-      text-align: center;
-      padding: 40px;
-      font-size: 16px;
-    }
+      /* Loading & Error States */
+      .loading, .error {
+        text-align: center;
+        padding: 40px;
+        font-size: 16px;
+      }
 
-    .error {
-      color: #dc3545;
-    }
+      .error {
+        color: #dc3545;
+      }
 
-    .retry-btn {
-      margin-top: 16px;
-      padding: 8px 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+      .retry-btn {
+        margin-top: 16px;
+        padding: 8px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
 
-    .retry-btn:hover {
-      background: #0056b3;
-    }
+      .retry-btn:hover {
+        background: #0056b3;
+      }
 
-    .footer {
-      margin-top: 32px;
-      text-align: center;
-      color: #666;
-      font-size: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div id="app"></div>
-  <script src="options.js"></script>
-</body>
+      .footer {
+        margin-top: 32px;
+        text-align: center;
+        color: #666;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="options.js"></script>
+  </body>
 </html>
 ```
 
@@ -602,14 +671,14 @@ export const HotReloadSettings = ({ config, onChange }: HotReloadSettingsProps) 
 
 ```typescript
 // Options Script
-console.log('📦 Building options script...');
+console.log("📦 Building options script...");
 await esbuild.build({
   ...commonConfig,
-  entryPoints: ['src/settings/options/index.tsx'],
-  outfile: 'dist/options.js',
-  platform: 'browser'
+  entryPoints: ["src/settings/options/index.tsx"],
+  outfile: "dist/options.js",
+  platform: "browser",
 });
-console.log('✅ options.js built');
+console.log("✅ options.js built");
 ```
 
 ---
@@ -653,16 +722,16 @@ export const hasFileChanged = (previousModified: Date): boolean => {
 #### ファイル: `src/domain/file-watcher/file-watcher.test.ts` (NEW)
 
 ```typescript
-import { assertEquals } from '@std/assert';
-import { hasFileChanged } from './file-watcher.ts';
+import { assertEquals } from "@std/assert";
+import { hasFileChanged } from "./file-watcher.ts";
 
-Deno.test('hasFileChanged: ファイル変更なし', () => {
+Deno.test("hasFileChanged: ファイル変更なし", () => {
   const now = new Date();
   const result = hasFileChanged(now);
   assertEquals(result, false);
 });
 
-Deno.test('hasFileChanged: ファイルが変更されている', () => {
+Deno.test("hasFileChanged: ファイルが変更されている", () => {
   const pastDate = new Date(Date.now() - 10000); // 10秒前
   // document.lastModified は現在時刻なので、過去の日時と比較すればtrue
   const result = hasFileChanged(pastDate);
@@ -677,22 +746,28 @@ Deno.test('hasFileChanged: ファイルが変更されている', () => {
 **既存の init() に Hot Reload ロジックを追加**:
 
 ```typescript
-import { sendMessage } from '../messaging/client.ts';
-import type { AppState } from '../shared/types/state.ts';
-import type { Theme } from '../shared/types/theme.ts';
-import { getLastModified, hasFileChanged } from '../domain/file-watcher/file-watcher.ts';
+import { sendMessage } from "../messaging/client.ts";
+import type { AppState } from "../shared/types/state.ts";
+import type { Theme } from "../shared/types/theme.ts";
+import {
+  getLastModified,
+  hasFileChanged,
+} from "../domain/file-watcher/file-watcher.ts";
 
 declare const chrome: {
   storage: {
     onChanged: {
       addListener: (
-        callback: (changes: Record<string, { newValue: unknown; oldValue: unknown }>, area: string) => void
+        callback: (
+          changes: Record<string, { newValue: unknown; oldValue: unknown }>,
+          area: string,
+        ) => void,
       ) => void;
     };
   };
 };
 
-let currentMarkdown = '';
+let currentMarkdown = "";
 let lastModified: Date | null = null;
 let hotReloadIntervalId: number | null = null;
 
@@ -702,14 +777,15 @@ let hotReloadIntervalId: number | null = null;
 const renderMarkdown = async (markdown: string, theme: Theme) => {
   try {
     const html = await sendMessage<string>({
-      type: 'RENDER_MARKDOWN',
+      type: "RENDER_MARKDOWN",
       payload: { markdown, themeId: theme },
     });
 
     document.body.innerHTML = html;
   } catch (error) {
-    console.error('Failed to render markdown:', error);
-    document.body.innerHTML = '<div class="error">Failed to render markdown</div>';
+    console.error("Failed to render markdown:", error);
+    document.body.innerHTML =
+      '<div class="error">Failed to render markdown</div>';
   }
 };
 
@@ -726,14 +802,14 @@ const startHotReload = (interval: number, autoReload: boolean) => {
 
   hotReloadIntervalId = setInterval(() => {
     if (hasFileChanged(lastModified!)) {
-      console.log('File changed detected, reloading...');
+      console.log("File changed detected, reloading...");
       lastModified = getLastModified();
 
       if (autoReload) {
         window.location.reload();
       } else {
         // 通知のみ（将来的にはトースト通知を実装）
-        console.log('File changed. Auto-reload is disabled.');
+        console.log("File changed. Auto-reload is disabled.");
       }
     }
   }, interval);
@@ -754,10 +830,10 @@ const stopHotReload = () => {
  */
 const init = async () => {
   try {
-    currentMarkdown = document.body.textContent || '';
+    currentMarkdown = document.body.textContent || "";
 
     const settings = await sendMessage<AppState>({
-      type: 'GET_SETTINGS',
+      type: "GET_SETTINGS",
       payload: {},
     });
 
@@ -765,12 +841,15 @@ const init = async () => {
 
     // Hot Reload の初期化
     if (settings.hotReload.enabled) {
-      startHotReload(settings.hotReload.interval, settings.hotReload.autoReload);
+      startHotReload(
+        settings.hotReload.interval,
+        settings.hotReload.autoReload,
+      );
     }
 
     // Chrome Storage の変更を監視
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync' && changes.appState) {
+      if (area === "sync" && changes.appState) {
         const newState = changes.appState.newValue as AppState;
 
         // テーマ変更の反映
@@ -778,14 +857,17 @@ const init = async () => {
 
         // Hot Reload 設定の反映
         if (newState.hotReload.enabled) {
-          startHotReload(newState.hotReload.interval, newState.hotReload.autoReload);
+          startHotReload(
+            newState.hotReload.interval,
+            newState.hotReload.autoReload,
+          );
         } else {
           stopHotReload();
         }
       }
     });
   } catch (error) {
-    console.error('Failed to initialize content script:', error);
+    console.error("Failed to initialize content script:", error);
     document.body.innerHTML = '<div class="error">Failed to initialize</div>';
   }
 };
@@ -804,7 +886,8 @@ init();
    - ビルドエラー確認（全ての switch 文で網羅性チェック）
 
 2. **CSSファイルの作成**
-   - `github.css`, `minimal.css`, `solarized-light.css`, `solarized-dark.css` を作成
+   - `github.css`, `minimal.css`, `solarized-light.css`, `solarized-dark.css`
+     を作成
    - 既存の `light.css` を参考に構造を統一
 
 3. **Theme Loader の更新**

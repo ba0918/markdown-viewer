@@ -1,8 +1,6 @@
 # Issue: TocService テストの修正が必要
 
-**作成日:** 2026-02-08
-**優先度:** Medium
-**ステータス:** Open
+**作成日:** 2026-02-08 **優先度:** Medium **ステータス:** Open
 
 ## 概要
 
@@ -51,7 +49,7 @@ TocServiceは現在、階層構造（ツリー構造）を返している:
 ### オプション1: テストを階層構造に合わせる（推奨）
 
 ```typescript
-Deno.test('TocService.generate: 基本的なMarkdownからTOC生成', () => {
+Deno.test("TocService.generate: 基本的なMarkdownからTOC生成", () => {
   const service = new TocService();
   const markdown = `
 # Main Title
@@ -64,12 +62,12 @@ Deno.test('TocService.generate: 基本的なMarkdownからTOC生成', () => {
 
   // ツリー構造のルート要素数をチェック
   assertEquals(result.length, 1);
-  assertEquals(result[0].text, 'Main Title');
+  assertEquals(result[0].text, "Main Title");
   assertEquals(result[0].children.length, 2);
-  assertEquals(result[0].children[0].text, 'Section 1');
+  assertEquals(result[0].children[0].text, "Section 1");
   assertEquals(result[0].children[0].children.length, 1);
-  assertEquals(result[0].children[0].children[0].text, 'Subsection 1.1');
-  assertEquals(result[0].children[1].text, 'Section 2');
+  assertEquals(result[0].children[0].children[0].text, "Subsection 1.1");
+  assertEquals(result[0].children[1].text, "Section 2");
 });
 ```
 

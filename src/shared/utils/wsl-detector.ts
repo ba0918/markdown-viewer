@@ -16,7 +16,7 @@ export const isWslFile = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
     // ホスト名が wsl で始まる場合（wsl.localhost、wsl$など）
-    return urlObj.hostname.startsWith('wsl');
+    return urlObj.hostname.startsWith("wsl");
   } catch {
     // URL解析失敗時はfalse（通常のfile://などはhostnameが空文字になる）
     return false;

@@ -1,20 +1,22 @@
 # Offscreen Document Hot Reload実験
 
-**Cycle ID:** `20260208101823`
-**Started:** 2026-02-08 10:18:23
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208101823` **Started:** 2026-02-08 10:18:23 **Status:** 🟡
+Planning
 
 ---
 
 ## 📝 What & Why
 
-WSL2環境（`file://wsl.localhost/...`）でHot Reload機能が動作しない問題を、offscreen document APIを使用して回避できるか実験的に検証する。Windowsローカルファイル（`file:///C:/...`）では正常動作確認済み。
+WSL2環境（`file://wsl.localhost/...`）でHot
+Reload機能が動作しない問題を、offscreen document
+APIを使用して回避できるか実験的に検証する。Windowsローカルファイル（`file:///C:/...`）では正常動作確認済み。
 
 ## 🎯 Goals
 
 - offscreen document APIの基本的な動作確認
 - offscreen contextでのfetch APIの権限とセキュリティ制限を調査
-- WSL2ファイルパス（`file://wsl.localhost/...`）がoffscreen contextでアクセス可能か検証
+- WSL2ファイルパス（`file://wsl.localhost/...`）がoffscreen
+  contextでアクセス可能か検証
 - Hot Reload機能をoffscreen documentに移行した場合の実現可能性評価
 
 ## 📐 Design
@@ -62,24 +64,28 @@ src/
 
 - **Security**: offscreen documentは通常のwebページと同じCSP制限を受ける
 - **Lifecycle**: offscreen documentの生成・破棄タイミングの制御が必要
-- **Testing**: offscreen contextは直接テストできないため、モックベースのテスト戦略
+- **Testing**: offscreen
+  contextは直接テストできないため、モックベースのテスト戦略
 - **Fallback**: offscreen APIが使えない環境（古いChrome）への対応
 
 ## ✅ Tests
 
 ### Unit Tests
+
 - [ ] offscreen document作成・破棄のライフサイクル
 - [ ] background → offscreen メッセージング
 - [ ] offscreen → background レスポンス
 - [ ] fetch APIのエラーハンドリング（モック）
 
 ### Integration Tests
+
 - [ ] Windowsローカルファイル（`file:///C:/...`）でのfetch成功
 - [ ] WSL2ファイル（`file://wsl.localhost/...`）でのfetch検証
 - [ ] Last-Modifiedヘッダーの取得確認
 - [ ] 既存Hot Reload機能との互換性
 
 ### E2E Tests (Optional for experiment)
+
 - [ ] 実際のMarkdownファイル変更検知（Windows環境）
 - [ ] WSL2環境でのHot Reload動作確認
 
@@ -92,14 +98,14 @@ src/
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| Manifest設定 | ⚪ |
-| Offscreen HTML/TS作成 | ⚪ |
-| Background統合 | ⚪ |
-| Fetch動作検証 | ⚪ |
-| WSL2パス検証 | ⚪ |
-| 結果レポート作成 | ⚪ |
+| Step                  | Status |
+| --------------------- | ------ |
+| Manifest設定          | ⚪     |
+| Offscreen HTML/TS作成 | ⚪     |
+| Background統合        | ⚪     |
+| Fetch動作検証         | ⚪     |
+| WSL2パス検証          | ⚪     |
+| 結果レポート作成      | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 

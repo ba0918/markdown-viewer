@@ -30,6 +30,8 @@
     "highlight.js/": "npm:highlight.js/",
     "mathjax-full/js/": "npm:mathjax-full@^3.2.2/js/",
     "@std/yaml": "jsr:@std/yaml@^1.0.10",
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
     "@fontsource/inter": "npm:@fontsource/inter@^5.0.0",
     "@fontsource/jetbrains-mono": "npm:@fontsource/jetbrains-mono@^5.0.0",
     "esbuild": "npm:esbuild@^0.20.1",

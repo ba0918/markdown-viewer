@@ -10,9 +10,9 @@
  * - 'view': レンダリング済みのHTML表示（デフォルト）
  * - 'raw': 元のMarkdownテキスト表示
  */
-export type ViewMode = 'view' | 'raw';
+export type ViewMode = "view" | "raw";
 
 /**
  * デフォルトのViewモード
  */
-export const DEFAULT_VIEW_MODE: ViewMode = 'view';
+export const DEFAULT_VIEW_MODE: ViewMode = "view";

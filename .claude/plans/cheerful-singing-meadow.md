@@ -14,13 +14,13 @@
 
 spec.mdのコンセプトは基本的に実現可能ですが、**以下の重大な問題点と欠落事項**が存在します：
 
-| カテゴリ | 判定 | 深刻度 |
-|---------|------|--------|
-| **技術スタック** | 🟡 要調整 | 中 |
-| **セキュリティ設計** | 🔴 不十分 | **致命的** |
-| **アーキテクチャ** | 🟡 要再設計 | 高 |
-| **機能要件** | 🟡 部分的にリスク高 | 中〜高 |
-| **実装計画** | 🔴 重要項目欠落 | 高 |
+| カテゴリ             | 判定                | 深刻度     |
+| -------------------- | ------------------- | ---------- |
+| **技術スタック**     | 🟡 要調整           | 中         |
+| **セキュリティ設計** | 🔴 不十分           | **致命的** |
+| **アーキテクチャ**   | 🟡 要再設計         | 高         |
+| **機能要件**         | 🟡 部分的にリスク高 | 中〜高     |
+| **実装計画**         | 🔴 重要項目欠落     | 高         |
 
 ---
 
@@ -29,16 +29,19 @@ spec.mdのコンセプトは基本的に実現可能ですが、**以下の重�
 ### 1. セキュリティ設計の具体性欠如
 
 **問題点:**
+
 - spec.mdに「Secure design」とあるが、**具体的な対策が一切記載されていない**
 - Markdown Viewerは攻撃ベクターが多い（XSS、CSS Injection、Path Traversal等）
 
 **ユーザー決定事項:**
+
 - ✅ Custom CSS機能：**プリセットテーマのみ**に変更 → セキュリティリスク大幅軽減
 - ✅ Hot Reload：**エンドユーザー向けにも実装**（技術的課題あり、詳細は後述）
 
 **必須の対策（spec.mdに追記すべき）:**
 
 #### 1.1 Content Security Policy (CSP)
+
 ```json
 // manifest.json で設定必須
 "content_security_policy": {
@@ -47,18 +50,34 @@ spec.mdのコンセプトは基本的に実現可能ですが、**以下の重�
 ```
 
 #### 1.2 Markdown XSS対策
+
 ```typescript
 // DOMPurify等のサニタイザーが必須
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 const cleanHTML = DOMPurify.sanitize(markdownHTML, {
-  ALLOWED_TAGS: ['p', 'b', 'i', 'code', 'pre', 'a', 'img', 'h1', 'h2', 'h3', 'ul', 'ol', 'li'],
-  ALLOWED_ATTR: ['href', 'src', 'alt', 'class'],
-  ALLOW_DATA_ATTR: false
+  ALLOWED_TAGS: [
+    "p",
+    "b",
+    "i",
+    "code",
+    "pre",
+    "a",
+    "img",
+    "h1",
+    "h2",
+    "h3",
+    "ul",
+    "ol",
+    "li",
+  ],
+  ALLOWED_ATTR: ["href", "src", "alt", "class"],
+  ALLOW_DATA_ATTR: false,
 });
 ```
 
 **攻撃例:**
+
 ```markdown
 [Click me](javascript:alert('XSS'))
 ![](onerror=alert('XSS'))
@@ -70,24 +89,27 @@ const cleanHTML = DOMPurify.sanitize(markdownHTML, {
 **採用方針: プリセットテーマのみ**
 
 **実装方針:**
+
 - 事前定義されたテーマファイルのみ提供
 - ユーザーカスタムCSSは**一切受け付けない**
 - セキュリティリスク完全排除
 
 **提供するテーマ:**
+
 ```typescript
 // src/shared/constants/themes.ts
 export const PRESET_THEMES = {
-  light: 'Light Theme (Default)',
-  dark: 'Dark Theme',
-  github: 'GitHub Style',
-  minimal: 'Minimal',
-  solarized_light: 'Solarized Light',
-  solarized_dark: 'Solarized Dark'
+  light: "Light Theme (Default)",
+  dark: "Dark Theme",
+  github: "GitHub Style",
+  minimal: "Minimal",
+  solarized_light: "Solarized Light",
+  solarized_dark: "Solarized Dark",
 } as const;
 ```
 
 **実装:**
+
 ```typescript
 // src/content/styles/themes/
 // - light.css
@@ -99,14 +121,15 @@ export const PRESET_THEMES = {
 
 // テーマ切り替え
 const loadTheme = (themeName: keyof typeof PRESET_THEMES) => {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
   link.href = chrome.runtime.getURL(`themes/${themeName}.css`);
   document.head.appendChild(link);
 };
 ```
 
 **メリット:**
+
 - ✅ CSS Injection攻撃リスク **完全排除**
 - ✅ 実装がシンプル
 - ✅ パフォーマンス良好
@@ -117,6 +140,7 @@ const loadTheme = (themeName: keyof typeof PRESET_THEMES) => {
 ### 2. Manifest V2/V3の明記なし
 
 **問題点:**
+
 - Chrome拡張のマニフェストバージョンが未指定
 - **Manifest V2は2024年に廃止済み**
 - Manifest V3では設計が大きく異なる
@@ -124,6 +148,7 @@ const loadTheme = (themeName: keyof typeof PRESET_THEMES) => {
 **必須対応:**
 
 #### manifest.jsonの基本構造（Manifest V3）
+
 ```json
 {
   "manifest_version": 3,
@@ -160,6 +185,7 @@ const loadTheme = (themeName: keyof typeof PRESET_THEMES) => {
 ```
 
 **Manifest V3の制約:**
+
 - Service Workerベースのbackground処理（Background Pageは廃止）
 - `chrome.scripting.executeScript` APIの使用
 - Dynamic Code Evaluationの禁止（`eval`, `new Function`不可）
@@ -169,27 +195,29 @@ const loadTheme = (themeName: keyof typeof PRESET_THEMES) => {
 ### 3. Markdownパーサー・サニタイザーの未選定
 
 **問題点:**
+
 - spec.mdに「Markdown Compiler」とあるが、**具体的なライブラリが未定**
 - GitHub Flavored Markdown (GFM)対応が必要
 - セキュリティ要件を満たすパーサーの選定が必須
 
 **推奨ライブラリ:**
 
-| ライブラリ | サイズ | GFM対応 | セキュリティ | 推奨度 |
-|-----------|--------|---------|------------|--------|
-| `marked` | 35KB | ✅ | DOMPurify併用必須 | 🟢 高 |
-| `markdown-it` | 100KB | ✅ | プラグインで対応 | 🟡 中 |
-| `micromark` | 小 | ✅ | 最新仕様準拠 | 🟢 高 |
+| ライブラリ    | サイズ | GFM対応 | セキュリティ      | 推奨度 |
+| ------------- | ------ | ------- | ----------------- | ------ |
+| `marked`      | 35KB   | ✅      | DOMPurify併用必須 | 🟢 高  |
+| `markdown-it` | 100KB  | ✅      | プラグインで対応  | 🟡 中  |
+| `micromark`   | 小     | ✅      | 最新仕様準拠      | 🟢 高  |
 
 **実装例:**
+
 ```typescript
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 marked.setOptions({
-  gfm: true,           // GitHub Flavored Markdown
-  breaks: true,        // 改行をbrタグに変換
-  sanitize: false      // DOMPurifyで処理するためfalse
+  gfm: true, // GitHub Flavored Markdown
+  breaks: true, // 改行をbrタグに変換
+  sanitize: false, // DOMPurifyで処理するためfalse
 });
 
 const rawHTML = marked.parse(markdownContent);
@@ -203,6 +231,7 @@ const safeHTML = DOMPurify.sanitize(rawHTML);
 ### 4. 技術スタック「Deno + Chrome拡張」の誤解
 
 **問題点:**
+
 - spec.mdでは「Deno」を技術スタックに挙げているが、**Denoは直接Chrome拡張を実行できない**
 - Chrome拡張の実行環境はブラウザのV8エンジン
 
@@ -219,12 +248,14 @@ Chrome Extension Environment (V8) → 実際の実行
 ```
 
 **Denoの役割:**
+
 - 開発環境のツールチェイン
 - TypeScriptネイティブサポート
 - テストランナー（`deno test`）
 - リンター（`deno lint`）
 
 **実装上の注意:**
+
 - esbuildはNode.js製 → Denoから`npm:esbuild`経由で使用
 - または、ビルドプロセスのみNode.js環境を使用
 
@@ -233,6 +264,7 @@ Chrome Extension Environment (V8) → 実際の実行
 ### 5. アーキテクチャ設計の不整合
 
 **問題点:**
+
 - spec.mdのディレクトリ構造が**一般的なWebアプリの設計**に基づいている
 - Chrome拡張は**メッセージパッシングベースの分散アーキテクチャ**
 - `application/`と`presentation/`の責務分離がChrome拡張の実行コンテキストと対応していない
@@ -307,8 +339,10 @@ src/
 ```
 
 **変更の理由:**
+
 - `application/background/frontend` → Chrome拡張の実行コンテキストに対応
-- `presentation/components/functional/layouts/ui-elements/ui-parts` → 過度な階層を排除、シンプルに`components/`
+- `presentation/components/functional/layouts/ui-elements/ui-parts` →
+  過度な階層を排除、シンプルに`components/`
 - `shared/utils/security/` → セキュリティ関連を明示的に分離
 
 ---
@@ -320,6 +354,7 @@ src/
 **実装方針: エンドユーザー向けにも提供**
 
 **技術的課題:**
+
 - Chrome拡張からローカルファイルシステムの**直接監視は不可能**
 - File System Access APIも`file://`プロトコルでは制限的
 - 代替アプローチが必要
@@ -338,7 +373,7 @@ class FileWatcher {
 
   constructor(fileUrl: string) {
     this.fileUrl = fileUrl;
-    this.lastHash = '';
+    this.lastHash = "";
   }
 
   async start() {
@@ -346,7 +381,7 @@ class FileWatcher {
     this.lastHash = await this.fetchFileHash();
 
     // 1. タブフォーカス時にチェック（UX重視）
-    document.addEventListener('visibilitychange', async () => {
+    document.addEventListener("visibilitychange", async () => {
       if (!document.hidden) {
         await this.checkForUpdates();
       }
@@ -357,20 +392,20 @@ class FileWatcher {
     if (interval > 0) {
       this.intervalId = window.setInterval(
         () => this.checkForUpdates(),
-        interval * 1000
+        interval * 1000,
       );
     }
   }
 
   private async fetchFileHash(): Promise<string> {
     try {
-      const response = await fetch(this.fileUrl, { cache: 'no-store' });
+      const response = await fetch(this.fileUrl, { cache: "no-store" });
       const content = await response.text();
       // 簡易ハッシュ（または crypto.subtle.digest）
       return this.simpleHash(content);
     } catch (error) {
-      console.error('File fetch error:', error);
-      return '';
+      console.error("File fetch error:", error);
+      return "";
     }
   }
 
@@ -385,7 +420,7 @@ class FileWatcher {
 
   private notifyReload(): void {
     // ユーザーに通知して自動リロード or 手動リロード選択
-    const autoReload = localStorage.getItem('autoReload') === 'true';
+    const autoReload = localStorage.getItem("autoReload") === "true";
 
     if (autoReload) {
       location.reload();
@@ -396,8 +431,8 @@ class FileWatcher {
 
   private showReloadPrompt(): void {
     // トースト通知表示
-    const toast = document.createElement('div');
-    toast.className = 'reload-toast';
+    const toast = document.createElement("div");
+    toast.className = "reload-toast";
     toast.innerHTML = `
       <p>ファイルが更新されました</p>
       <button id="reload-btn">リロード</button>
@@ -405,10 +440,10 @@ class FileWatcher {
     `;
     document.body.appendChild(toast);
 
-    document.getElementById('reload-btn')?.addEventListener('click', () => {
+    document.getElementById("reload-btn")?.addEventListener("click", () => {
       location.reload();
     });
-    document.getElementById('dismiss-btn')?.addEventListener('click', () => {
+    document.getElementById("dismiss-btn")?.addEventListener("click", () => {
       toast.remove();
     });
   }
@@ -424,7 +459,7 @@ class FileWatcher {
   }
 
   private async getCheckInterval(): Promise<number> {
-    const settings = await chrome.storage.sync.get('hotReloadInterval');
+    const settings = await chrome.storage.sync.get("hotReloadInterval");
     return settings.hotReloadInterval ?? 30; // デフォルト30秒
   }
 
@@ -437,6 +472,7 @@ class FileWatcher {
 ```
 
 **設定画面での制御:**
+
 ```typescript
 // src/options/components/HotReloadSettings.tsx
 export const HotReloadSettings = () => {
@@ -466,17 +502,21 @@ export const HotReloadSettings = () => {
 ```
 
 **パフォーマンス対策:**
+
 - デフォルトは「タブフォーカス時のみ」チェック
 - 定期チェックはオプトイン、30秒以上を推奨
 - `fetch`にキャッシュ無効化オプション使用
 - ファイル全体ではなくヘッダー情報（ETag, Last-Modified）の確認も検討
 
 **制限事項:**
+
 - ⚠️ ブラウザがバックグラウンドの場合、定期チェックが停止する可能性
 - ⚠️ 非常に大きなファイル（数MB以上）では定期チェックに時間がかかる
-- ⚠️ ネットワークアクセス（`file://`も内部的にはfetch）のため、完全なファイルシステム監視ではない
+- ⚠️
+  ネットワークアクセス（`file://`も内部的にはfetch）のため、完全なファイルシステム監視ではない
 
 **ユーザー体験:**
+
 1. デフォルトでHot Reload有効
 2. タブに戻ると自動的に更新チェック
 3. 更新があれば通知またはリロード
@@ -485,25 +525,28 @@ export const HotReloadSettings = () => {
 #### 6.2 Mermaid diagram（中リスク）
 
 **課題:**
+
 - バンドルサイズ: ~800KB（minified）
 - CSP制約: `'wasm-unsafe-eval'`が必要
 
 **対策:**
 
 1. **Dynamic Import（必須）**
+
 ```typescript
 // 必要時のみロード
 const renderMermaid = async (code: string, element: HTMLElement) => {
-  const mermaid = await import('mermaid');
+  const mermaid = await import("mermaid");
   mermaid.initialize({
     startOnLoad: false,
-    securityLevel: 'strict'  // XSS対策
+    securityLevel: "strict", // XSS対策
   });
-  await mermaid.render('mermaid-graph', code);
+  await mermaid.render("mermaid-graph", code);
 };
 ```
 
 2. **CSP設定**
+
 ```json
 "content_security_policy": {
   "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
@@ -515,23 +558,25 @@ const renderMermaid = async (code: string, element: HTMLElement) => {
 **MathJax 3はCSP対応済み** → Mermaidより低リスク
 
 **実装:**
+
 ```typescript
-import 'mathjax/es5/tex-chtml.js';
+import "mathjax/es5/tex-chtml.js";
 
 window.MathJax = {
   tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    inlineMath: [["$", "$"], ["\\(", "\\)"]],
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
   },
   options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-  }
+    skipHtmlTags: ["script", "noscript", "style", "textarea", "pre"],
+  },
 };
 ```
 
 **CSP:**
+
 ```json
-"style-src 'self' 'unsafe-inline'"  // MathJaxのインラインスタイル用
+"style-src 'self' 'unsafe-inline'" // MathJaxのインラインスタイル用
 ```
 
 #### 6.4 Syntax Highlight Code Block
@@ -540,23 +585,24 @@ window.MathJax = {
 
 **推奨:**
 
-| ライブラリ | サイズ | 特徴 | 推奨度 |
-|-----------|--------|------|--------|
-| `highlight.js` | ~500KB | 多言語、人気 | 🟢 |
-| `prism.js` | 軽量 | カスタマイズ可 | 🟢 |
-| `shiki` | 重い | VSCode同等品質 | 🟡 |
+| ライブラリ     | サイズ | 特徴           | 推奨度 |
+| -------------- | ------ | -------------- | ------ |
+| `highlight.js` | ~500KB | 多言語、人気   | 🟢     |
+| `prism.js`     | 軽量   | カスタマイズ可 | 🟢     |
+| `shiki`        | 重い   | VSCode同等品質 | 🟡     |
 
 **バンドルサイズ対策:**
+
 ```typescript
 // 必要な言語のみインポート
-import hljs from 'highlight.js/lib/core';
-import javascript from 'highlight.js/lib/languages/javascript';
-import typescript from 'highlight.js/lib/languages/typescript';
-import python from 'highlight.js/lib/languages/python';
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
 
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('typescript', typescript);
-hljs.registerLanguage('python', python);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("python", python);
 ```
 
 ---
@@ -568,6 +614,7 @@ hljs.registerLanguage('python', python);
 **spec.mdに記載なし、必須要素:**
 
 **必要な状態:**
+
 - 現在のテーマ (Preset themesから選択)
 - Hot Reload設定（有効/無効、チェック間隔、自動リロード）
 - ユーザー設定（オプション）
@@ -578,7 +625,13 @@ hljs.registerLanguage('python', python);
 // chrome.storage.sync で設定を同期
 interface AppState {
   // テーマ設定
-  theme: 'light' | 'dark' | 'github' | 'minimal' | 'solarized_light' | 'solarized_dark';
+  theme:
+    | "light"
+    | "dark"
+    | "github"
+    | "minimal"
+    | "solarized_light"
+    | "solarized_dark";
 
   // Hot Reload設定
   hotReloadEnabled: boolean;
@@ -591,13 +644,13 @@ interface AppState {
 }
 
 // Preact Signals（軽量状態管理）
-import { signal } from '@preact/signals';
+import { signal } from "@preact/signals";
 
 const appState = signal<AppState>({
-  theme: 'light',
+  theme: "light",
   hotReloadEnabled: true,
   hotReloadInterval: 30,
-  autoReload: false
+  autoReload: false,
 });
 ```
 
@@ -608,6 +661,7 @@ const appState = signal<AppState>({
 **spec.mdに記載なし:**
 
 **必要なエラー処理:**
+
 1. ファイル読み込み失敗
 2. Markdown解析エラー
 3. Mermaid/MathJax初期化失敗
@@ -615,6 +669,7 @@ const appState = signal<AppState>({
 5. 大きすぎるファイル（メモリ制限）
 
 **実装例:**
+
 ```typescript
 try {
   const markdown = await fetchMarkdownFile(url);
@@ -624,7 +679,7 @@ try {
   if (error instanceof PermissionError) {
     showPermissionPrompt();
   } else if (error instanceof ParseError) {
-    showErrorMessage('Markdown解析エラー', error.message);
+    showErrorMessage("Markdown解析エラー", error.message);
   } else {
     showGenericError();
   }
@@ -647,7 +702,7 @@ try {
    ```typescript
    // Mermaid diagramの遅延描画
    const observer = new IntersectionObserver((entries) => {
-     entries.forEach(entry => {
+     entries.forEach((entry) => {
        if (entry.isIntersecting) {
          renderMermaid(entry.target);
        }
@@ -658,7 +713,7 @@ try {
 3. **Web Worker**
    ```typescript
    // Markdown parsingをWorkerで処理
-   const worker = new Worker('markdown-parser.worker.js');
+   const worker = new Worker("markdown-parser.worker.js");
    worker.postMessage({ markdown: content });
    worker.onmessage = (e) => {
      const html = e.data;
@@ -675,71 +730,74 @@ try {
 **必須テストケース:**
 
 #### Unit Tests
+
 ```typescript
 // src/shared/utils/security/sanitizer.test.ts
-describe('Markdown Sanitizer', () => {
-  test('XSS攻撃の防御: javascript: protocol', () => {
+describe("Markdown Sanitizer", () => {
+  test("XSS攻撃の防御: javascript: protocol", () => {
     const malicious = '[Click](javascript:alert("XSS"))';
     const result = sanitize(parse(malicious));
-    expect(result).not.toContain('javascript:');
+    expect(result).not.toContain("javascript:");
   });
 
-  test('XSS攻撃の防御: onerror attribute', () => {
+  test("XSS攻撃の防御: onerror attribute", () => {
     const malicious = '![](x onerror=alert("XSS"))';
     const result = sanitize(parse(malicious));
-    expect(result).not.toContain('onerror');
+    expect(result).not.toContain("onerror");
   });
 });
 
 // src/shared/utils/security/css-validator.test.ts
-describe('CSS Validator', () => {
-  test('CSS Injection攻撃の防御: url()', () => {
+describe("CSS Validator", () => {
+  test("CSS Injection攻撃の防御: url()", () => {
     const malicious = 'body { background: url("http://evil.com") }';
     expect(() => validateCSS(malicious)).toThrow();
   });
 
-  test('有効なCSS変数は許可', () => {
-    const valid = '--primary-color: #007bff;';
+  test("有効なCSS変数は許可", () => {
+    const valid = "--primary-color: #007bff;";
     expect(validateCSS(valid)).toBe(true);
   });
 });
 ```
 
 #### E2E Tests（Playwright）
+
 ```typescript
 // e2e/markdown-rendering.spec.ts
-test('ローカルMarkdownファイルの表示', async ({ page }) => {
-  await page.goto('file:///path/to/test.md');
-  await expect(page.locator('h1')).toHaveText('Test Markdown');
+test("ローカルMarkdownファイルの表示", async ({ page }) => {
+  await page.goto("file:///path/to/test.md");
+  await expect(page.locator("h1")).toHaveText("Test Markdown");
 });
 
-test('ダークテーマの切り替え', async ({ page }) => {
-  await page.goto('file:///path/to/test.md');
+test("ダークテーマの切り替え", async ({ page }) => {
+  await page.goto("file:///path/to/test.md");
   await page.click('[data-testid="theme-toggle"]');
-  await expect(page.locator('body')).toHaveClass(/dark-theme/);
+  await expect(page.locator("body")).toHaveClass(/dark-theme/);
 });
 
-test('Mermaidダイアグラムのレンダリング', async ({ page }) => {
-  await page.goto('file:///path/to/mermaid-test.md');
-  await expect(page.locator('.mermaid svg')).toBeVisible();
+test("Mermaidダイアグラムのレンダリング", async ({ page }) => {
+  await page.goto("file:///path/to/mermaid-test.md");
+  await expect(page.locator(".mermaid svg")).toBeVisible();
 });
 ```
 
 #### Security Tests
+
 ```typescript
 // e2e/security.spec.ts
-test('XSS攻撃の防御', async ({ page }) => {
+test("XSS攻撃の防御", async ({ page }) => {
   const xssPayload = `
 # Test
 [Click me](javascript:alert('XSS'))
 <img src=x onerror="alert('XSS')">
   `;
 
-  await page.goto('data:text/markdown,' + encodeURIComponent(xssPayload));
+  await page.goto("data:text/markdown," + encodeURIComponent(xssPayload));
 
   // アラートが表示されないことを確認
-  page.on('dialog', () => {
-    throw new Error('XSS detected!');
+  page.on("dialog", () => {
+    throw new Error("XSS detected!");
   });
 });
 ```
@@ -751,6 +809,7 @@ test('XSS攻撃の防御', async ({ page }) => {
 **spec.mdには「esbuild」とあるが、設定詳細なし**
 
 **推奨 deno.json:**
+
 ```json
 {
   "tasks": {
@@ -780,27 +839,28 @@ test('XSS攻撃の防御', async ({ page }) => {
 ```
 
 **esbuild設定例:**
+
 ```typescript
 // scripts/build.ts
-import * as esbuild from 'esbuild';
+import * as esbuild from "esbuild";
 
 await esbuild.build({
   entryPoints: [
-    'src/background/service-worker.ts',
-    'src/content/index.ts',
-    'src/popup/index.tsx',
-    'src/options/index.tsx'
+    "src/background/service-worker.ts",
+    "src/content/index.ts",
+    "src/popup/index.tsx",
+    "src/options/index.tsx",
   ],
   bundle: true,
-  outdir: 'dist',
-  format: 'esm',
+  outdir: "dist",
+  format: "esm",
   splitting: true,
   minify: true,
   sourcemap: true,
-  target: ['chrome120'],
-  jsxFactory: 'h',
-  jsxFragment: 'Fragment',
-  jsxImportSource: 'preact'
+  target: ["chrome120"],
+  jsxFactory: "h",
+  jsxFragment: "Fragment",
+  jsxImportSource: "preact",
 });
 ```
 
@@ -811,6 +871,7 @@ await esbuild.build({
 **spec.mdに記載なし:**
 
 **推奨 GitHub Actions:**
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -843,9 +904,10 @@ jobs:
 **多言語対応の考慮なし:**
 
 **推奨:**
+
 ```typescript
 // src/shared/i18n/
-chrome.i18n.getMessage('extensionName');
+chrome.i18n.getMessage("extensionName");
 ```
 
 ```json
@@ -864,6 +926,7 @@ chrome.i18n.getMessage('extensionName');
 **アクセシビリティ要件なし:**
 
 **必須対応:**
+
 - キーボードナビゲーション（Tab, Enter, Esc）
 - スクリーンリーダー対応（ARIA属性）
 - カラーコントラスト（WCAG 2.1 AA準拠）
@@ -874,6 +937,7 @@ chrome.i18n.getMessage('extensionName');
 ## 推奨実装フェーズ
 
 ### Phase 1: 基盤構築（MVP）
+
 **目標: 安全な基本機能**
 
 1. ✅ Manifest V3基本設定
@@ -883,6 +947,7 @@ chrome.i18n.getMessage('extensionName');
 5. ✅ セキュリティテスト（XSS防御確認）
 
 **成果物:**
+
 - ローカル`.md`ファイルを安全に表示
 - テーマ切り替え可能
 - コードブロックのハイライト
@@ -890,6 +955,7 @@ chrome.i18n.getMessage('extensionName');
 ---
 
 ### Phase 2: 拡張機能
+
 **目標: 高度なMarkdown記法対応**
 
 6. ✅ GitHub Flavored Markdown (GFM)
@@ -900,6 +966,7 @@ chrome.i18n.getMessage('extensionName');
 ---
 
 ### Phase 3: カスタマイズ機能
+
 **目標: ユーザー体験向上**
 
 10. ✅ CSS変数ベースのテーマカスタマイズ
@@ -909,6 +976,7 @@ chrome.i18n.getMessage('extensionName');
 ---
 
 ### Phase 4: 開発者向け機能
+
 **目標: DX向上**
 
 13. ✅ Hot Reload（開発モードのみ）
@@ -923,10 +991,14 @@ chrome.i18n.getMessage('extensionName');
 
 1. **[manifest.json](../../../manifest.json)** - Manifest V3設定、権限、CSP
 2. **[deno.json](../../../deno.json)** - Denoプロジェクト設定、依存関係
-3. **[src/shared/utils/security/sanitizer.ts](../../../src/shared/utils/security/sanitizer.ts)** - DOMPurify wrapper、XSS対策の中核
-4. **[src/shared/utils/security/css-validator.ts](../../../src/shared/utils/security/css-validator.ts)** - CSS変数バリデーション
-5. **[src/content/markdown/parser.ts](../../../src/content/markdown/parser.ts)** - Markdownパース処理
-6. **[src/messaging/types.ts](../../../src/messaging/types.ts)** - メッセージング型定義
+3. **[src/shared/utils/security/sanitizer.ts](../../../src/shared/utils/security/sanitizer.ts)** -
+   DOMPurify wrapper、XSS対策の中核
+4. **[src/shared/utils/security/css-validator.ts](../../../src/shared/utils/security/css-validator.ts)** -
+   CSS変数バリデーション
+5. **[src/content/markdown/parser.ts](../../../src/content/markdown/parser.ts)** -
+   Markdownパース処理
+6. **[src/messaging/types.ts](../../../src/messaging/types.ts)** -
+   メッセージング型定義
 7. **[scripts/build.ts](../../../scripts/build.ts)** - esbuildビルド設定
 
 ---
@@ -936,24 +1008,29 @@ chrome.i18n.getMessage('extensionName');
 以下をspec.mdに追記・修正すべきです：
 
 ### セキュリティセクション追加
+
 ```markdown
 ## Security
 
 ### XSS Protection
+
 - DOMPurify による HTML サニタイゼーション
 - Content Security Policy (CSP) 厳格設定
 - javascript: protocol の完全ブロック
 
 ### CSS Injection Protection
+
 - Custom Theme: CSS Variables のみ許可
 - フルCSS対応は **非推奨**（セキュリティリスク）
 
 ### Permissions
+
 - Minimal permissions (activeTab, storage のみ)
 - file:///* は明示的なユーザー許可が必要
 ```
 
 ### 技術スタック修正
+
 ```markdown
 ## 技術スタック
 
@@ -966,6 +1043,7 @@ chrome.i18n.getMessage('extensionName');
 ```
 
 ### Features修正
+
 ```markdown
 ## Features
 
@@ -1016,6 +1094,7 @@ chrome.i18n.getMessage('extensionName');
 実装後の検証手順：
 
 ### 1. セキュリティテスト
+
 ```bash
 # XSS攻撃ベクターのテスト
 deno task test src/shared/utils/security/sanitizer.test.ts
@@ -1025,6 +1104,7 @@ deno task test:e2e e2e/security.spec.ts
 ```
 
 ### 2. 機能テスト
+
 ```bash
 # ユニットテスト全実行
 deno task test
@@ -1034,6 +1114,7 @@ deno task test:e2e
 ```
 
 ### 3. ビルド検証
+
 ```bash
 # ビルド実行
 deno task build
@@ -1046,6 +1127,7 @@ cat dist/manifest.json
 ```
 
 ### 4. 手動テスト
+
 1. Chrome拡張を読み込み (`chrome://extensions/`)
 2. テストMarkdownファイルを開く
 3. XSSペイロードを含むMarkdownで攻撃されないか確認
@@ -1059,18 +1141,21 @@ cat dist/manifest.json
 spec.mdのコンセプトは**実現可能**ですが、以下の対応が必須です：
 
 ### 最優先事項（MUST）
+
 1. ✅ セキュリティ設計の具体化（DOMPurify, CSP）
 2. ✅ Custom CSS機能 → **プリセットテーマのみに変更**（ユーザー決定）
 3. ✅ Manifest V3対応の明記
 4. ✅ Markdownパーサー・サニタイザーの選定
 
 ### 推奨事項（SHOULD）
+
 5. ✅ アーキテクチャのChrome拡張パターンへの修正
 6. ✅ Hot Reload → **エンドユーザー向けにも実装**（タブフォーカス+定期チェック）
 7. ✅ 状態管理、エラーハンドリング、パフォーマンス対策の追加
 8. ✅ テスト戦略の具体化（XSS防御テスト含む）
 
 ### 参考情報（NICE TO HAVE）
+
 9. CI/CD、i18n、a11y対応
 
 上記対応により、**安全で実用的なMarkdown Viewer Chrome拡張**の実装が可能です。
@@ -1082,17 +1167,20 @@ spec.mdのコンセプトは**実現可能**ですが、以下の対応が必須
 ### ✅ Custom CSS機能 → プリセットテーマのみ
 
 **決定:**
+
 - ユーザーカスタムCSSは一切受け付けない
 - 事前定義された6種類のテーマから選択のみ
 - Light, Dark, GitHub, Minimal, Solarized Light, Solarized Dark
 
 **メリット:**
+
 - ✅ CSS Injection攻撃リスク完全排除
 - ✅ セキュリティ実装がシンプル
 - ✅ 品質保証されたテーマのみ提供
 - ✅ パフォーマンス良好
 
 **実装影響:**
+
 - spec.mdの「Custom Theme (Original css)」を「Preset Themes」に変更
 - CSS変数バリデーション実装が不要
 - テーマファイル作成（6種類）が必要
@@ -1100,21 +1188,25 @@ spec.mdのコンセプトは**実現可能**ですが、以下の対応が必須
 ### ✅ Hot Reload → エンドユーザー向けにも実装
 
 **決定:**
+
 - 開発モード限定ではなく、本番環境でも提供
 - タブフォーカス時チェック + オプション定期チェック
 - ユーザー設定でカスタマイズ可能
 
 **実装方針:**
+
 1. **タブフォーカス時チェック**（デフォルト、パフォーマンス影響小）
 2. **定期チェック**（オプション、30秒/60秒等から選択）
 3. **自動リロード設定**（通知あり/なし）
 
 **技術的課題:**
+
 - Chrome拡張からのファイルシステム直接監視は不可能
 - `fetch`によるファイルハッシュ比較で実装
 - バックグラウンドタブでは定期チェック停止の可能性
 
 **実装影響:**
+
 - FileWatcherクラスの実装が必要
 - オプション画面にHot Reload設定追加
 - chrome.storage.syncに設定項目追加
@@ -1126,11 +1218,11 @@ spec.mdのコンセプトは**実現可能**ですが、以下の対応が必須
 
 以下の内容でspec.mdを更新することを推奨します：
 
-```markdown
+````markdown
 # SPEC
 
-ローカルのmarkdownを開いた時、サーバから text/markdown なテキストを受け取った時に
-markdown-viewerで表示を行う chrome拡張機能。
+ローカルのmarkdownを開いた時、サーバから text/markdown
+なテキストを受け取った時に markdown-viewerで表示を行う chrome拡張機能。
 既に類似のChrome拡張は世に存在するが、そこまで多機能である必要がないこと。セキュリティの面で自作したほうが安全なので自前実装を行う。
 
 ## Features
@@ -1171,18 +1263,22 @@ markdown-viewerで表示を行う chrome拡張機能。
 ## セキュリティ要件
 
 ### XSS Protection
+
 - DOMPurifyによるHTMLサニタイゼーション
 - `javascript:` protocol完全ブロック
 - `onerror`, `onload`等のイベントハンドラ除去
 
 ### Content Security Policy
+
 ```json
 "content_security_policy": {
   "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'"
 }
 ```
+````
 
 ### Permissions
+
 - Minimal permissions (activeTab, storage)
 - `file:///*`への明示的なユーザー許可
 
@@ -1307,4 +1403,6 @@ deno task bundle
 - Dynamic Code Evaluation禁止（`eval`, `new Function`使用不可）
 - `chrome.scripting.executeScript` API使用
 - Permissions最小化の原則
+
+```
 ```

@@ -6,8 +6,8 @@
  * @module domain/frontmatter/parser
  */
 
-import { parse } from '@std/yaml';
-import type { FrontmatterResult } from './types.ts';
+import { parse } from "@std/yaml";
+import type { FrontmatterResult } from "./types.ts";
 
 /**
  * YAML Frontmatterを解析
@@ -64,7 +64,7 @@ export function parseFrontmatter(markdown: string): FrontmatterResult {
     };
   } catch (error) {
     // エラー時（不正なYAMLフォーマット等）は元のテキストをそのまま返す
-    console.warn('Frontmatter parse error:', error);
+    console.warn("Frontmatter parse error:", error);
     return {
       data: {},
       content: markdown,

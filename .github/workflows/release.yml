@@ -3,12 +3,12 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   # 手動実行可能
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release (e.g., v1.0.0)'
+        description: "Tag name for release (e.g., v1.0.0)"
         required: true
         type: string
 
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: '2.x'
+          deno-version: "2.x"
 
       - name: Cache Deno dependencies
         uses: actions/cache@v4

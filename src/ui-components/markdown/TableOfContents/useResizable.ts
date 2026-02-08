@@ -6,7 +6,7 @@
  * ❌ NG: ビジネスロジック、messaging直接呼び出し
  */
 
-import { useState, useEffect, useCallback } from 'preact/hooks';
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 /**
  * useResizable Hook のオプション
@@ -73,8 +73,8 @@ export const useResizable = ({
     if (!isResizing) return;
 
     // リサイズ中はbody全体でテキスト選択を無効化
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'ew-resize'; // カーソルもリサイズ用に変更
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "ew-resize"; // カーソルもリサイズ用に変更
 
     /**
      * マウス移動ハンドラ
@@ -91,23 +91,23 @@ export const useResizable = ({
     const handleMouseUp = () => {
       setIsResizing(false);
       // リサイズ終了時にテキスト選択とカーソルを元に戻す
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
       // リサイズ終了時にコールバックを実行
       onWidthChange?.(width);
     };
 
     // グローバルイベントリスナーを登録
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
     // クリーンアップ
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
       // クリーンアップ時もスタイルを元に戻す
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
     };
   }, [isResizing, minWidth, maxWidth, width, onWidthChange]);
 

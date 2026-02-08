@@ -6,7 +6,8 @@
 
 Phase 1 (MVP) の実装は**95%完了**している状態です。以下が達成済み：
 
-- ✅ 全レイヤーの実装完了（shared, domain, services, messaging, background, content）
+- ✅ 全レイヤーの実装完了（shared, domain, services, messaging, background,
+  content）
 - ✅ TDDサイクル遵守（22件のテストケース）
 - ✅ セキュリティ実装（DOMPurify, CSP設定）
 - ✅ アーキテクチャ準拠（レイヤー分離、依存関係の方向性）
@@ -17,13 +18,17 @@ Phase 1 (MVP) の実装は**95%完了**している状態です。以下が達�
 
 **型エラーが原因でビルドが失敗**しています：
 
-1. **marked v11の`sanitize`オプション削除** - `parser.ts`で使用不可能なオプション指定
-2. **Chrome API型定義の欠落** - `service-worker.ts`でグローバル`chrome`の型が解決されない
-3. **不要なasync/await** - 実際には同期処理なのにasyncが付いている（リンティング警告）
+1. **marked v11の`sanitize`オプション削除** -
+   `parser.ts`で使用不可能なオプション指定
+2. **Chrome API型定義の欠落** -
+   `service-worker.ts`でグローバル`chrome`の型が解決されない
+3. **不要なasync/await** -
+   実際には同期処理なのにasyncが付いている（リンティング警告）
 
 ### なぜこの変更が必要か
 
-- **ビルドを成功させる**: dist/ディレクトリに成果物を生成し、Chrome拡張として動作可能にする
+- **ビルドを成功させる**:
+  dist/ディレクトリに成果物を生成し、Chrome拡張として動作可能にする
 - **型安全性を確保**: TypeScriptの型チェックを通過させ、実行時エラーを防ぐ
 - **コード品質を向上**: 不要なasync/awaitを削除し、コードを明確にする
 
@@ -57,16 +62,19 @@ Phase 1 (MVP) の実装は**95%完了**している状態です。以下が達�
 **作業内容**:
 
 1. `deno.json`のimportsセクションに追加:
+
 ```json
 "@types/chrome": "npm:@types/chrome@^0.0.254"
 ```
 
 2. `src/background/service-worker.ts`の先頭に型参照を追加:
+
 ```typescript
 /// <reference types="@types/chrome" />
 ```
 
 **検証**:
+
 ```bash
 deno check src/background/service-worker.ts
 ```
@@ -77,7 +85,8 @@ deno check src/background/service-worker.ts
 
 **問題**: marked v11では`sanitize`オプションが削除された
 
-**解決策**: `sanitize: false`の行を削除する（DOMPurifyで既に処理しているため問題なし）
+**解決策**:
+`sanitize: false`の行を削除する（DOMPurifyで既に処理しているため問題なし）
 
 **作業内容**:
 
@@ -89,7 +98,7 @@ export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,
     breaks: true,
-    sanitize: false      // ← この行を削除
+    sanitize: false, // ← この行を削除
   });
 
   return marked.parse(markdown) as string;
@@ -99,7 +108,7 @@ export const parseMarkdown = (markdown: string): string => {
 export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,
-    breaks: true
+    breaks: true,
     // sanitizeオプションはmarked v11で削除されたため不要
     // DOMPurifyで別途サニタイズを実行
   });
@@ -109,6 +118,7 @@ export const parseMarkdown = (markdown: string): string => {
 ```
 
 **検証**:
+
 ```bash
 deno test src/domain/markdown/parser.test.ts
 ```
@@ -150,33 +160,35 @@ export class MarkdownService {
 ```typescript
 // 変更前
 export const loadTheme = async (themeId?: string): Promise<ThemeData> => {
-  return THEMES[themeId || 'light'] || THEMES.light;
+  return THEMES[themeId || "light"] || THEMES.light;
 };
 
 // 変更後
 export const loadTheme = (themeId?: string): ThemeData => {
-  return THEMES[themeId || 'light'] || THEMES.light;
+  return THEMES[themeId || "light"] || THEMES.light;
 };
 ```
 
 3. **呼び出し側を修正**:
 
 - `src/messaging/handlers/background-handler.ts`:
+
 ```typescript
 // 変更前
 const html = await markdownService.render(
   message.payload.markdown,
-  theme
+  theme,
 );
 
 // 変更後
 const html = markdownService.render(
   message.payload.markdown,
-  theme
+  theme,
 );
 ```
 
 - `src/services/markdown-service.test.ts`:
+
 ```typescript
 // 各テストケースでawaitを削除
 // 変更前: const html = await service.render(markdown, theme);
@@ -184,6 +196,7 @@ const html = markdownService.render(
 ```
 
 - `src/domain/theme/loader.test.ts`:
+
 ```typescript
 // 各テストケースでawaitを削除
 // 変更前: const theme = await loadTheme('light');
@@ -191,13 +204,16 @@ const html = markdownService.render(
 ```
 
 - `src/domain/theme/applier.test.ts`:
+
 ```typescript
 // 各テストケースでawaitを削除（loadTheme呼び出し箇所）
 ```
 
-**注意**: この変更により、将来非同期処理が必要になった場合は再度asyncに戻す必要があるが、現時点では不要な複雑さを削除することを優先
+**注意**:
+この変更により、将来非同期処理が必要になった場合は再度asyncに戻す必要があるが、現時点では不要な複雑さを削除することを優先
 
 **検証**:
+
 ```bash
 deno test
 deno lint
@@ -214,6 +230,7 @@ deno task build
 ```
 
 **期待される出力**:
+
 ```
 🔨 Building Markdown Viewer...
 
@@ -227,6 +244,7 @@ deno task build
 ```
 
 **確認**:
+
 ```bash
 ls -la dist/
 # 期待: background.js, background.js.map, content.js, content.js.map
@@ -243,6 +261,7 @@ deno task test
 ```
 
 **期待される結果**:
+
 - 全22件のテストケースがパス
 - 型エラーなし
 - 実行時エラーなし
@@ -254,7 +273,8 @@ deno task test
 **作業内容**:
 
 1. **テストMarkdownファイル作成**:
-```bash
+
+````bash
 cat > /tmp/test.md <<'EOF'
 # Test Markdown
 
@@ -263,21 +283,23 @@ This is **bold** and *italic*.
 ## Code Block
 ```javascript
 console.log('Hello, world!');
-```
+````
 
 ## Table
-| Name | Age |
-|------|-----|
-| Alice | 30 |
-| Bob | 25 |
+
+| Name  | Age |
+| ----- | --- |
+| Alice | 30  |
+| Bob   | 25  |
 
 ## XSS Test (should be blocked)
-<script>alert('XSS')</script>
-[Click me](javascript:alert('XSS'))
-<img src="x" onerror="alert('XSS')">
-EOF
-```
 
+<script>alert('XSS')</script>
+
+[Click me](javascript:alert('XSS'))
+<img src="x" onerror="alert('XSS')"> EOF
+
+````
 2. **Chrome拡張として読み込み**:
    - chrome://extensions/ を開く
    - 「デベロッパーモード」有効化
@@ -358,33 +380,38 @@ EOF
 ```bash
 deno check src/**/*.ts
 # 期待: エラーなし
-```
+````
 
 ### 2. リンティング
+
 ```bash
 deno lint
 # 期待: エラーなし（または既知の軽微な警告のみ）
 ```
 
 ### 3. テスト実行
+
 ```bash
 deno task test
 # 期待: 全22件パス
 ```
 
 ### 4. ビルド実行
+
 ```bash
 deno task build
 # 期待: dist/background.js, dist/content.js 生成
 ```
 
 ### 5. ファイルサイズ確認
+
 ```bash
 ls -lh dist/
 # 期待: background.js と content.js が数十〜数百KB程度
 ```
 
 ### 6. Chrome拡張動作確認
+
 - テストMarkdownファイルが正しく表示される
 - XSS攻撃がブロックされる
 - DevToolsにエラーが出ない
@@ -409,7 +436,8 @@ Phase 1完了と判断できる条件：
 
 ### async/await削除時の注意
 
-- **将来の拡張性**: 現時点では同期処理だが、将来的にChrome Storage APIを使う場合は再度asyncに戻す必要がある
+- **将来の拡張性**: 現時点では同期処理だが、将来的にChrome Storage
+  APIを使う場合は再度asyncに戻す必要がある
 - **テストの一貫性**: テストファイルでもawaitを削除し、同期テストに変更
 - **エラーハンドリング**: try-catchは引き続き使用（同期例外のキャッチ）
 
@@ -460,4 +488,5 @@ Phase 1完了後、以下の実装に進む予定：
 
 ---
 
-このプランにより、Phase 1が完全に完了し、Chrome拡張としてMarkdownファイルを安全に表示できる状態になります。
+このプランにより、Phase
+1が完全に完了し、Chrome拡張としてMarkdownファイルを安全に表示できる状態になります。

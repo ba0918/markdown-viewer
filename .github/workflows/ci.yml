@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   # 手動実行可能
   workflow_dispatch:
 
@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        deno-version: ['1.x', '2.x']
+        deno-version: ["1.x", "2.x"]
 
     steps:
       - name: Checkout repository
@@ -91,7 +91,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: '2.x'
+          deno-version: "2.x"
 
       - name: Cache Deno dependencies
         uses: actions/cache@v4
@@ -134,7 +134,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: '2.x'
+          deno-version: "2.x"
 
       - name: Check for sensitive files
         run: |

@@ -57,7 +57,9 @@
   padding: 1.5rem;
   background: transparent;
   border: none;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', 'Courier New', monospace;
+  font-family:
+    "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono",
+    "Source Code Pro", "Courier New", monospace;
   font-size: 0.875rem;
   line-height: 1.6;
   white-space: pre-wrap;

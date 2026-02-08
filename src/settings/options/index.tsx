@@ -1,14 +1,14 @@
-import { h, render } from 'preact';
-import { App } from './App.tsx';
+import { h as _h, render } from "preact";
+import { App } from "./App.tsx";
 
 /**
  * Options エントリーポイント
  *
  * 責務: Preact アプリケーションのマウント
  */
-const root = document.getElementById('app');
+const root = document.getElementById("app");
 if (root) {
   render(<App />, root);
 } else {
-  console.error('Failed to find #app element');
+  console.error("Failed to find #app element");
 }

@@ -6,7 +6,7 @@
  * ❌ NG: 副作用
  */
 
-import { generateHeadingId } from './extractor.ts';
+import { generateHeadingId } from "./extractor.ts";
 
 /**
  * HTMLの見出しタグ(H1-H3)にID属性を付与
@@ -39,10 +39,10 @@ export const addHeadingIds = (html: string): string => {
       }
 
       // テキストコンテンツからHTMLタグを除去
-      const textContent = content.replace(/<[^>]+>/g, '');
+      const textContent = content.replace(/<[^>]+>/g, "");
 
       // ベースIDを生成
-      let baseId = generateHeadingId(textContent);
+      const baseId = generateHeadingId(textContent);
 
       // IDが空の場合はそのまま返す
       if (!baseId) {
@@ -61,6 +61,6 @@ export const addHeadingIds = (html: string): string => {
 
       // id属性を追加
       return `<${tag}${attrs} id="${id}">${content}</${tag}>`;
-    }
+    },
   );
 };

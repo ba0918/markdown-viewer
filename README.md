@@ -59,6 +59,7 @@ deno task build
 このプロジェクトではGitHub Actionsを使用して自動テスト・ビルドを実行しています。
 
 #### CI Pipeline (`.github/workflows/ci.yml`)
+
 - **トリガー**: Pull Request / `main`・`develop`ブランチへのpush
 - **実行内容**:
   - リント (`deno lint`)
@@ -70,6 +71,7 @@ deno task build
 - **マトリックス**: Deno 1.x, 2.x
 
 #### Release Pipeline (`.github/workflows/release.yml`)
+
 - **トリガー**: `v*.*.*` タグpush / 手動実行
 - **実行内容**:
   - 全テスト実行

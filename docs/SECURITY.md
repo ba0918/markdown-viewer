@@ -1,6 +1,7 @@
 # セキュリティ設計
 
-このドキュメントでは、Markdown Viewer Chrome拡張機能のセキュリティ設計について詳述します。
+このドキュメントでは、Markdown Viewer
+Chrome拡張機能のセキュリティ設計について詳述します。
 
 ## 脅威モデル
 
@@ -31,25 +32,60 @@
 
 ```typescript
 // src/shared/utils/security/sanitizer.ts
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 export const sanitizeHTML = (html: string): string => {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
-      'a', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'table', 'thead',
-      'tbody', 'tr', 'th', 'td', 'hr', 'div', 'span'
+      "p",
+      "br",
+      "strong",
+      "em",
+      "u",
+      "s",
+      "code",
+      "pre",
+      "a",
+      "img",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "hr",
+      "div",
+      "span",
     ],
     ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'id',
-      'width', 'height', 'align', 'start', 'type'
+      "href",
+      "src",
+      "alt",
+      "title",
+      "class",
+      "id",
+      "width",
+      "height",
+      "align",
+      "start",
+      "type",
     ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    ALLOWED_URI_REGEXP:
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
     ALLOW_DATA_ATTR: false,
     ALLOW_UNKNOWN_PROTOCOLS: false,
     SAFE_FOR_TEMPLATES: true,
-    KEEP_CONTENT: true
+    KEEP_CONTENT: true,
   });
 };
 ```
@@ -58,37 +94,37 @@ export const sanitizeHTML = (html: string): string => {
 
 ```typescript
 // src/shared/utils/security/sanitizer.test.ts
-import { assertEquals, assertStringIncludes } from '@std/assert';
-import { sanitizeHTML } from './sanitizer.ts';
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { sanitizeHTML } from "./sanitizer.ts";
 
-Deno.test('XSS: javascript: protocol', () => {
-  const malicious = '<a href="javascript:alert(\'XSS\')">Click</a>';
+Deno.test("XSS: javascript: protocol", () => {
+  const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('javascript:'), false);
+  assertEquals(result.includes("javascript:"), false);
 });
 
-Deno.test('XSS: onerror attribute', () => {
-  const malicious = '<img src=x onerror="alert(\'XSS\')">';
+Deno.test("XSS: onerror attribute", () => {
+  const malicious = "<img src=x onerror=\"alert('XSS')\">";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('onerror'), false);
+  assertEquals(result.includes("onerror"), false);
 });
 
-Deno.test('XSS: onload attribute', () => {
-  const malicious = '<body onload="alert(\'XSS\')">';
+Deno.test("XSS: onload attribute", () => {
+  const malicious = "<body onload=\"alert('XSS')\">";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('onload'), false);
+  assertEquals(result.includes("onload"), false);
 });
 
-Deno.test('正常なHTML: リンク', () => {
+Deno.test("正常なHTML: リンク", () => {
   const valid = '<a href="https://example.com">Link</a>';
   const result = sanitizeHTML(valid);
-  assertStringIncludes(result, 'https://example.com');
+  assertStringIncludes(result, "https://example.com");
 });
 
-Deno.test('正常なHTML: 画像', () => {
+Deno.test("正常なHTML: 画像", () => {
   const valid = '<img src="https://example.com/image.png" alt="Test">';
   const result = sanitizeHTML(valid);
-  assertStringIncludes(result, 'https://example.com/image.png');
+  assertStringIncludes(result, "https://example.com/image.png");
 });
 ```
 
@@ -117,19 +153,19 @@ Deno.test('正常なHTML: 画像', () => {
 // src/shared/utils/security/path-validator.ts
 export const isValidFilePath = (filePath: string): boolean => {
   // file:// プロトコルチェック
-  if (!filePath.startsWith('file://')) {
+  if (!filePath.startsWith("file://")) {
     return false;
   }
 
   // パストラバーサル検出
   const normalized = new URL(filePath).pathname;
-  if (normalized.includes('..')) {
+  if (normalized.includes("..")) {
     return false;
   }
 
   // Markdownファイル拡張子チェック
-  const validExtensions = ['.md', '.markdown', '.mdown', '.mkd'];
-  return validExtensions.some(ext => normalized.toLowerCase().endsWith(ext));
+  const validExtensions = [".md", ".markdown", ".mdown", ".mkd"];
+  return validExtensions.some((ext) => normalized.toLowerCase().endsWith(ext));
 };
 ```
 
@@ -137,12 +173,15 @@ export const isValidFilePath = (filePath: string): boolean => {
 
 ```typescript
 // src/shared/utils/security/object-utils.ts
-export const safeMerge = <T extends object>(target: T, source: Partial<T>): T => {
+export const safeMerge = <T extends object>(
+  target: T,
+  source: Partial<T>,
+): T => {
   const result = { ...target };
 
   for (const key in source) {
     // __proto__, constructor, prototype は除外
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    if (key === "__proto__" || key === "constructor" || key === "prototype") {
       continue;
     }
 
@@ -162,11 +201,11 @@ export const safeMerge = <T extends object>(target: T, source: Partial<T>): T =>
 ```json
 {
   "permissions": [
-    "storage",    // 設定保存
-    "activeTab"   // 現在のタブのみアクセス
+    "storage", // 設定保存
+    "activeTab" // 現在のタブのみアクセス
   ],
   "host_permissions": [
-    "file:///*"   // ローカルファイルアクセス（ユーザー明示許可必要）
+    "file:///*" // ローカルファイルアクセス（ユーザー明示許可必要）
   ]
 }
 ```
@@ -191,9 +230,9 @@ deno test src/shared/utils/security/
 
 ```typescript
 // e2e/security.spec.ts
-import { test, expect } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-test('XSS攻撃の防御', async ({ page }) => {
+test("XSS攻撃の防御", async ({ page }) => {
   // 悪意のあるMarkdownファイル
   const xssPayload = `
 # Test
@@ -204,7 +243,7 @@ test('XSS攻撃の防御', async ({ page }) => {
 
   // アラートダイアログが表示されないことを確認
   let dialogAppeared = false;
-  page.on('dialog', () => {
+  page.on("dialog", () => {
     dialogAppeared = true;
   });
 
@@ -214,8 +253,8 @@ test('XSS攻撃の防御', async ({ page }) => {
   expect(dialogAppeared).toBe(false);
 });
 
-test('安全なリンクは保持される', async ({ page }) => {
-  const safeMarkdown = '[Example](https://example.com)';
+test("安全なリンクは保持される", async ({ page }) => {
+  const safeMarkdown = "[Example](https://example.com)";
   await page.goto(`data:text/markdown,${encodeURIComponent(safeMarkdown)}`);
 
   const link = await page.locator('a[href="https://example.com"]');
@@ -240,7 +279,8 @@ test('安全なリンクは保持される', async ({ page }) => {
 
 ## 脆弱性報告
 
-セキュリティ上の問題を発見した場合は、GitHubのSecurity Advisoriesから報告してください。
+セキュリティ上の問題を発見した場合は、GitHubのSecurity
+Advisoriesから報告してください。
 
 ## 参考資料
 

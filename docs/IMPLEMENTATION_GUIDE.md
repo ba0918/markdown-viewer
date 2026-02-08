@@ -1,8 +1,10 @@
 # 実装ガイド
 
-このドキュメントでは、Markdown Viewer Chrome拡張機能の実装手順を段階的に説明します。
+このドキュメントでは、Markdown Viewer
+Chrome拡張機能の実装手順を段階的に説明します。
 
-**重要**: 実装前に必ず [ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md) と [DIRECTORY_STRUCTURE.md](./DIRECTORY_STRUCTURE.md) を読んでください。
+**重要**: 実装前に必ず [ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)
+と [DIRECTORY_STRUCTURE.md](./DIRECTORY_STRUCTURE.md) を読んでください。
 
 ---
 
@@ -126,12 +128,12 @@ EOF
 ```typescript
 // src/shared/types/theme.ts
 export type Theme =
-  | 'light'
-  | 'dark'
-  | 'github'
-  | 'minimal'
-  | 'solarized_light'
-  | 'solarized_dark';
+  | "light"
+  | "dark"
+  | "github"
+  | "minimal"
+  | "solarized_light"
+  | "solarized_dark";
 
 // src/shared/types/state.ts
 export interface AppState {
@@ -145,10 +147,13 @@ export interface AppState {
 
 // src/shared/types/message.ts
 export type Message =
-  | { type: 'RENDER_MARKDOWN'; payload: { markdown: string; themeId?: string } }
-  | { type: 'RENDER_MARKDOWN_WITH_HOT_RELOAD'; payload: { markdown: string; fileUrl: string; themeId?: string } }
-  | { type: 'LOAD_THEME'; payload: { themeId: string } }
-  | { type: 'UPDATE_THEME'; payload: Theme };
+  | { type: "RENDER_MARKDOWN"; payload: { markdown: string; themeId?: string } }
+  | {
+    type: "RENDER_MARKDOWN_WITH_HOT_RELOAD";
+    payload: { markdown: string; fileUrl: string; themeId?: string };
+  }
+  | { type: "LOAD_THEME"; payload: { themeId: string } }
+  | { type: "UPDATE_THEME"; payload: Theme };
 
 export type MessageResponse<T = unknown> =
   | { success: true; data: T }
@@ -163,7 +168,7 @@ export type MessageResponse<T = unknown> =
 
 ```typescript
 // src/domain/markdown/sanitizer.ts
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 /**
  * HTMLサニタイゼーション
@@ -172,45 +177,76 @@ import DOMPurify from 'dompurify';
 export const sanitizeHTML = (html: string): string => {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
-      'a', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'table', 'thead',
-      'tbody', 'tr', 'th', 'td', 'hr', 'div', 'span'
+      "p",
+      "br",
+      "strong",
+      "em",
+      "u",
+      "s",
+      "code",
+      "pre",
+      "a",
+      "img",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "hr",
+      "div",
+      "span",
     ],
     ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'id'
+      "href",
+      "src",
+      "alt",
+      "title",
+      "class",
+      "id",
     ],
     ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false
+    ALLOW_UNKNOWN_PROTOCOLS: false,
   });
 };
 ```
 
 ```typescript
 // src/domain/markdown/sanitizer.test.ts
-import { assertEquals } from '@std/assert';
-import { sanitizeHTML } from './sanitizer.ts';
+import { assertEquals } from "@std/assert";
+import { sanitizeHTML } from "./sanitizer.ts";
 
-Deno.test('XSS: javascript: protocol', () => {
-  const malicious = '<a href="javascript:alert(\'XSS\')">Click</a>';
+Deno.test("XSS: javascript: protocol", () => {
+  const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('javascript:'), false);
+  assertEquals(result.includes("javascript:"), false);
 });
 
-Deno.test('XSS: onerror attribute', () => {
+Deno.test("XSS: onerror attribute", () => {
   const malicious = '<img src="x" onerror="alert(\'XSS\')">';
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('onerror'), false);
+  assertEquals(result.includes("onerror"), false);
 });
 
-Deno.test('XSS: onclick attribute', () => {
-  const malicious = '<button onclick="alert(\'XSS\')">Click</button>';
+Deno.test("XSS: onclick attribute", () => {
+  const malicious = "<button onclick=\"alert('XSS')\">Click</button>";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('onclick'), false);
+  assertEquals(result.includes("onclick"), false);
 });
 ```
 
 **実行:**
+
 ```bash
 # RED: テスト失敗確認
 deno test src/domain/markdown/sanitizer.test.ts
@@ -223,7 +259,7 @@ deno test src/domain/markdown/sanitizer.test.ts
 
 ```typescript
 // src/domain/markdown/parser.ts
-import { marked } from 'marked';
+import { marked } from "marked";
 
 /**
  * Markdown → HTML 変換
@@ -233,7 +269,7 @@ export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,
     breaks: true,
-    sanitize: false // DOMPurifyで処理
+    sanitize: false, // DOMPurifyで処理
   });
 
   return marked.parse(markdown) as string;
@@ -242,20 +278,20 @@ export const parseMarkdown = (markdown: string): string => {
 
 ```typescript
 // src/domain/markdown/parser.test.ts
-import { assertEquals, assertStringIncludes } from '@std/assert';
-import { parseMarkdown } from './parser.ts';
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { parseMarkdown } from "./parser.ts";
 
-Deno.test('基本的なMarkdown変換', () => {
-  const markdown = '# Hello\n\nThis is **bold**.';
+Deno.test("基本的なMarkdown変換", () => {
+  const markdown = "# Hello\n\nThis is **bold**.";
   const html = parseMarkdown(markdown);
-  assertStringIncludes(html, '<h1');
-  assertStringIncludes(html, '<strong>bold</strong>');
+  assertStringIncludes(html, "<h1");
+  assertStringIncludes(html, "<strong>bold</strong>");
 });
 
-Deno.test('GFM: テーブル', () => {
-  const markdown = '| A | B |\n|---|---|\n| 1 | 2 |';
+Deno.test("GFM: テーブル", () => {
+  const markdown = "| A | B |\n|---|---|\n| 1 | 2 |";
   const html = parseMarkdown(markdown);
-  assertStringIncludes(html, '<table');
+  assertStringIncludes(html, "<table");
 });
 ```
 
@@ -263,7 +299,7 @@ Deno.test('GFM: テーブル', () => {
 
 ```typescript
 // src/domain/theme/applier.ts
-import type { Theme } from '../../shared/types/theme.ts';
+import type { Theme } from "../../shared/types/theme.ts";
 
 export interface ThemeData {
   id: string;
@@ -288,9 +324,9 @@ export const applyTheme = (html: string, theme: ThemeData): string => {
 
 ```typescript
 // src/services/markdown-service.ts
-import { parseMarkdown } from '../domain/markdown/parser.ts';
-import { sanitizeHTML } from '../domain/markdown/sanitizer.ts';
-import { applyTheme, type ThemeData } from '../domain/theme/applier.ts';
+import { parseMarkdown } from "../domain/markdown/parser.ts";
+import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
+import { applyTheme, type ThemeData } from "../domain/theme/applier.ts";
 
 /**
  * Markdownレンダリングサービス
@@ -317,32 +353,32 @@ export const markdownService = new MarkdownService();
 
 ```typescript
 // src/services/markdown-service.test.ts
-import { assertEquals } from '@std/assert';
-import { MarkdownService } from './markdown-service.ts';
+import { assertEquals } from "@std/assert";
+import { MarkdownService } from "./markdown-service.ts";
 
-Deno.test('MarkdownService: 基本的なレンダリング', async () => {
+Deno.test("MarkdownService: 基本的なレンダリング", async () => {
   const service = new MarkdownService();
-  const markdown = '# Hello\n\nThis is **bold**.';
-  const theme = { id: 'light', css: '.markdown-body { color: #000; }' };
+  const markdown = "# Hello\n\nThis is **bold**.";
+  const theme = { id: "light", css: ".markdown-body { color: #000; }" };
 
   const html = await service.render(markdown, theme);
 
   // テーマが適用されているか
-  assertEquals(html.includes('theme-light'), true);
+  assertEquals(html.includes("theme-light"), true);
   // Markdown変換されているか
-  assertEquals(html.includes('<h1'), true);
-  assertEquals(html.includes('<strong>bold</strong>'), true);
+  assertEquals(html.includes("<h1"), true);
+  assertEquals(html.includes("<strong>bold</strong>"), true);
 });
 
-Deno.test('MarkdownService: XSS防御', async () => {
+Deno.test("MarkdownService: XSS防御", async () => {
   const service = new MarkdownService();
   const malicious = '[Click](javascript:alert("XSS"))';
-  const theme = { id: 'light', css: '' };
+  const theme = { id: "light", css: "" };
 
   const html = await service.render(malicious, theme);
 
   // javascript:がサニタイズされているか
-  assertEquals(html.includes('javascript:'), false);
+  assertEquals(html.includes("javascript:"), false);
 });
 ```
 
@@ -350,20 +386,22 @@ Deno.test('MarkdownService: XSS防御', async () => {
 
 ```typescript
 // src/messaging/types.ts
-export * from '../shared/types/message.ts';
+export * from "../shared/types/message.ts";
 ```
 
 ```typescript
 // src/messaging/client.ts
-import type { Message, MessageResponse } from './types.ts';
+import type { Message, MessageResponse } from "./types.ts";
 
 /**
  * メッセージ送信ヘルパー
  */
 export const sendMessage = async <T = unknown>(
-  message: Message
+  message: Message,
 ): Promise<T> => {
-  const response: MessageResponse<T> = await chrome.runtime.sendMessage(message);
+  const response: MessageResponse<T> = await chrome.runtime.sendMessage(
+    message,
+  );
 
   if (!response.success) {
     throw new Error(response.error);
@@ -375,33 +413,36 @@ export const sendMessage = async <T = unknown>(
 
 ```typescript
 // src/messaging/handlers/background-handler.ts
-import { markdownService } from '../../services/markdown-service.ts';
-import type { Message, MessageResponse } from '../types.ts';
+import { markdownService } from "../../services/markdown-service.ts";
+import type { Message, MessageResponse } from "../types.ts";
 
 /**
  * background層のメッセージハンドラ
  * ルーティングのみ、serviceに委譲
  */
 export const handleBackgroundMessage = async (
-  message: Message
+  message: Message,
 ): Promise<MessageResponse> => {
   try {
     switch (message.type) {
-      case 'RENDER_MARKDOWN': {
+      case "RENDER_MARKDOWN": {
         // ✅ OK: serviceに委譲するだけ
-        const theme = { id: 'light', css: '' }; // TODO: theme-serviceから取得
+        const theme = { id: "light", css: "" }; // TODO: theme-serviceから取得
         const html = await markdownService.render(
           message.payload.markdown,
-          theme
+          theme,
         );
         return { success: true, data: html };
       }
 
       default:
-        return { success: false, error: 'Unknown message type' };
+        return { success: false, error: "Unknown message type" };
     }
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };
 ```
@@ -410,7 +451,7 @@ export const handleBackgroundMessage = async (
 
 ```typescript
 // src/background/service-worker.ts
-import { handleBackgroundMessage } from '../messaging/handlers/background-handler.ts';
+import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
 
 /**
  * Service Worker
@@ -419,14 +460,14 @@ import { handleBackgroundMessage } from '../messaging/handlers/background-handle
  */
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Markdown Viewer installed');
+  console.log("Markdown Viewer installed");
 });
 
 // ✅ OK: handlerに委譲するだけ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleBackgroundMessage(message)
     .then(sendResponse)
-    .catch(error => sendResponse({ success: false, error: error.message }));
+    .catch((error) => sendResponse({ success: false, error: error.message }));
   return true; // 非同期レスポンス
 });
 ```
@@ -435,9 +476,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 ```typescript
 // src/content/index.ts
-import { sendMessage } from '../messaging/client.ts';
-import { render } from 'preact';
-import { MarkdownViewer } from './components/MarkdownViewer.tsx';
+import { sendMessage } from "../messaging/client.ts";
+import { render } from "preact";
+import { MarkdownViewer } from "./components/MarkdownViewer.tsx";
 
 /**
  * Content Script
@@ -447,7 +488,7 @@ import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 
 const isMarkdownFile = (): boolean => {
   return (
-    document.contentType === 'text/markdown' ||
+    document.contentType === "text/markdown" ||
     location.pathname.match(/\.(md|markdown)$/i) !== null
   );
 };
@@ -455,25 +496,27 @@ const isMarkdownFile = (): boolean => {
 const init = async () => {
   if (!isMarkdownFile()) return;
 
-  const markdown = document.body.textContent || '';
+  const markdown = document.body.textContent || "";
 
   try {
     // ✅ OK: messaging経由でserviceを利用
     const html = await sendMessage<string>({
-      type: 'RENDER_MARKDOWN',
-      payload: { markdown, themeId: 'light' }
+      type: "RENDER_MARKDOWN",
+      payload: { markdown, themeId: "light" },
     });
 
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
     render(<MarkdownViewer html={html} />, document.body);
   } catch (error) {
-    console.error('Failed to render markdown:', error);
-    document.body.textContent = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    console.error("Failed to render markdown:", error);
+    document.body.textContent = `Error: ${
+      error instanceof Error ? error.message : "Unknown error"
+    }`;
   }
 };
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
 }
@@ -481,7 +524,7 @@ if (document.readyState === 'loading') {
 
 ```typescript
 // src/content/components/MarkdownViewer.tsx
-import { h } from 'preact';
+import { h } from "preact";
 
 interface Props {
   html: string;
@@ -514,7 +557,8 @@ export const MarkdownViewer = ({ html }: Props) => {
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 .markdown-body h1 {
@@ -537,7 +581,7 @@ export const MarkdownViewer = ({ html }: Props) => {
   background: #f6f8fa;
   padding: 0.2em 0.4em;
   border-radius: 3px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .markdown-body pre {
@@ -552,36 +596,36 @@ export const MarkdownViewer = ({ html }: Props) => {
 
 ```typescript
 // scripts/build.ts
-import * as esbuild from 'esbuild';
+import * as esbuild from "esbuild";
 
 const commonConfig: esbuild.BuildOptions = {
   bundle: true,
-  format: 'esm',
-  target: 'chrome120',
+  format: "esm",
+  target: "chrome120",
   minify: true,
   sourcemap: true,
-  jsxFactory: 'h',
-  jsxFragment: 'Fragment',
-  jsxImportSource: 'preact'
+  jsxFactory: "h",
+  jsxFragment: "Fragment",
+  jsxImportSource: "preact",
 };
 
-console.log('Building Markdown Viewer...');
+console.log("Building Markdown Viewer...");
 
 // Background Script
 await esbuild.build({
   ...commonConfig,
-  entryPoints: ['src/background/service-worker.ts'],
-  outfile: 'dist/background.js'
+  entryPoints: ["src/background/service-worker.ts"],
+  outfile: "dist/background.js",
 });
 
 // Content Script
 await esbuild.build({
   ...commonConfig,
-  entryPoints: ['src/content/index.ts'],
-  outfile: 'dist/content.js'
+  entryPoints: ["src/content/index.ts"],
+  outfile: "dist/content.js",
 });
 
-console.log('Build completed!');
+console.log("Build completed!");
 ```
 
 ### Step 9: 動作確認
@@ -611,10 +655,10 @@ echo "# Test\n\nThis is **bold**." > test.md
 
 ```typescript
 // src/settings/popup/index.tsx
-import { h, render } from 'preact';
-import { useState } from 'preact/hooks';
-import { sendMessage } from '../../messaging/client.ts';
-import type { Theme } from '../../shared/types/theme.ts';
+import { h, render } from "preact";
+import { useState } from "preact/hooks";
+import { sendMessage } from "../../messaging/client.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * Popup
@@ -623,24 +667,27 @@ import type { Theme } from '../../shared/types/theme.ts';
  */
 
 const Popup = () => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>("light");
 
   const handleThemeChange = async (newTheme: Theme) => {
     try {
       await sendMessage({
-        type: 'UPDATE_THEME',
-        payload: newTheme
+        type: "UPDATE_THEME",
+        payload: newTheme,
       });
       setTheme(newTheme);
     } catch (error) {
-      console.error('Failed to update theme:', error);
+      console.error("Failed to update theme:", error);
     }
   };
 
   return (
     <div class="popup">
       <h2>Markdown Viewer</h2>
-      <select value={theme} onChange={(e) => handleThemeChange(e.currentTarget.value as Theme)}>
+      <select
+        value={theme}
+        onChange={(e) => handleThemeChange(e.currentTarget.value as Theme)}
+      >
         <option value="light">Light</option>
         <option value="dark">Dark</option>
         <option value="github">GitHub</option>
@@ -660,7 +707,7 @@ render(<Popup />, document.body);
 
 ```typescript
 // src/domain/file-watcher/watcher.ts
-import { simpleHash } from './hash.ts';
+import { simpleHash } from "./hash.ts";
 
 /**
  * ファイル監視
@@ -668,7 +715,7 @@ import { simpleHash } from './hash.ts';
  */
 export class FileWatcher {
   private fileUrl: string;
-  private lastHash: string = '';
+  private lastHash: string = "";
   private intervalId: number | null = null;
 
   constructor(fileUrl: string) {
@@ -679,7 +726,7 @@ export class FileWatcher {
     this.lastHash = await this.fetchFileHash();
 
     // タブフォーカス時にチェック
-    document.addEventListener('visibilitychange', async () => {
+    document.addEventListener("visibilitychange", async () => {
       if (!document.hidden) {
         await this.checkForUpdates();
       }
@@ -688,12 +735,12 @@ export class FileWatcher {
 
   private async fetchFileHash(): Promise<string> {
     try {
-      const response = await fetch(this.fileUrl, { cache: 'no-store' });
+      const response = await fetch(this.fileUrl, { cache: "no-store" });
       const content = await response.text();
       return simpleHash(content);
     } catch (error) {
-      console.error('File fetch error:', error);
-      return '';
+      console.error("File fetch error:", error);
+      return "";
     }
   }
 
@@ -707,7 +754,7 @@ export class FileWatcher {
 
   private notifyReload(): void {
     // TODO: トースト通知実装
-    if (confirm('ファイルが更新されました。リロードしますか？')) {
+    if (confirm("ファイルが更新されました。リロードしますか？")) {
       location.reload();
     }
   }
@@ -770,7 +817,7 @@ deno coverage coverage --lcov > coverage.lcov
 
 ```javascript
 // Content Script のデバッグ
-console.log('Content Script loaded');
+console.log("Content Script loaded");
 
 // Background Script のデバッグ
 // chrome://extensions/ → 「サービスワーカー」をクリック
@@ -778,7 +825,8 @@ console.log('Content Script loaded');
 
 ### ソースマップ
 
-ビルド時に `sourcemap: true` を設定しているため、DevToolsで元のTypeScriptコードをデバッグ可能。
+ビルド時に `sourcemap: true`
+を設定しているため、DevToolsで元のTypeScriptコードをデバッグ可能。
 
 ---
 
@@ -812,5 +860,6 @@ console.log('Content Script loaded');
 - [marked ドキュメント](https://marked.js.org/)
 - [DOMPurify ドキュメント](https://github.com/cure53/DOMPurify)
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - アーキテクチャ設計
-- [DIRECTORY_STRUCTURE.md](./DIRECTORY_STRUCTURE.md) - ディレクトリ構造と責務定義
+- [DIRECTORY_STRUCTURE.md](./DIRECTORY_STRUCTURE.md) -
+  ディレクトリ構造と責務定義
 - [CODING_PRINCIPLES.md](./CODING_PRINCIPLES.md) - コーディング原則

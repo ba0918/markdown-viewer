@@ -1,9 +1,9 @@
 {
-	"dependencies": {
-		"mermaid": "^11.12.2"
-	},
-	"devDependencies": {
-		"@playwright/test": "^1.58.2",
-		"@types/node": "^25.2.1"
-	}
+  "dependencies": {
+    "mermaid": "^11.12.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.2.1"
+  }
 }

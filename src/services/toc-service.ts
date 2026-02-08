@@ -6,10 +6,10 @@
  * ❌ NG: Chrome API、UI処理
  */
 
-import { extractHeadings } from '../domain/toc/extractor.ts';
-import { normalizeHeadingLevels } from '../domain/toc/normalizer.ts';
-import { buildTocTree } from '../domain/toc/tree-builder.ts';
-import type { TocItem } from '../domain/toc/types.ts';
+import { extractHeadings } from "../domain/toc/extractor.ts";
+import { normalizeHeadingLevels } from "../domain/toc/normalizer.ts";
+import { buildTocTree } from "../domain/toc/tree-builder.ts";
+import type { TocItem } from "../domain/toc/types.ts";
 
 /**
  * TOC生成サービスクラス

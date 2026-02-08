@@ -1,20 +1,21 @@
 # Mermaidダイアグラム機能（Dynamic Import）
 
-**Cycle ID:** `20260208080824`
-**Started:** 2026-02-08 08:08:24
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208080824` **Started:** 2026-02-08 08:08:24 **Status:** 🟡
+Planning
 
 ---
 
 ## 📝 What & Why
 
-Markdownコードブロック内のMermaid記法（```mermaid）をダイアグラムとして描画する機能を追加。パフォーマンス最適化のため、mermaidライブラリをDynamic Importで遅延ロードする。
+Markdownコードブロック内のMermaid記法（```mermaid）をダイアグラムとして描画する機能を追加。パフォーマンス最適化のため、mermaidライブラリをDynamic
+Importで遅延ロードする。
 
 ## 🎯 Goals
 
 - Mermaid記法のコードブロックを自動検出し、ダイアグラムとしてレンダリング
 - `mermaid` npm公式パッケージを使用、esbuildでバンドル可能な形式で統合
-- Dynamic Importによる遅延ロード（Mermaidコードブロックが無い場合はロードしない）
+- Dynamic
+  Importによる遅延ロード（Mermaidコードブロックが無い場合はロードしない）
 - Manifest V3のCSP制約に準拠（CDN不使用、完全バンドル）
 - テーマ連動（現在のテーマに合わせたMermaidテーマ適用）
 - レイヤー分離の原則を厳守（domain/services/ui-components）
@@ -77,7 +78,8 @@ src/
 
 ### Key Points
 
-- **Dynamic Import戦略**: `ui-components/markdown/MermaidDiagram.tsx` で `import('mermaid')` を使用
+- **Dynamic Import戦略**: `ui-components/markdown/MermaidDiagram.tsx` で
+  `import('mermaid')` を使用
   - 初回レンダリング時のみライブラリロード
   - Mermaidコードブロックが存在しない場合はロードしない
   - バンドルサイズ削減（初期ロード高速化）
@@ -88,7 +90,8 @@ src/
   - **content/**: 描画のみ、ui-components呼び出し
 
 - **テーマ連動**:
-  - 現在のテーマ（light/dark/github等）に応じて `mermaid.initialize({ theme })` を実行
+  - 現在のテーマ（light/dark/github等）に応じて `mermaid.initialize({ theme })`
+    を実行
   - テーマ切り替え時に自動再描画
 
 - **セキュリティ考慮**:
@@ -103,7 +106,8 @@ src/
    - esbuildで正しくバンドル可能か確認
 
 2. **Domain層: 検出ロジック**
-   - `domain/markdown/mermaid-detector.ts`: `<code class="language-mermaid">` 検出
+   - `domain/markdown/mermaid-detector.ts`: `<code class="language-mermaid">`
+     検出
    - TDD: 先にテスト、後で実装
 
 3. **Domain層: レンダリングロジック**
@@ -130,6 +134,7 @@ src/
 ### Domain Layer (domain/markdown/)
 
 #### mermaid-detector.ts
+
 - [ ] Mermaidコードブロックを正しく検出できる
 - [ ] 複数のMermaidブロックを検出できる
 - [ ] Mermaid以外のコードブロックは無視する
@@ -137,6 +142,7 @@ src/
 - [ ] HTMLエスケープされたMermaid記法を処理できる
 
 #### mermaid-renderer.ts（モックテスト）
+
 - [ ] mermaid.render()を正しく呼び出す（モック使用）
 - [ ] レンダリング結果のSVGを返す
 - [ ] エラー時に適切な例外を投げる
@@ -145,6 +151,7 @@ src/
 ### UI Components Layer (ui-components/markdown/)
 
 #### MermaidDiagram.tsx
+
 - [ ] Dynamic Importが正しく動作する
 - [ ] レンダリング成功時にSVGを表示する
 - [ ] レンダリング失敗時にフォールバック表示する
@@ -154,6 +161,7 @@ src/
 ### E2E Test (tests/e2e/)
 
 #### mermaid-rendering.spec.ts
+
 - [ ] フローチャートが正しく描画される
 - [ ] シーケンス図が正しく描画される
 - [ ] クラス図が正しく描画される
@@ -173,8 +181,8 @@ src/
 
 ```typescript
 // ui-components/markdown/MermaidDiagram.tsx
-import { h } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { h } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 let mermaidLoaded = false;
 let mermaid: any = null;
@@ -188,16 +196,16 @@ export const MermaidDiagram = ({ code, theme }: Props) => {
       try {
         // Dynamic Import: 初回のみロード
         if (!mermaidLoaded) {
-          const m = await import('mermaid');
+          const m = await import("mermaid");
           mermaid = m.default;
           mermaidLoaded = true;
         }
 
         // テーマ設定
-        mermaid.initialize({ theme: theme === 'dark' ? 'dark' : 'default' });
+        mermaid.initialize({ theme: theme === "dark" ? "dark" : "default" });
 
         // レンダリング
-        const { svg } = await mermaid.render('mermaid-diagram', code);
+        const { svg } = await mermaid.render("mermaid-diagram", code);
 
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
@@ -232,15 +240,15 @@ export const MermaidDiagram = ({ code, theme }: Props) => {
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| 依存関係追加 | ⚪ |
-| Domain: mermaid-detector.ts | ⚪ |
-| Domain: mermaid-renderer.ts | ⚪ |
-| UI Components: MermaidDiagram.tsx | ⚪ |
-| Content: 統合 | ⚪ |
-| E2E Test | ⚪ |
-| Commit | ⚪ |
+| Step                              | Status |
+| --------------------------------- | ------ |
+| 依存関係追加                      | ⚪     |
+| Domain: mermaid-detector.ts       | ⚪     |
+| Domain: mermaid-renderer.ts       | ⚪     |
+| UI Components: MermaidDiagram.tsx | ⚪     |
+| Content: 統合                     | ⚪     |
+| E2E Test                          | ⚪     |
+| Commit                            | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -267,4 +275,5 @@ export const MermaidDiagram = ({ code, theme }: Props) => {
 
 ---
 
-**Note:** このプランは spec.md Phase 2-8 に対応します。レイヤー分離とTDDを厳守して実装します。
+**Note:** このプランは spec.md Phase 2-8
+に対応します。レイヤー分離とTDDを厳守して実装します。

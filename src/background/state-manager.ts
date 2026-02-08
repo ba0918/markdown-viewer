@@ -1,6 +1,6 @@
-import type { AppState } from '../shared/types/state.ts';
-import type { Theme } from '../shared/types/theme.ts';
-import { VALID_THEMES, DEFAULT_THEME } from '../shared/constants/themes.ts';
+import type { AppState } from "../shared/types/state.ts";
+import type { Theme } from "../shared/types/theme.ts";
+import { DEFAULT_THEME, VALID_THEMES } from "../shared/constants/themes.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 // テスト時はモックで上書きされる
@@ -22,7 +22,7 @@ declare const chrome: {
  * レイヤー: background層（Chrome API直接使用可能）
  */
 export class StateManager {
-  private readonly STORAGE_KEY = 'appState';
+  private readonly STORAGE_KEY = "appState";
 
   /**
    * デフォルト状態
@@ -100,7 +100,7 @@ export class StateManager {
    * HotReload設定のみを更新する
    */
   async updateHotReload(
-    hotReload: Partial<AppState['hotReload']>
+    hotReload: Partial<AppState["hotReload"]>,
   ): Promise<void> {
     const currentState = await this.load();
     await this.save({

@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { h as _h } from "preact";
+import { useState } from "preact/hooks";
 
 interface HotReloadSettingsProps {
   enabled: boolean;
@@ -56,10 +56,10 @@ export const HotReloadSettings = ({
             <span class="badge">開発者向け</span>
           </label>
           <button
-            class={`toggle-btn ${localEnabled ? 'active' : ''}`}
+            class={`toggle-btn ${localEnabled ? "active" : ""}`}
             onClick={handleToggle}
             type="button"
-            aria-label={localEnabled ? 'Hot Reload無効化' : 'Hot Reload有効化'}
+            aria-label={localEnabled ? "Hot Reload無効化" : "Hot Reload有効化"}
           >
             <span class="toggle-slider"></span>
           </button>
@@ -92,10 +92,12 @@ export const HotReloadSettings = ({
             <div class="setting-header">
               <label class="label">自動リロード</label>
               <button
-                class={`toggle-btn small ${localAutoReload ? 'active' : ''}`}
+                class={`toggle-btn small ${localAutoReload ? "active" : ""}`}
                 onClick={handleAutoReloadToggle}
                 type="button"
-                aria-label={localAutoReload ? '自動リロード無効化' : '自動リロード有効化'}
+                aria-label={localAutoReload
+                  ? "自動リロード無効化"
+                  : "自動リロード有効化"}
               >
                 <span class="toggle-slider"></span>
               </button>
@@ -110,7 +112,8 @@ export const HotReloadSettings = ({
       <div class="info-box">
         <strong>⚠️ 注意</strong>
         <p>
-          Hot Reload機能は開発時の利便性を向上させますが、バッテリーとパフォーマンスに影響を与える可能性があります。
+          Hot
+          Reload機能は開発時の利便性を向上させますが、バッテリーとパフォーマンスに影響を与える可能性があります。
           通常の閲覧時は無効にすることをおすすめします。
         </p>
       </div>

@@ -9,12 +9,13 @@
  * Layer: domain/math (Pure rendering logic, browser-only)
  */
 
-import { mathjax } from 'npm:mathjax-full@3.2.2/js/mathjax.js';
-import { TeX } from 'npm:mathjax-full@3.2.2/js/input/tex.js';
-import { SVG } from 'npm:mathjax-full@3.2.2/js/output/svg.js';
-import { browserAdaptor } from 'npm:mathjax-full@3.2.2/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'npm:mathjax-full@3.2.2/js/handlers/html.js';
-import { AllPackages } from 'npm:mathjax-full@3.2.2/js/input/tex/AllPackages.js';
+// deno-lint-ignore-file no-import-prefix
+import { mathjax } from "npm:mathjax-full@3.2.2/js/mathjax.js";
+import { TeX } from "npm:mathjax-full@3.2.2/js/input/tex.js";
+import { SVG } from "npm:mathjax-full@3.2.2/js/output/svg.js";
+import { browserAdaptor } from "npm:mathjax-full@3.2.2/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "npm:mathjax-full@3.2.2/js/handlers/html.js";
+import { AllPackages } from "npm:mathjax-full@3.2.2/js/input/tex/AllPackages.js";
 
 // Register browser adaptor (enables window/document recognition)
 RegisterHTMLHandler(browserAdaptor());
@@ -23,11 +24,11 @@ RegisterHTMLHandler(browserAdaptor());
 const mathDocument = mathjax.document(document, {
   InputJax: new TeX({
     packages: AllPackages, // Equivalent to \usepackage{amsmath}
-    inlineMath: [['$', '$'], ['\\(', '\\)']], // Inline math delimiters
-    displayMath: [['$$', '$$'], ['\\[', '\\]']], // Display math delimiters
+    inlineMath: [["$", "$"], ["\\(", "\\)"]], // Inline math delimiters
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]], // Display math delimiters
   }),
   OutputJax: new SVG({
-    fontCache: 'local', // Embed font paths in SVG (important!)
+    fontCache: "local", // Embed font paths in SVG (important!)
   }),
 });
 

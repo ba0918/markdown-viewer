@@ -1,7 +1,7 @@
 # SPEC
 
-ローカルのmarkdownを開いた時、サーバから text/markdown なテキストを受け取った時に
-markdown-viewerで表示を行う chrome拡張機能。
+ローカルのmarkdownを開いた時、サーバから text/markdown
+なテキストを受け取った時に markdown-viewerで表示を行う chrome拡張機能。
 既に類似のChrome拡張は世に存在するが、そこまで多機能である必要がないこと。セキュリティの面で自作したほうが安全なので自前実装を行う。
 
 ## Features
@@ -42,11 +42,13 @@ markdown-viewerで表示を行う chrome拡張機能。
 ## セキュリティ要件
 
 ### XSS Protection
+
 - DOMPurifyによるHTMLサニタイゼーション
 - `javascript:` protocol完全ブロック
 - `onerror`, `onload`等のイベントハンドラ除去
 
 ### Content Security Policy
+
 ```json
 "content_security_policy": {
   "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'"
@@ -54,6 +56,7 @@ markdown-viewerで表示を行う chrome拡張機能。
 ```
 
 ### Permissions
+
 - Minimal permissions (activeTab, storage)
 - `file:///*`への明示的なユーザー許可
 
@@ -170,14 +173,14 @@ markdown-viewerで表示を行う chrome拡張機能。
 
 ### レイヤー責務定義
 
-| レイヤー | 責務 | 禁止事項 |
-|---------|------|---------|
-| **background/content/offscreen/settings** | messaging I/O のみ | ビジネスロジック、ドメイン組み合わせ |
-| **ui-components** | 再利用可能なUIパーツ | ビジネスロジック、messaging直接呼び出し |
-| **messaging/handlers** | ルーティングのみ、serviceへの委譲 | ビジネスロジック、domain直接呼び出し |
-| **services** | ドメイン組み合わせ、ビジネスフロー | Chrome API直接使用、UI処理 |
-| **domain** | 純粋なビジネスロジック（単一責任） | 他domainへの依存、副作用の隠蔽 |
-| **shared** | 汎用ユーティリティ（ドメイン非依存） | Chrome API、特定レイヤーへの依存 |
+| レイヤー                                  | 責務                                 | 禁止事項                                |
+| ----------------------------------------- | ------------------------------------ | --------------------------------------- |
+| **background/content/offscreen/settings** | messaging I/O のみ                   | ビジネスロジック、ドメイン組み合わせ    |
+| **ui-components**                         | 再利用可能なUIパーツ                 | ビジネスロジック、messaging直接呼び出し |
+| **messaging/handlers**                    | ルーティングのみ、serviceへの委譲    | ビジネスロジック、domain直接呼び出し    |
+| **services**                              | ドメイン組み合わせ、ビジネスフロー   | Chrome API直接使用、UI処理              |
+| **domain**                                | 純粋なビジネスロジック（単一責任）   | 他domainへの依存、副作用の隠蔽          |
+| **shared**                                | 汎用ユーティリティ（ドメイン非依存） | Chrome API、特定レイヤーへの依存        |
 
 ### メッセージフロー
 
@@ -195,8 +198,8 @@ domain層（純粋関数）
 shared層（汎用ユーティリティ）
 ```
 
-**重要**: offscreen が絡む場合も同じフローを維持。
-各層が messaging I/O のみに専念することで、複雑なメッセージ経路でも破綻しない。
+**重要**: offscreen が絡む場合も同じフローを維持。 各層が messaging I/O
+のみに専念することで、複雑なメッセージ経路でも破綻しない。
 
 ## Testing rules
 
@@ -261,7 +264,13 @@ deno task bundle
 ```typescript
 interface AppState {
   // テーマ設定
-  theme: 'light' | 'dark' | 'github' | 'minimal' | 'solarized_light' | 'solarized_dark';
+  theme:
+    | "light"
+    | "dark"
+    | "github"
+    | "minimal"
+    | "solarized_light"
+    | "solarized_dark";
 
   // Hot Reload設定
   hotReloadEnabled: boolean;
@@ -303,6 +312,7 @@ interface AppState {
 ## 実装フェーズ
 
 ### Phase 1: 基盤構築（MVP）
+
 1. Manifest V3基本設定
 2. Markdownパーサー（marked + DOMPurify）
 3. Basic Themes（Light/Dark）
@@ -310,18 +320,21 @@ interface AppState {
 5. セキュリティテスト（XSS防御確認）
 
 ### Phase 2: 拡張機能
+
 6. GitHub Flavored Markdown (GFM)
 7. MathJax数式表示
 8. Mermaidダイアグラム（Dynamic Import）
 9. 残りのプリセットテーマ（GitHub, Minimal, Solarized）
 
 ### Phase 3: ユーザー体験向上
+
 10. Hot Reload機能（タブフォーカス+定期チェック）
 11. 設定画面（Options Page）
 12. 状態管理（chrome.storage.sync）
 13. エラーハンドリング完全実装
 
 ### Phase 4: 品質向上
+
 14. パフォーマンス最適化
 15. E2Eテストカバレッジ向上
 16. CI/CD整備

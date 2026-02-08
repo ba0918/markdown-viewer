@@ -1,62 +1,62 @@
-import { assertEquals } from '@std/assert';
-import { sanitizeHTML } from './sanitizer.ts';
+import { assertEquals } from "@std/assert";
+import { sanitizeHTML } from "./sanitizer.ts";
 
 /**
  * XSS攻撃ベクターテスト
  * セキュリティファースト：全てのXSS攻撃をブロックする
  */
 
-Deno.test('XSS: javascript: protocol', async () => {
-  const malicious = '<a href="javascript:alert(\'XSS\')">Click</a>';
+Deno.test("XSS: javascript: protocol", async () => {
+  const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('javascript:'), false);
+  assertEquals(result.includes("javascript:"), false);
 });
 
-Deno.test('XSS: onerror attribute', async () => {
+Deno.test("XSS: onerror attribute", async () => {
   const malicious = '<img src="x" onerror="alert(\'XSS\')">';
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('onerror'), false);
+  assertEquals(result.includes("onerror"), false);
 });
 
-Deno.test('XSS: onclick attribute', async () => {
-  const malicious = '<button onclick="alert(\'XSS\')">Click</button>';
+Deno.test("XSS: onclick attribute", async () => {
+  const malicious = "<button onclick=\"alert('XSS')\">Click</button>";
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('onclick'), false);
+  assertEquals(result.includes("onclick"), false);
 });
 
-Deno.test('XSS: onload attribute', async () => {
-  const malicious = '<body onload="alert(\'XSS\')">';
+Deno.test("XSS: onload attribute", async () => {
+  const malicious = "<body onload=\"alert('XSS')\">";
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('onload'), false);
+  assertEquals(result.includes("onload"), false);
 });
 
-Deno.test('XSS: script tag', async () => {
-  const malicious = '<script>alert(\'XSS\')</script>';
+Deno.test("XSS: script tag", async () => {
+  const malicious = "<script>alert('XSS')</script>";
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('<script'), false);
-  assertEquals(result.includes('alert'), false);
+  assertEquals(result.includes("<script"), false);
+  assertEquals(result.includes("alert"), false);
 });
 
-Deno.test('正常なHTML: リンク保持', async () => {
+Deno.test("正常なHTML: リンク保持", async () => {
   const valid = '<a href="https://example.com">Link</a>';
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('https://example.com'), true);
-  assertEquals(result.includes('Link'), true);
+  assertEquals(result.includes("https://example.com"), true);
+  assertEquals(result.includes("Link"), true);
 });
 
-Deno.test('正常なHTML: 画像保持', async () => {
+Deno.test("正常なHTML: 画像保持", async () => {
   const valid = '<img src="https://example.com/image.png" alt="Test">';
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('https://example.com/image.png'), true);
-  assertEquals(result.includes('alt'), true);
+  assertEquals(result.includes("https://example.com/image.png"), true);
+  assertEquals(result.includes("alt"), true);
 });
 
-Deno.test('正常なHTML: 基本的なマークアップ保持', async () => {
-  const valid = '<p>This is <strong>bold</strong> and <em>italic</em>.</p>';
+Deno.test("正常なHTML: 基本的なマークアップ保持", async () => {
+  const valid = "<p>This is <strong>bold</strong> and <em>italic</em>.</p>";
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<p>'), true);
-  assertEquals(result.includes('<strong>'), true);
-  assertEquals(result.includes('<em>'), true);
+  assertEquals(result.includes("<p>"), true);
+  assertEquals(result.includes("<strong>"), true);
+  assertEquals(result.includes("<em>"), true);
 });
 
 /**
@@ -64,57 +64,58 @@ Deno.test('正常なHTML: 基本的なマークアップ保持', async () => {
  * 打ち消し線とタスクリストが正しく保持されることを確認
  */
 
-Deno.test('GFM: 打ち消し線（<del>タグ）保持', async () => {
-  const valid = '<p>This is <del>strikethrough</del> text.</p>';
+Deno.test("GFM: 打ち消し線（<del>タグ）保持", async () => {
+  const valid = "<p>This is <del>strikethrough</del> text.</p>";
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<del>'), true);
-  assertEquals(result.includes('strikethrough'), true);
-  assertEquals(result.includes('</del>'), true);
+  assertEquals(result.includes("<del>"), true);
+  assertEquals(result.includes("strikethrough"), true);
+  assertEquals(result.includes("</del>"), true);
 });
 
-Deno.test('GFM: 打ち消し線（<s>タグ）保持', async () => {
-  const valid = '<p>This is <s>strikethrough</s> text.</p>';
+Deno.test("GFM: 打ち消し線（<s>タグ）保持", async () => {
+  const valid = "<p>This is <s>strikethrough</s> text.</p>";
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<s>'), true);
-  assertEquals(result.includes('strikethrough'), true);
-  assertEquals(result.includes('</s>'), true);
+  assertEquals(result.includes("<s>"), true);
+  assertEquals(result.includes("strikethrough"), true);
+  assertEquals(result.includes("</s>"), true);
 });
 
-Deno.test('GFM: タスクリスト（未完了）保持', async () => {
+Deno.test("GFM: タスクリスト（未完了）保持", async () => {
   const valid = '<li><input type="checkbox" disabled> Todo item</li>';
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<input'), true);
+  assertEquals(result.includes("<input"), true);
   assertEquals(result.includes('type="checkbox"'), true);
-  assertEquals(result.includes('disabled'), true);
-  assertEquals(result.includes('Todo item'), true);
+  assertEquals(result.includes("disabled"), true);
+  assertEquals(result.includes("Todo item"), true);
 });
 
-Deno.test('GFM: タスクリスト（完了）保持', async () => {
+Deno.test("GFM: タスクリスト（完了）保持", async () => {
   const valid = '<li><input type="checkbox" disabled checked> Done item</li>';
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<input'), true);
+  assertEquals(result.includes("<input"), true);
   assertEquals(result.includes('type="checkbox"'), true);
-  assertEquals(result.includes('disabled'), true);
-  assertEquals(result.includes('checked'), true);
-  assertEquals(result.includes('Done item'), true);
+  assertEquals(result.includes("disabled"), true);
+  assertEquals(result.includes("checked"), true);
+  assertEquals(result.includes("Done item"), true);
 });
 
-Deno.test('GFM: テーブル保持', async () => {
-  const valid = '<table><thead><tr><th>Header</th></tr></thead><tbody><tr><td>Cell</td></tr></tbody></table>';
+Deno.test("GFM: テーブル保持", async () => {
+  const valid =
+    "<table><thead><tr><th>Header</th></tr></thead><tbody><tr><td>Cell</td></tr></tbody></table>";
   const result = await sanitizeHTML(valid);
-  assertEquals(result.includes('<table>'), true);
-  assertEquals(result.includes('<thead>'), true);
-  assertEquals(result.includes('<th>'), true);
-  assertEquals(result.includes('<tbody>'), true);
-  assertEquals(result.includes('<td>'), true);
+  assertEquals(result.includes("<table>"), true);
+  assertEquals(result.includes("<thead>"), true);
+  assertEquals(result.includes("<th>"), true);
+  assertEquals(result.includes("<tbody>"), true);
+  assertEquals(result.includes("<td>"), true);
 });
 
-Deno.test('セキュリティ: タスクリストのinputにイベントハンドラ注入を防ぐ', async () => {
+Deno.test("セキュリティ: タスクリストのinputにイベントハンドラ注入を防ぐ", async () => {
   const malicious = '<input type="checkbox" onclick="alert(\'XSS\')" disabled>';
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes('onclick'), false);
-  assertEquals(result.includes('alert'), false);
+  assertEquals(result.includes("onclick"), false);
+  assertEquals(result.includes("alert"), false);
   // type, disabledは保持
   assertEquals(result.includes('type="checkbox"'), true);
-  assertEquals(result.includes('disabled'), true);
+  assertEquals(result.includes("disabled"), true);
 });

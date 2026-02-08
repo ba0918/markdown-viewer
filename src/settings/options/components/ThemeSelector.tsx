@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import type { Theme } from '../../../shared/types/theme.ts';
+import { h as _h } from "preact";
+import type { Theme } from "../../../shared/types/theme.ts";
 
 interface ThemeSelectorProps {
   current: Theme;
@@ -13,42 +13,47 @@ interface ThemeSelectorProps {
  * レイヤー: ui-components層
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
-  const themes: { id: Theme; label: string; emoji: string; description: string }[] = [
+  const themes: {
+    id: Theme;
+    label: string;
+    emoji: string;
+    description: string;
+  }[] = [
     {
-      id: 'light',
-      label: 'Light',
-      emoji: '☀️',
-      description: 'シンプルな明るいテーマ',
+      id: "light",
+      label: "Light",
+      emoji: "☀️",
+      description: "シンプルな明るいテーマ",
     },
     {
-      id: 'dark',
-      label: 'Dark',
-      emoji: '🌙',
-      description: 'シンプルな暗いテーマ',
+      id: "dark",
+      label: "Dark",
+      emoji: "🌙",
+      description: "シンプルな暗いテーマ",
     },
     {
-      id: 'github',
-      label: 'GitHub',
-      emoji: '🐙',
-      description: 'GitHub風のスタイル',
+      id: "github",
+      label: "GitHub",
+      emoji: "🐙",
+      description: "GitHub風のスタイル",
     },
     {
-      id: 'minimal',
-      label: 'Minimal',
-      emoji: '📝',
-      description: 'ミニマルなデザイン',
+      id: "minimal",
+      label: "Minimal",
+      emoji: "📝",
+      description: "ミニマルなデザイン",
     },
     {
-      id: 'solarized-light',
-      label: 'Solarized Light',
-      emoji: '🌅',
-      description: 'Solarized明るいテーマ',
+      id: "solarized-light",
+      label: "Solarized Light",
+      emoji: "🌅",
+      description: "Solarized明るいテーマ",
     },
     {
-      id: 'solarized-dark',
-      label: 'Solarized Dark',
-      emoji: '🌃',
-      description: 'Solarized暗いテーマ',
+      id: "solarized-dark",
+      label: "Solarized Dark",
+      emoji: "🌃",
+      description: "Solarized暗いテーマ",
     },
   ];
 
@@ -60,7 +65,7 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
         {themes.map((theme) => (
           <button
             key={theme.id}
-            class={`theme-card ${current === theme.id ? 'active' : ''}`}
+            class={`theme-card ${current === theme.id ? "active" : ""}`}
             onClick={() => onChange(theme.id)}
             type="button"
             title={theme.description}

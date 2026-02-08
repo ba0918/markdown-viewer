@@ -11,12 +11,12 @@
  * Reference: https://playwright.dev/docs/chrome-extensions
  */
 
-import { test as base, chromium, type BrowserContext } from '@playwright/test';
-import path from 'node:path';
-import process from 'node:process';
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import type { Socket } from 'node:net';
+import { type BrowserContext, chromium, test as base } from "@playwright/test";
+import path from "node:path";
+import process from "node:process";
+import { createServer } from "node:http";
+import { readFile } from "node:fs/promises";
+import type { Socket } from "node:net";
 
 /**
  * Chrome拡張機能テスト用の型定義
@@ -34,16 +34,16 @@ type ExtensionFixtures = {
  * - extensionId: 拡張機能ID（Service Workerから動的取得）
  */
 export const test = base.extend<ExtensionFixtures>({
-  context: async ({}, use) => {
+  context: async (_, use) => {
     // 拡張機能のdistディレクトリパス
-    const pathToExtension = path.join(process.cwd(), 'dist');
+    const pathToExtension = path.join(process.cwd(), "dist");
     //console.log('[Fixture] Extension path:', pathToExtension);
 
     // 一時的なユーザーデータディレクトリを作成
     // NOTE: 空文字列だと予期しない動作になる可能性があるため、明示的に一時ディレクトリを作成
-    const { tmpdir } = await import('node:os');
-    const { mkdtemp } = await import('node:fs/promises');
-    const userDataDir = await mkdtemp(path.join(tmpdir(), 'playwright-'));
+    const { tmpdir } = await import("node:os");
+    const { mkdtemp } = await import("node:fs/promises");
+    const userDataDir = await mkdtemp(path.join(tmpdir(), "playwright-"));
     //console.log('[Fixture] User data dir:', userDataDir);
 
     //console.log('[Fixture] Launching browser...');
@@ -61,10 +61,10 @@ export const test = base.extend<ExtensionFixtures>({
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
         // --- WSL2 / CI 環境向けの安定化フラグ ---
-        '--disable-gpu', // WSL2上のChromeはGPU周りで死にやすい
-        '--disable-dev-shm-usage', // メモリ共有周りのクラッシュ回避
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
+        "--disable-gpu", // WSL2上のChromeはGPU周りで死にやすい
+        "--disable-dev-shm-usage", // メモリ共有周りのクラッシュ回避
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
       ],
     });
     //console.log('[Fixture] Browser launched');
@@ -85,19 +85,21 @@ export const test = base.extend<ExtensionFixtures>({
     // Service Workerがまだ起動していない場合は待機
     if (!serviceWorker) {
       //console.log('[Fixture] Waiting for service worker...');
-      serviceWorker = await context.waitForEvent('serviceworker', { timeout: 30000 });
+      serviceWorker = await context.waitForEvent("serviceworker", {
+        timeout: 30000,
+      });
       //console.log('[Fixture] Service worker detected');
     }
 
     // Service Worker URLから拡張機能IDを抽出
     // URL形式: chrome-extension://{extensionId}/service-worker.js
-    const extensionId = serviceWorker.url().split('/')[2];
+    const extensionId = serviceWorker.url().split("/")[2];
     //console.log('[Fixture] Extension ID:', extensionId);
 
     await use(extensionId);
   },
 
-  testServerUrl: async ({}, use) => {
+  testServerUrl: async (_, use) => {
     // ローカルサーバーを起動
     const PORT = 8765; // テスト用ポート
 
@@ -108,29 +110,31 @@ export const test = base.extend<ExtensionFixtures>({
 
     // Node.js の http サーバーでシンプルなファイルサーバーを起動
     const server = createServer(async (req, res) => {
-      const url = new URL(req.url || '/', `http://localhost:${PORT}`);
+      const url = new URL(req.url || "/", `http://localhost:${PORT}`);
       const filePath = path.join(process.cwd(), url.pathname.slice(1)); // 先頭の / を除去
 
-     // console.log(`[Server] Request: ${req.url} -> ${filePath}`);
+      // console.log(`[Server] Request: ${req.url} -> ${filePath}`);
 
       try {
         const file = await readFile(filePath);
         const ext = path.extname(filePath);
-        const contentType = ext === '.md' || ext === '.markdown' ? 'text/markdown' : 'text/plain';
+        const contentType = ext === ".md" || ext === ".markdown"
+          ? "text/markdown"
+          : "text/plain";
 
-        res.writeHead(200, { 'Content-Type': contentType });
+        res.writeHead(200, { "Content-Type": contentType });
         res.end(file);
-      } catch (err) {
+      } catch (_err) {
         //console.error(`[Server] File not found: ${filePath}`, err);
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('Not Found');
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found");
       }
     });
 
     // 接続を追跡
-    server.on('connection', (conn) => {
+    server.on("connection", (conn) => {
       connections.add(conn);
-      conn.on('close', () => connections.delete(conn));
+      conn.on("close", () => connections.delete(conn));
     });
 
     // サーバー起動を Promise でラップ

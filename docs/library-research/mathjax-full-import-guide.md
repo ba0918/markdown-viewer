@@ -4,9 +4,11 @@
 
 ## 概要
 
-`mathjax-full@3.2.2` パッケージのDeno環境での正しいimport方法をまとめたドキュメント。
+`mathjax-full@3.2.2`
+パッケージのDeno環境での正しいimport方法をまとめたドキュメント。
 
-**重要**: mathjax-fullパッケージは非推奨（deprecated）であり、MathJax v4では`@mathjax/src`に置き換えられています。ただし、v3.2.2は安定版として使用可能。
+**重要**: mathjax-fullパッケージは非推奨（deprecated）であり、MathJax
+v4では`@mathjax/src`に置き換えられています。ただし、v3.2.2は安定版として使用可能。
 
 ## パッケージ情報
 
@@ -15,7 +17,8 @@
 - **ライセンス**: Apache-2.0
 - **エントリポイント**: `components/src/node-main/node-main.js`
 - **npm URL**: https://www.npmjs.com/package/mathjax-full
-- **非推奨警告**: Version 4 replaces this package with the scoped package @mathjax/src
+- **非推奨警告**: Version 4 replaces this package with the scoped package
+  @mathjax/src
 
 ## ディレクトリ構造
 
@@ -70,12 +73,12 @@ mathjax-full@3.2.2/
 この設定により、以下のようにシンプルにimportできる:
 
 ```typescript
-import { mathjax } from 'mathjax-full/js/mathjax.js';
-import { TeX } from 'mathjax-full/js/input/tex.js';
-import { SVG } from 'mathjax-full/js/output/svg.js';
-import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { browserAdaptor } from "mathjax-full/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
 ```
 
 ### 2. 直接npm:を使う方法
@@ -83,12 +86,12 @@ import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
 deno.jsonのimports設定なしでも動作する:
 
 ```typescript
-import { mathjax } from 'npm:mathjax-full@3.2.2/js/mathjax.js';
-import { TeX } from 'npm:mathjax-full@3.2.2/js/input/tex.js';
-import { SVG } from 'npm:mathjax-full@3.2.2/js/output/svg.js';
-import { browserAdaptor } from 'npm:mathjax-full@3.2.2/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'npm:mathjax-full@3.2.2/js/handlers/html.js';
-import { AllPackages } from 'npm:mathjax-full@3.2.2/js/input/tex/AllPackages.js';
+import { mathjax } from "npm:mathjax-full@3.2.2/js/mathjax.js";
+import { TeX } from "npm:mathjax-full@3.2.2/js/input/tex.js";
+import { SVG } from "npm:mathjax-full@3.2.2/js/output/svg.js";
+import { browserAdaptor } from "npm:mathjax-full@3.2.2/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "npm:mathjax-full@3.2.2/js/handlers/html.js";
+import { AllPackages } from "npm:mathjax-full@3.2.2/js/input/tex/AllPackages.js";
 ```
 
 ## 主要モジュールのexports
@@ -96,7 +99,7 @@ import { AllPackages } from 'npm:mathjax-full@3.2.2/js/input/tex/AllPackages.js'
 ### mathjax.js
 
 ```typescript
-import { mathjax } from 'mathjax-full/js/mathjax.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
 
 // Exports:
 // - version: string
@@ -110,7 +113,7 @@ import { mathjax } from 'mathjax-full/js/mathjax.js';
 ### input/tex.js
 
 ```typescript
-import { TeX } from 'mathjax-full/js/input/tex.js';
+import { TeX } from "mathjax-full/js/input/tex.js";
 
 // Exports:
 // - TeX: class (extends AbstractInputJax)
@@ -121,7 +124,7 @@ import { TeX } from 'mathjax-full/js/input/tex.js';
 ### output/svg.js
 
 ```typescript
-import { SVG, SVGNS, XLINKNS } from 'mathjax-full/js/output/svg.js';
+import { SVG, SVGNS, XLINKNS } from "mathjax-full/js/output/svg.js";
 
 // Exports:
 // - SVG: class (extends CommonOutputJax)
@@ -133,7 +136,7 @@ import { SVG, SVGNS, XLINKNS } from 'mathjax-full/js/output/svg.js';
 ### adaptors/browserAdaptor.js
 
 ```typescript
-import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
+import { browserAdaptor } from "mathjax-full/js/adaptors/browserAdaptor.js";
 
 // Exports:
 // - browserAdaptor: Function
@@ -144,7 +147,7 @@ import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
 ### handlers/html.js
 
 ```typescript
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
 
 // Exports:
 // - RegisterHTMLHandler: Function(adaptor)
@@ -155,7 +158,7 @@ import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
 ### input/tex/AllPackages.js
 
 ```typescript
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
 
 // Exports:
 // - AllPackages: Array<string>
@@ -168,19 +171,19 @@ import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
 ### 基本的なセットアップ
 
 ```typescript
-import { mathjax } from 'mathjax-full/js/mathjax.js';
-import { TeX } from 'mathjax-full/js/input/tex.js';
-import { SVG } from 'mathjax-full/js/output/svg.js';
-import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { browserAdaptor } from "mathjax-full/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
 
 // Browser環境での初期化
 const adaptor = browserAdaptor();
 RegisterHTMLHandler(adaptor);
 
 const tex = new TeX({ packages: AllPackages });
-const svg = new SVG({ fontCache: 'local' });
+const svg = new SVG({ fontCache: "local" });
 
 const html = mathjax.document(document, { InputJax: tex, OutputJax: svg });
 ```
@@ -188,21 +191,21 @@ const html = mathjax.document(document, { InputJax: tex, OutputJax: svg });
 ### Node/Deno環境での使用（liteAdaptor）
 
 ```typescript
-import { mathjax } from 'mathjax-full/js/mathjax.js';
-import { TeX } from 'mathjax-full/js/input/tex.js';
-import { SVG } from 'mathjax-full/js/output/svg.js';
-import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor.js';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
 
 // liteAdaptorを使用（ブラウザDOM不要）
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);
 
-const tex = new TeX({ packages: ['base', 'ams'] });
-const svg = new SVG({ fontCache: 'local' });
+const tex = new TeX({ packages: ["base", "ams"] });
+const svg = new SVG({ fontCache: "local" });
 
-const html = mathjax.document('', { InputJax: tex, OutputJax: svg });
-const node = html.convert('E = mc^2', { display: true });
+const html = mathjax.document("", { InputJax: tex, OutputJax: svg });
+const node = html.convert("E = mc^2", { display: true });
 const svgString = adaptor.innerHTML(node);
 ```
 
@@ -216,6 +219,7 @@ mathjax-fullパッケージは両形式をサポート:
 Deno環境では **ES Modules (`/js/`)** を使用すること。
 
 package.jsonの仕組み:
+
 - `import` → `/js/` (MJS)
 - `require()` → `/es5/` (CJS)
 
@@ -235,10 +239,10 @@ mathjax-fullには`.d.ts`ファイルが含まれているため、型推論が�
 
 ```typescript
 // 型が自動的に推論される
-import { TeX } from 'mathjax-full/js/input/tex.js';
+import { TeX } from "mathjax-full/js/input/tex.js";
 
 const tex = new TeX({
-  packages: ['base', 'ams']  // TypeScriptが補完してくれる
+  packages: ["base", "ams"], // TypeScriptが補完してくれる
 });
 ```
 
@@ -258,9 +262,11 @@ const tex = new TeX({
 
 ## 注意事項
 
-1. **mathjax-fullは非推奨**: MathJax v4では`@mathjax/src`を使用することが推奨されているが、v3.2.2は安定版として使用可能。
+1. **mathjax-fullは非推奨**: MathJax
+   v4では`@mathjax/src`を使用することが推奨されているが、v3.2.2は安定版として使用可能。
 
-2. **パス重要**: `/js/` か `/es5/` かでモジュール形式が異なる。Deno環境では必ず `/js/` を使う。
+2. **パス重要**: `/js/` か `/es5/` かでモジュール形式が異なる。Deno環境では必ず
+   `/js/` を使う。
 
 3. **パッケージ依存関係**: 以下のパッケージが自動的にインストールされる
    - esm@^3.2.25
@@ -288,12 +294,12 @@ const tex = new TeX({
 ✅ **推奨importパターン**:
 
 ```typescript
-import { mathjax } from 'mathjax-full/js/mathjax.js';
-import { TeX } from 'mathjax-full/js/input/tex.js';
-import { SVG } from 'mathjax-full/js/output/svg.js';
-import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { browserAdaptor } from "mathjax-full/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
 ```
 
 このパターンで全てのインポートが正しく動作することを確認済み。

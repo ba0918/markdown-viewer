@@ -16,9 +16,9 @@
  * 3. Or keep E2E tests as the primary testing method
  */
 
-import { assertEquals } from '@std/assert';
+import { assertEquals } from "@std/assert";
 
-Deno.test('renderer: placeholder test (actual tests in E2E)', () => {
+Deno.test("renderer: placeholder test (actual tests in E2E)", () => {
   // This is a placeholder to prevent "no tests found" error
   // Actual mermaid rendering tests are in tests/e2e/mermaid-rendering.spec.ts
   assertEquals(1 + 1, 2);

@@ -6,8 +6,8 @@
  * ❌ NG: DOM操作、副作用
  */
 
-import { marked } from 'marked';
-import type { TocHeading } from './types.ts';
+import { marked } from "marked";
+import type { TocHeading } from "./types.ts";
 
 /**
  * 見出しテキストからURLフレンドリーなIDを生成
@@ -32,13 +32,13 @@ export const generateHeadingId = (text: string): string => {
   return text
     .trim()
     // 空白とアンダースコアをハイフンに
-    .replace(/[\s_]+/g, '-')
+    .replace(/[\s_]+/g, "-")
     // 危険な記号のみ削除(/, :, ~, *, ?, ", <, >, |, \, 括弧類)
-    .replace(/[/:~*?"<>|\\()[\]{}]+/g, '')
+    .replace(/[/:~*?"<>|\\()[\]{}]+/g, "")
     // 連続ハイフンを1つに
-    .replace(/-+/g, '-')
+    .replace(/-+/g, "-")
     // 先頭/末尾のハイフン削除
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, "");
 };
 
 /**
@@ -60,9 +60,9 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
   const idCounts = new Map<string, number>(); // ID重複カウント用
 
   for (const token of tokens) {
-    if (token.type === 'heading' && token.depth <= 3) {
+    if (token.type === "heading" && token.depth <= 3) {
       const text = token.text;
-      let baseId = generateHeadingId(text);
+      const baseId = generateHeadingId(text);
       let id = baseId;
 
       // 重複ID検出: 既に同じIDが存在する場合、連番を付与
@@ -77,7 +77,7 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
       headings.push({
         level: token.depth as 1 | 2 | 3,
         text, // 表示文言はそのまま(連番なし)
-        id,   // IDには必要に応じて連番付き
+        id, // IDには必要に応じて連番付き
       });
     }
   }
@@ -87,4 +87,4 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
 
 // buildTocTree は tree-builder.ts に移動しました
 // 後方互換性のために re-export
-export { buildTocTree } from './tree-builder.ts';
+export { buildTocTree } from "./tree-builder.ts";

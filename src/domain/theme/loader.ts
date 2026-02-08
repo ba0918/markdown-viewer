@@ -1,5 +1,5 @@
-import type { ThemeData } from './types.ts';
-import type { Theme } from '../../shared/types/theme.ts';
+import type { ThemeData } from "./types.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * プリセットテーマ定義
@@ -9,29 +9,29 @@ import type { Theme } from '../../shared/types/theme.ts';
  */
 const THEMES: Record<Theme, ThemeData> = {
   light: {
-    id: 'light',
-    cssPath: 'content/styles/themes/light.css'
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
   },
   dark: {
-    id: 'dark',
-    cssPath: 'content/styles/themes/dark.css'
+    id: "dark",
+    cssPath: "content/styles/themes/dark.css",
   },
   github: {
-    id: 'github',
-    cssPath: 'content/styles/themes/github.css'
+    id: "github",
+    cssPath: "content/styles/themes/github.css",
   },
   minimal: {
-    id: 'minimal',
-    cssPath: 'content/styles/themes/minimal.css'
+    id: "minimal",
+    cssPath: "content/styles/themes/minimal.css",
   },
-  'solarized-light': {
-    id: 'solarized-light',
-    cssPath: 'content/styles/themes/solarized-light.css'
+  "solarized-light": {
+    id: "solarized-light",
+    cssPath: "content/styles/themes/solarized-light.css",
   },
-  'solarized-dark': {
-    id: 'solarized-dark',
-    cssPath: 'content/styles/themes/solarized-dark.css'
-  }
+  "solarized-dark": {
+    id: "solarized-dark",
+    cssPath: "content/styles/themes/solarized-dark.css",
+  },
 };
 
 /**
@@ -42,5 +42,5 @@ const THEMES: Record<Theme, ThemeData> = {
  * @returns テーマデータ（外部CSSファイルのパスを含む）
  */
 export const loadTheme = (themeId?: Theme): ThemeData => {
-  return THEMES[themeId || 'light'] || THEMES.light;
+  return THEMES[themeId || "light"] || THEMES.light;
 };

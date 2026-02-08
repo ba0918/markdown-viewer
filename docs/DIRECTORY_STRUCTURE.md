@@ -34,14 +34,14 @@ src/
 
 ## レイヤー構成
 
-| レイヤー | 責務 | 例 |
-|---------|------|-----|
-| **実行コンテキスト層** | messaging I/O **のみ** | `background/`, `content/`, `offscreen/`, `settings/` |
-| **UI部品層** | 再利用可能なUIパーツ | `ui-components/` |
-| **サービス層** | ドメイン組み合わせ + ビジネスフロー | `services/` |
-| **ドメイン層** | 純粋なビジネスロジック | `domain/` |
-| **メッセージング層** | ルーティング **のみ** | `messaging/` |
-| **共通層** | 汎用処理（ドメイン非依存） | `shared/` |
+| レイヤー               | 責務                                | 例                                                   |
+| ---------------------- | ----------------------------------- | ---------------------------------------------------- |
+| **実行コンテキスト層** | messaging I/O **のみ**              | `background/`, `content/`, `offscreen/`, `settings/` |
+| **UI部品層**           | 再利用可能なUIパーツ                | `ui-components/`                                     |
+| **サービス層**         | ドメイン組み合わせ + ビジネスフロー | `services/`                                          |
+| **ドメイン層**         | 純粋なビジネスロジック              | `domain/`                                            |
+| **メッセージング層**   | ルーティング **のみ**               | `messaging/`                                         |
+| **共通層**             | 汎用処理（ドメイン非依存）          | `shared/`                                            |
 
 ---
 
@@ -68,11 +68,13 @@ domain: 純粋関数
 ## 1. background/ - Service Worker層
 
 ### 📋 責務
+
 - **messaging とのやり取り"のみ"**
 - Chrome拡張のライフサイクル管理
 - タブ間の状態同期
 
 ### ✅ 許可される処理
+
 - `chrome.runtime.onMessage.addListener()` によるメッセージ受信
 - `chrome.runtime.sendMessage()` によるメッセージ送信
 - `messaging/handlers/` への委譲
@@ -80,6 +82,7 @@ domain: 純粋関数
 - `chrome.tabs.*` API使用
 
 ### ❌ 絶対禁止
+
 - **ビジネスロジックの実装**
 - **ドメインロジックの実装**
 - **複数domainの組み合わせ**
@@ -98,19 +101,19 @@ background/
 
 ```typescript
 // background/service-worker.ts
-import { handleBackgroundMessage } from '../messaging/handlers/background-handler.ts';
+import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
 
 // ✅ OK: handlerに委譲するだけ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleBackgroundMessage(message)
     .then(sendResponse)
-    .catch(error => sendResponse({ success: false, error: error.message }));
+    .catch((error) => sendResponse({ success: false, error: error.message }));
   return true; // 非同期レスポンス
 });
 
 // ❌ NG: ビジネスロジックを直接書く
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'RENDER_MARKDOWN') {
+  if (message.type === "RENDER_MARKDOWN") {
     const parsed = marked.parse(message.payload); // ← ダメ！
     const sanitized = DOMPurify.sanitize(parsed); // ← ダメ！
     sendResponse({ html: sanitized });
@@ -123,11 +126,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ## 2. content/ - Content Script層
 
 ### 📋 責務
+
 - **messaging とのやり取り"のみ"**
 - ページ内でのUI描画
 - DOM操作
 
 ### ✅ 許可される処理
+
 - DOM操作（`document.*`, `window.*`）
 - Preact/Reactコンポーネントのレンダリング
 - `chrome.runtime.sendMessage()` によるメッセージ送信
@@ -135,6 +140,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 - イベントリスナー登録
 
 ### ❌ 絶対禁止
+
 - **ビジネスロジックの実装**
 - **ドメインロジックの実装**
 - **複数domainの組み合わせ**
@@ -158,31 +164,31 @@ content/
 
 ```typescript
 // content/index.ts
-import { sendMessage } from '../messaging/client.ts';
-import { render } from 'preact';
-import { MarkdownViewer } from './components/MarkdownViewer.tsx';
+import { sendMessage } from "../messaging/client.ts";
+import { render } from "preact";
+import { MarkdownViewer } from "./components/MarkdownViewer.tsx";
 
 // ✅ OK: messaging経由でserviceを利用
 const init = async () => {
   if (!isMarkdownFile()) return;
 
-  const markdown = document.body.textContent || '';
+  const markdown = document.body.textContent || "";
 
   // background → service に委譲
   const result = await sendMessage({
-    type: 'RENDER_MARKDOWN_WITH_HOT_RELOAD',
-    payload: { markdown, fileUrl: location.href, themeId: 'github' }
+    type: "RENDER_MARKDOWN_WITH_HOT_RELOAD",
+    payload: { markdown, fileUrl: location.href, themeId: "github" },
   });
 
-  document.body.innerHTML = '';
+  document.body.innerHTML = "";
   render(
     <MarkdownViewer html={result.html} watcherId={result.watcherId} />,
-    document.body
+    document.body,
   );
 };
 
 // ❌ NG: domainを直接呼び出す
-import { parseMarkdown } from '../domain/markdown/parser.ts'; // ← ダメ！
+import { parseMarkdown } from "../domain/markdown/parser.ts"; // ← ダメ！
 const html = parseMarkdown(markdown); // ← ダメ！
 ```
 
@@ -191,15 +197,18 @@ const html = parseMarkdown(markdown); // ← ダメ！
 ## 3. offscreen/ - Offscreen Document層
 
 ### 📋 責務
+
 - **messaging とのやり取り"のみ"**
 - Offscreen APIが必要な処理の実行
 
 ### ✅ 許可される処理
+
 - `chrome.runtime.onMessage.addListener()` によるメッセージ受信
 - `messaging/handlers/` への委譲
 - Offscreen API使用
 
 ### ❌ 絶対禁止
+
 - **ビジネスロジックの実装**
 - **ドメインロジックの実装**
 - `services/` や `domain/` の直接呼び出し（必ず `messaging/handlers/` 経由）
@@ -216,13 +225,13 @@ offscreen/
 
 ```typescript
 // offscreen/index.ts
-import { handleOffscreenMessage } from '../messaging/handlers/offscreen-handler.ts';
+import { handleOffscreenMessage } from "../messaging/handlers/offscreen-handler.ts";
 
 // ✅ OK: handlerに委譲するだけ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleOffscreenMessage(message)
     .then(sendResponse)
-    .catch(error => sendResponse({ success: false, error: error.message }));
+    .catch((error) => sendResponse({ success: false, error: error.message }));
   return true;
 });
 ```
@@ -232,26 +241,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ## 4. settings/ - 設定画面層
 
 ### 📋 責務
+
 - **messaging とのやり取り"のみ"**
 - 設定UIの描画
 - popup（クイック設定）とoptions（詳細設定）の管理
 
 ### popup/ と options/ の違い
 
-| | popup/ | options/ |
-|---|--------|----------|
-| **表示** | ツールバーアイコンクリック | 右クリック→「拡張機能のオプション」 |
-| **サイズ** | 小（数百px） | 大（フルページ） |
-| **用途** | クイック操作 | 詳細設定 |
-| **manifest** | `action.default_popup` | `options_ui.page` |
+|              | popup/                     | options/                            |
+| ------------ | -------------------------- | ----------------------------------- |
+| **表示**     | ツールバーアイコンクリック | 右クリック→「拡張機能のオプション」 |
+| **サイズ**   | 小（数百px）               | 大（フルページ）                    |
+| **用途**     | クイック操作               | 詳細設定                            |
+| **manifest** | `action.default_popup`     | `options_ui.page`                   |
 
 ### ✅ 許可される処理
+
 - Preactコンポーネント
 - `chrome.runtime.sendMessage()` によるメッセージ送信
 - `ui-components/` の使用
 - 軽量なUI処理
 
 ### ❌ 絶対禁止
+
 - **ビジネスロジックの実装**
 - **ドメインロジックの実装**
 - `services/` や `domain/` の直接呼び出し（必ず messaging 経由）
@@ -278,15 +290,15 @@ settings/
 
 ```typescript
 // settings/popup/components/QuickSettings.tsx
-import { sendMessage } from '../../../messaging/client.ts';
-import { ThemeSelector } from '../../../ui-components/settings/ThemeSelector.tsx';
+import { sendMessage } from "../../../messaging/client.ts";
+import { ThemeSelector } from "../../../ui-components/settings/ThemeSelector.tsx";
 
 // ✅ OK: messaging経由で設定変更
 export const QuickSettings = () => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>("light");
 
   const handleThemeChange = async (newTheme: Theme) => {
-    await sendMessage({ type: 'UPDATE_THEME', payload: newTheme });
+    await sendMessage({ type: "UPDATE_THEME", payload: newTheme });
     setTheme(newTheme);
   };
 
@@ -299,15 +311,18 @@ export const QuickSettings = () => {
 ## 5. ui-components/ - UI部品層
 
 ### 📋 責務
+
 - 再利用可能なUIコンポーネント
 - **全UI層（content/settings）で共有**
 
 ### ✅ 許可される処理
+
 - Preactコンポーネント
 - `shared/` の使用
 - プロップス経由でのデータ受け取り
 
 ### ❌ 絶対禁止
+
 - ビジネスロジックの実装
 - `services/` や `domain/` の直接呼び出し
 - `chrome.runtime.sendMessage()` （親コンポーネントに委譲）
@@ -334,12 +349,15 @@ ui-components/
 
 ```typescript
 // ui-components/settings/ThemeSelector.tsx
-import type { Theme } from '../../shared/types/theme.ts';
+import type { Theme } from "../../shared/types/theme.ts";
 
 // ✅ OK: 純粋なUIコンポーネント
 export const ThemeSelector = ({ theme, onChange }: Props) => {
   return (
-    <select value={theme} onChange={(e) => onChange(e.currentTarget.value)}>
+    <select
+      value={theme}
+      onChange={(e) => onChange(e.currentTarget.value)}
+    >
       <option value="light">Light</option>
       <option value="dark">Dark</option>
       <option value="github">GitHub</option>
@@ -353,12 +371,14 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 ## 6. services/ - サービス層（ドメイン組み合わせ + ビジネスフロー）
 
 ### 📋 責務
+
 - **複数domainの組み合わせ**
 - **ビジネスフローの実装**
 - domain層の呼び出し
 - トランザクション管理
 
 ### ✅ 許可される処理
+
 - 複数 domain の組み合わせ
 - ビジネスフロー実装
 - `domain/` の呼び出し
@@ -366,6 +386,7 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 - エラーハンドリング
 
 ### ❌ 絶対禁止
+
 - Chrome API 直接使用（`chrome.storage`, `chrome.runtime` など）
 - UI コンポーネント
 - DOM 操作
@@ -386,12 +407,12 @@ services/
 
 ```typescript
 // services/markdown-service.ts
-import { parseMarkdown } from '../domain/markdown/parser.ts';
-import { sanitizeHTML } from '../domain/markdown/sanitizer.ts';
-import { highlightCode } from '../domain/markdown/highlighter.ts';
-import { loadTheme } from '../domain/theme/loader.ts';
-import { applyTheme } from '../domain/theme/applier.ts';
-import { FileWatcher } from '../domain/file-watcher/watcher.ts';
+import { parseMarkdown } from "../domain/markdown/parser.ts";
+import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
+import { highlightCode } from "../domain/markdown/highlighter.ts";
+import { loadTheme } from "../domain/theme/loader.ts";
+import { applyTheme } from "../domain/theme/applier.ts";
+import { FileWatcher } from "../domain/file-watcher/watcher.ts";
 
 /**
  * Markdownレンダリングサービス
@@ -447,17 +468,20 @@ export const markdownService = new MarkdownService();
 ## 7. domain/ - ドメイン層（純粋なビジネスロジック）
 
 ### 📋 責務
+
 - **ドメイン固有のビジネスロジック（単一責任）**
 - **純粋関数**
 - UIから完全に分離
 
 ### ✅ 許可される処理
+
 - ドメインロジックの実装
 - 純粋関数
 - `shared/` の呼び出し
 - テスト可能な処理
 
 ### ❌ 絶対禁止
+
 - 他の domain への依存
 - Chrome API 使用
 - UI 処理
@@ -488,7 +512,7 @@ domain/
 
 ```typescript
 // domain/markdown/parser.ts
-import { marked } from 'marked';
+import { marked } from "marked";
 
 /**
  * Markdown → HTML 変換
@@ -497,14 +521,14 @@ import { marked } from 'marked';
 export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,
-    breaks: true
+    breaks: true,
   });
 
   return marked.parse(markdown) as string;
 };
 
 // domain/theme/applier.ts
-import type { Theme } from '../../shared/types/theme.ts';
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * HTMLにテーマを適用
@@ -525,11 +549,13 @@ export const applyTheme = (html: string, theme: Theme): string => {
 ## 8. messaging/ - メッセージング層
 
 ### 📋 責務
+
 - **メッセージルーティング"のみ"**
 - 型安全なメッセージング
 - メッセージの検証
 
 ### ✅ 許可される処理
+
 - メッセージ型定義
 - メッセージルーティング（どのserviceを呼ぶか判断）
 - 型チェック・バリデーション
@@ -537,6 +563,7 @@ export const applyTheme = (html: string, theme: Theme): string => {
 - `services/` への委譲
 
 ### ❌ 絶対禁止
+
 - **ビジネスロジックの実装**
 - **ドメインロジックの実装**
 - **複数domainの組み合わせ**
@@ -562,54 +589,57 @@ messaging/
 ```typescript
 // messaging/types.ts
 export type Message =
-  | { type: 'RENDER_MARKDOWN'; payload: { markdown: string; themeId?: string } }
-  | { type: 'RENDER_MARKDOWN_WITH_HOT_RELOAD'; payload: { markdown: string; fileUrl: string; themeId?: string } }
-  | { type: 'LOAD_THEME'; payload: { themeId: string } }
-  | { type: 'UPDATE_THEME'; payload: Theme };
+  | { type: "RENDER_MARKDOWN"; payload: { markdown: string; themeId?: string } }
+  | {
+    type: "RENDER_MARKDOWN_WITH_HOT_RELOAD";
+    payload: { markdown: string; fileUrl: string; themeId?: string };
+  }
+  | { type: "LOAD_THEME"; payload: { themeId: string } }
+  | { type: "UPDATE_THEME"; payload: Theme };
 
 export type MessageResponse<T = unknown> =
   | { success: true; data: T }
   | { success: false; error: string };
 
 // messaging/handlers/background-handler.ts
-import { markdownService } from '../../services/markdown-service.ts';
-import { themeService } from '../../services/theme-service.ts';
-import type { Message, MessageResponse } from '../types.ts';
+import { markdownService } from "../../services/markdown-service.ts";
+import { themeService } from "../../services/theme-service.ts";
+import type { Message, MessageResponse } from "../types.ts";
 
 /**
  * background層のメッセージハンドラ
  * ✅ OK: ルーティングのみ、serviceに委譲
  */
 export const handleBackgroundMessage = async (
-  message: Message
+  message: Message,
 ): Promise<MessageResponse> => {
   switch (message.type) {
-    case 'RENDER_MARKDOWN':
+    case "RENDER_MARKDOWN":
       // ✅ OK: serviceに委譲するだけ
       const html = await markdownService.render(
         message.payload.markdown,
-        message.payload.themeId
+        message.payload.themeId,
       );
       return { success: true, data: html };
 
-    case 'LOAD_THEME':
+    case "LOAD_THEME":
       // ✅ OK: serviceに委譲するだけ
       const theme = await themeService.load(message.payload.themeId);
       return { success: true, data: theme };
 
     default:
-      return { success: false, error: 'Unknown message type' };
+      return { success: false, error: "Unknown message type" };
   }
 };
 
 // ❌ NG例: messagingでビジネスロジック
 export const handleBackgroundMessageBAD = async (message: Message) => {
   switch (message.type) {
-    case 'RENDER_MARKDOWN':
+    case "RENDER_MARKDOWN":
       // ❌ ダメ！！！ ここでビジネスロジックを書いてはいけない！
       const parsed = marked.parse(message.payload.markdown);
       const sanitized = DOMPurify.sanitize(parsed);
-      const theme = await chrome.storage.sync.get('theme');
+      const theme = await chrome.storage.sync.get("theme");
       const styled = applyTheme(sanitized, theme);
       return { success: true, data: styled };
   }
@@ -617,7 +647,7 @@ export const handleBackgroundMessageBAD = async (message: Message) => {
 
 // messaging/client.ts
 export const sendMessage = async <T = unknown>(
-  message: Message
+  message: Message,
 ): Promise<T> => {
   const response = await chrome.runtime.sendMessage(message);
 
@@ -634,18 +664,21 @@ export const sendMessage = async <T = unknown>(
 ## 9. shared/ - 汎用ユーティリティ層
 
 ### 📋 責務
+
 - **ドメイン非依存**な汎用コード
 - 型定義
 - ユーティリティ関数
 - 定数定義
 
 ### ✅ 許可される処理
+
 - 純粋関数
 - 型定義
 - 定数定義
 - ドメイン非依存な処理
 
 ### ❌ 絶対禁止
+
 - Chrome API直接使用
 - 特定レイヤーへの依存
 - ドメイン固有のロジック
@@ -673,27 +706,27 @@ shared/
 ```typescript
 // shared/types/theme.ts
 export type Theme =
-  | 'light'
-  | 'dark'
-  | 'github'
-  | 'minimal'
-  | 'solarized_light'
-  | 'solarized_dark';
+  | "light"
+  | "dark"
+  | "github"
+  | "minimal"
+  | "solarized_light"
+  | "solarized_dark";
 
 // shared/utils/string.ts
 export const truncate = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + '...';
+  return text.slice(0, maxLength) + "...";
 };
 
 // shared/constants/themes.ts
 export const PRESET_THEMES = {
-  light: 'Light Theme',
-  dark: 'Dark Theme',
-  github: 'GitHub Style',
-  minimal: 'Minimal',
-  solarized_light: 'Solarized Light',
-  solarized_dark: 'Solarized Dark'
+  light: "Light Theme",
+  dark: "Dark Theme",
+  github: "GitHub Style",
+  minimal: "Minimal",
+  solarized_light: "Solarized Light",
+  solarized_dark: "Solarized Dark",
 } as const;
 ```
 
@@ -771,6 +804,7 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
 ```
 
 ### ルール
+
 1. **上位層 → 下位層のみ許可**
    - `services/` → `domain/` → `shared/` ✅
    - `shared/` → `domain/` ❌
@@ -795,6 +829,7 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
 ## 🔍 実装時のチェックポイント
 
 ### ファイルを作成する前に
+
 1. **このファイルはどのレイヤーか？**
    - 責務を明確に定義
    - 適切なディレクトリに配置
@@ -808,6 +843,7 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
    - 共通化できる処理か判断
 
 ### コードレビュー時
+
 1. **レイヤー違反がないか**
    - background/content/offscreen に ビジネスロジックがないか
    - messaging層 に ビジネスロジックがないか
@@ -913,4 +949,5 @@ const result = await sendMessage({
 
 ---
 
-このディレクトリ構造と責務定義に従うことで、**offscreen を含む複雑なChrome拡張でも保守性が高く、テストしやすく、拡張可能な**コードベースを実現できます。
+このディレクトリ構造と責務定義に従うことで、**offscreen
+を含む複雑なChrome拡張でも保守性が高く、テストしやすく、拡張可能な**コードベースを実現できます。

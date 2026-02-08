@@ -1,8 +1,7 @@
 # View/Raw モード切り替え機能
 
-**Cycle ID:** `20260208221736`
-**Started:** 2026-02-08 22:17:36
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208221736` **Started:** 2026-02-08 22:17:36 **Status:** 🟡
+Planning
 
 ---
 
@@ -50,10 +49,14 @@ src/
 ### Key Points
 
 - **ViewMode型**: `'view' | 'raw'` のユニオン型を定義（shared/types/）
-- **DocumentHeader**: 固定ヘッダー（`position: fixed; top: 0; z-index: 1000`）、半透明背景、右端にタブUI
-- **RawTextView**: `<pre><code>` でrawMarkdownを表示、スクロール可能、シンタックスハイライトなし（プレーンテキスト）
-- **frontend-design適用**: タブのホバーエフェクト、アクティブ状態のスタイル、スムーズなトランジション
-- **レイアウト**: ヘッダーの高さ分（例: 60px）だけ `.markdown-viewer` と `.toc-container` の `padding-top` を追加
+- **DocumentHeader**:
+  固定ヘッダー（`position: fixed; top: 0; z-index: 1000`）、半透明背景、右端にタブUI
+- **RawTextView**: `<pre><code>`
+  でrawMarkdownを表示、スクロール可能、シンタックスハイライトなし（プレーンテキスト）
+- **frontend-design適用**:
+  タブのホバーエフェクト、アクティブ状態のスタイル、スムーズなトランジション
+- **レイアウト**: ヘッダーの高さ分（例: 60px）だけ `.markdown-viewer` と
+  `.toc-container` の `padding-top` を追加
 - **アクセシビリティ**: キーボード操作可能（Tabキー、Enterキー）、ARIA属性適用
 
 ## ✅ Tests
@@ -93,13 +96,16 @@ src/
 ## 🔒 Security
 
 - [ ] RawTextView内でのHTMLエスケープ（dangerouslySetInnerHTML使用禁止）
-- [ ] XSS対策: `<pre><code>{rawMarkdown}</code></pre>` のみ使用（Preactが自動エスケープ）
+- [ ] XSS対策: `<pre><code>{rawMarkdown}</code></pre>`
+      のみ使用（Preactが自動エスケープ）
 - [ ] CSP違反がないことを確認
 
 ## 🎨 Design with frontend-design
 
 ### DocumentHeader Design
-- **半透明背景**: `rgba(255, 255, 255, 0.9)` （lightテーマ）/ `rgba(30, 30, 30, 0.9)` （darkテーマ）
+
+- **半透明背景**: `rgba(255, 255, 255, 0.9)` （lightテーマ）/
+  `rgba(30, 30, 30, 0.9)` （darkテーマ）
 - **Blur Effect**: `backdrop-filter: blur(8px)` でモダンな半透明効果
 - **タブデザイン**:
   - Inactive: 淡い灰色、`opacity: 0.7`
@@ -109,6 +115,7 @@ src/
 - **シャドウ**: `box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)` で浮遊感
 
 ### RawTextView Design
+
 - **フォント**: `font-family: 'Courier New', monospace`
 - **背景**: テーマに応じた淡い背景色
 - **パディング**: `padding: 1.5rem`
@@ -116,22 +123,25 @@ src/
 - **行番号**: オプション（将来拡張）
 
 ### Layout Adjustment
-- **固定ヘッダー**: `position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 1000`
-- **コンテンツのpadding-top**: `.markdown-viewer` と `.toc-container` に `padding-top: 60px` を追加
+
+- **固定ヘッダー**:
+  `position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 1000`
+- **コンテンツのpadding-top**: `.markdown-viewer` と `.toc-container` に
+  `padding-top: 60px` を追加
 - **ToCとの共存**: ToCは `top: 60px` から開始（ヘッダーの下）
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| 型定義 (ViewMode) | ⚪ |
-| DocumentHeader実装 | ⚪ |
-| RawTextView実装 | ⚪ |
-| MarkdownViewer統合 | ⚪ |
-| スタイリング（CSS） | ⚪ |
-| Unit Tests | ⚪ |
-| E2E Tests | ⚪ |
-| Commit | ⚪ |
+| Step                | Status |
+| ------------------- | ------ |
+| 型定義 (ViewMode)   | ⚪     |
+| DocumentHeader実装  | ⚪     |
+| RawTextView実装     | ⚪     |
+| MarkdownViewer統合  | ⚪     |
+| スタイリング（CSS） | ⚪     |
+| Unit Tests          | ⚪     |
+| E2E Tests           | ⚪     |
+| Commit              | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -145,8 +155,8 @@ src/
 
 ```typescript
 export interface RenderResult {
-  html: string;           // Viewモードで使用
-  rawMarkdown: string;    // Rawモードで使用 ← これを活用！
+  html: string; // Viewモードで使用
+  rawMarkdown: string; // Rawモードで使用 ← これを活用！
   content: string;
   frontmatter: Record<string, unknown>;
 }

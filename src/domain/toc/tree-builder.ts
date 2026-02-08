@@ -6,7 +6,7 @@
  * ❌ NG: DOM操作、副作用
  */
 
-import type { TocHeading, TocItem } from './types.ts';
+import type { TocHeading, TocItem } from "./types.ts";
 
 /**
  * フラットな見出しリストから階層構造のTOCツリーを構築

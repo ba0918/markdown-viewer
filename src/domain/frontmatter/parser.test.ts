@@ -5,10 +5,10 @@
  * TDD: RED フェーズ - テストを先に書く
  */
 
-import { assertEquals } from '@std/assert';
-import { parseFrontmatter } from './parser.ts';
+import { assertEquals } from "@std/assert";
+import { parseFrontmatter } from "./parser.ts";
 
-Deno.test('parseFrontmatter: 標準的なYAML Frontmatterを正しく解析', () => {
+Deno.test("parseFrontmatter: 標準的なYAML Frontmatterを正しく解析", () => {
   const markdown = `---
 title: Test Document
 date: 2026-02-08
@@ -21,16 +21,16 @@ Content here.`;
 
   const result = parseFrontmatter(markdown);
 
-  assertEquals(result.data.title, 'Test Document');
+  assertEquals(result.data.title, "Test Document");
   // @std/yaml は日付を Date オブジェクトに変換する
   assertEquals(result.data.date instanceof Date, true);
-  assertEquals(result.data.tags, ['yaml', 'frontmatter', 'test']);
-  assertEquals(result.content.trim(), '# Heading 1\n\nContent here.');
+  assertEquals(result.data.tags, ["yaml", "frontmatter", "test"]);
+  assertEquals(result.content.trim(), "# Heading 1\n\nContent here.");
   assertEquals(result.original, markdown);
 });
 
-Deno.test('parseFrontmatter: Frontmatterがない場合は元のmarkdownをそのまま返す', () => {
-  const markdown = '# No Frontmatter\n\nJust regular content.';
+Deno.test("parseFrontmatter: Frontmatterがない場合は元のmarkdownをそのまま返す", () => {
+  const markdown = "# No Frontmatter\n\nJust regular content.";
 
   const result = parseFrontmatter(markdown);
 
@@ -39,7 +39,7 @@ Deno.test('parseFrontmatter: Frontmatterがない場合は元のmarkdownをそ�
   assertEquals(result.original, markdown);
 });
 
-Deno.test('parseFrontmatter: Frontmatter + content分離が正しく動作', () => {
+Deno.test("parseFrontmatter: Frontmatter + content分離が正しく動作", () => {
   const markdown = `---
 author: Claude
 ---
@@ -47,12 +47,12 @@ Body content`;
 
   const result = parseFrontmatter(markdown);
 
-  assertEquals(result.data.author, 'Claude');
-  assertEquals(result.content.trim(), 'Body content');
+  assertEquals(result.data.author, "Claude");
+  assertEquals(result.content.trim(), "Body content");
   assertEquals(result.original, markdown);
 });
 
-Deno.test('parseFrontmatter: contentにFrontmatter部分が含まれない', () => {
+Deno.test("parseFrontmatter: contentにFrontmatter部分が含まれない", () => {
   const markdown = `---
 key: value
 ---
@@ -60,12 +60,12 @@ key: value
 
   const result = parseFrontmatter(markdown);
 
-  assertEquals(result.content.includes('---'), false);
-  assertEquals(result.content.includes('key:'), false);
-  assertEquals(result.content.trim(), '# Title');
+  assertEquals(result.content.includes("---"), false);
+  assertEquals(result.content.includes("key:"), false);
+  assertEquals(result.content.trim(), "# Title");
 });
 
-Deno.test('parseFrontmatter: 複数行のYAML値を正しく解析', () => {
+Deno.test("parseFrontmatter: 複数行のYAML値を正しく解析", () => {
   const markdown = `---
 title: Multi-line Test
 description: |
@@ -77,12 +77,15 @@ Content`;
 
   const result = parseFrontmatter(markdown);
 
-  assertEquals(result.data.title, 'Multi-line Test');
-  assertEquals(typeof result.data.description, 'string');
-  assertEquals((result.data.description as string).includes('multi-line'), true);
+  assertEquals(result.data.title, "Multi-line Test");
+  assertEquals(typeof result.data.description, "string");
+  assertEquals(
+    (result.data.description as string).includes("multi-line"),
+    true,
+  );
 });
 
-Deno.test('parseFrontmatter: 空のFrontmatter（---のみ）を処理', () => {
+Deno.test("parseFrontmatter: 空のFrontmatter（---のみ）を処理", () => {
   const markdown = `---
 ---
 # Content`;
@@ -90,10 +93,10 @@ Deno.test('parseFrontmatter: 空のFrontmatter（---のみ）を処理', () => {
   const result = parseFrontmatter(markdown);
 
   assertEquals(result.data, {});
-  assertEquals(result.content.trim(), '# Content');
+  assertEquals(result.content.trim(), "# Content");
 });
 
-Deno.test('parseFrontmatter: Frontmatter閉じタグなしでも可能な範囲でパース', () => {
+Deno.test("parseFrontmatter: Frontmatter閉じタグなしでも可能な範囲でパース", () => {
   const markdown = `---
 title: Valid Title
 ---
@@ -102,11 +105,11 @@ Content here`;
   // gray-matterは正しい閉じタグがあればちゃんとパースできる
   const result = parseFrontmatter(markdown);
 
-  assertEquals(result.data.title, 'Valid Title');
-  assertEquals(result.content.trim(), 'Content here');
+  assertEquals(result.data.title, "Valid Title");
+  assertEquals(result.content.trim(), "Content here");
 });
 
-Deno.test('parseFrontmatter: 不正なYAMLフォーマットのエラーハンドリング', () => {
+Deno.test("parseFrontmatter: 不正なYAMLフォーマットのエラーハンドリング", () => {
   const markdown = `---
 title: "Unclosed quote
 date: invalid
@@ -121,7 +124,7 @@ Content`;
   assertEquals(result.data, {});
 });
 
-Deno.test('parseFrontmatter: ネストしたYAML構造を解析', () => {
+Deno.test("parseFrontmatter: ネストしたYAML構造を解析", () => {
   const markdown = `---
 metadata:
   author: Claude
@@ -134,8 +137,11 @@ Content`;
 
   const result = parseFrontmatter(markdown);
 
-  assertEquals(typeof result.data.metadata, 'object');
-  assertEquals((result.data.metadata as Record<string, unknown>).author, 'Claude');
+  assertEquals(typeof result.data.metadata, "object");
+  assertEquals(
+    (result.data.metadata as Record<string, unknown>).author,
+    "Claude",
+  );
   assertEquals(Array.isArray(result.data.tags), true);
-  assertEquals((result.data.tags as string[])[0], 'test');
+  assertEquals((result.data.tags as string[])[0], "test");
 });

@@ -3,8 +3,8 @@
  * @description Chrome拡張機能E2Eテスト用ヘルパー関数
  */
 
-import type { Page } from '@playwright/test';
-import { expect } from '@playwright/test';
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 /**
  * Markdownファイルを開く
@@ -15,7 +15,7 @@ import { expect } from '@playwright/test';
 export async function openMarkdownFile(page: Page, url: string): Promise<void> {
   await page.goto(url);
   // Markdown Viewerがレンダリングされるまで待機
-  await page.waitForSelector('.markdown-viewer', { timeout: 10000 });
+  await page.waitForSelector(".markdown-viewer", { timeout: 10000 });
 }
 
 /**
@@ -24,9 +24,12 @@ export async function openMarkdownFile(page: Page, url: string): Promise<void> {
  * @param page - Playwrightページオブジェクト
  * @param extensionId - 拡張機能ID
  */
-export async function openOptionsPage(page: Page, extensionId: string): Promise<void> {
+export async function openOptionsPage(
+  page: Page,
+  extensionId: string,
+): Promise<void> {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**
@@ -35,9 +38,12 @@ export async function openOptionsPage(page: Page, extensionId: string): Promise<
  * @param page - Playwrightページオブジェクト
  * @param extensionId - 拡張機能ID
  */
-export async function openPopupPage(page: Page, extensionId: string): Promise<void> {
+export async function openPopupPage(
+  page: Page,
+  extensionId: string,
+): Promise<void> {
   await page.goto(`chrome-extension://${extensionId}/popup.html`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState("domcontentloaded");
 }
 
 /**
@@ -46,10 +52,16 @@ export async function openPopupPage(page: Page, extensionId: string): Promise<vo
  * @param page - Playwrightページオブジェクト
  * @param themeName - テーマ名（例: 'light', 'dark'）
  */
-export async function expectThemeApplied(page: Page, themeName: string): Promise<void> {
-  const linkElement = page.locator('link[data-markdown-theme]');
-  await expect(linkElement).toHaveAttribute('data-markdown-theme', themeName);
-  await expect(linkElement).toHaveAttribute('href', new RegExp(`${themeName}\\.css$`));
+export async function expectThemeApplied(
+  page: Page,
+  themeName: string,
+): Promise<void> {
+  const linkElement = page.locator("link[data-markdown-theme]");
+  await expect(linkElement).toHaveAttribute("data-markdown-theme", themeName);
+  await expect(linkElement).toHaveAttribute(
+    "href",
+    new RegExp(`${themeName}\\.css$`),
+  );
 }
 
 /**
@@ -59,7 +71,7 @@ export async function expectThemeApplied(page: Page, themeName: string): Promise
  */
 export async function expectMarkdownRendered(page: Page): Promise<void> {
   // .markdown-viewer コンテナが存在するか確認
-  const viewer = page.locator('.markdown-viewer');
+  const viewer = page.locator(".markdown-viewer");
   await expect(viewer).toBeVisible();
 
   // HTMLコンテンツが存在するか確認（空でない）
@@ -73,8 +85,11 @@ export async function expectMarkdownRendered(page: Page): Promise<void> {
  * @param page - Playwrightページオブジェクト
  * @param callback - ログメッセージを受け取るコールバック
  */
-export function monitorConsole(page: Page, callback: (message: string) => void): void {
-  page.on('console', (msg) => {
+export function monitorConsole(
+  page: Page,
+  callback: (message: string) => void,
+): void {
+  page.on("console", (msg) => {
     callback(msg.text());
   });
 }

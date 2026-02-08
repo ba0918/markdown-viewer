@@ -13,10 +13,10 @@
 export const isRelativeLink = (href: string): boolean => {
   // 絶対URL（http://, https://, file://）や同一ページ内リンク（#）はスキップ
   if (
-    href.startsWith('http://') ||
-    href.startsWith('https://') ||
-    href.startsWith('file://') ||
-    href.startsWith('#')
+    href.startsWith("http://") ||
+    href.startsWith("https://") ||
+    href.startsWith("file://") ||
+    href.startsWith("#")
   ) {
     return false;
   }
@@ -29,7 +29,10 @@ export const isRelativeLink = (href: string): boolean => {
  * @param relativeHref - 相対パス
  * @returns 絶対URL
  */
-export const resolveRelativeLink = (currentUrl: string, relativeHref: string): string => {
-  const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+export const resolveRelativeLink = (
+  currentUrl: string,
+  relativeHref: string,
+): string => {
+  const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf("/") + 1);
   return new URL(relativeHref, baseUrl).href;
 };

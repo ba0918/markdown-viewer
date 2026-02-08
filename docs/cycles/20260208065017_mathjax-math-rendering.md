@@ -1,19 +1,21 @@
 # MathJax数式表示機能
 
-**Cycle ID:** `20260208065017`
-**Started:** 2026-02-08 06:50:17
-**Status:** 🟡 In Progress
+**Cycle ID:** `20260208065017` **Started:** 2026-02-08 06:50:17 **Status:** 🟡
+In Progress
 
 ---
 
 ## 📝 What & Why
 
-Markdown内の数式（LaTeX記法）をMathJaxで美しくレンダリングする機能を追加。Dynamic Importで必要時のみロードし、パフォーマンスを最適化する。
+Markdown内の数式（LaTeX記法）をMathJaxで美しくレンダリングする機能を追加。Dynamic
+Importで必要時のみロードし、パフォーマンスを最適化する。
 
 ## 🎯 Goals
 
-- **LaTeX数式のレンダリング** - インライン数式 `$...$` とディスプレイ数式 `$$...$$` に対応
-- **Dynamic Import実装** - 数式がある場合のみMathJaxをロード（パフォーマンス最適化）
+- **LaTeX数式のレンダリング** - インライン数式 `$...$` とディスプレイ数式
+  `$$...$$` に対応
+- **Dynamic Import実装** -
+  数式がある場合のみMathJaxをロード（パフォーマンス最適化）
 - **非同期レンダリング** - `MathJax.typesetPromise()` で適切に処理
 - **エラーハンドリング** - MathJax初期化失敗時のGraceful degradation
 - **全テーマ対応** - MathJax出力が全6テーマで適切に表示される
@@ -23,12 +25,15 @@ Markdown内の数式（LaTeX記法）をMathJaxで美しくレンダリングす
 ### ⚠️ 方針転換（2026-02-08 更新）
 
 **旧方針（❌ 失敗）:**
+
 - CDN版 MathJax (tex-chtml.js) を動的ロード
 - CHTML出力でフォントを別ファイルとして読み込み
-- **問題:** Content Scriptのコンテキスト分離により `typesetPromise` が定義されない
+- **問題:** Content Scriptのコンテキスト分離により `typesetPromise`
+  が定義されない
 - **原因:** Chrome拡張のパス制限、フォント動的ロードの失敗
 
 **新方針（✅ 採用）:**
+
 - `mathjax-full` パッケージを使用
 - SVG出力でフォント情報をJS埋め込み
 - esbuildで完全バンドル
@@ -52,6 +57,7 @@ domain/math/
 ```
 
 **削除するもの:**
+
 - `loader.ts` - Dynamic Importが不要に（直接importするため）
 - `script-loader.ts` - スクリプト動的ロード不要
 - ローカルバンドルしたMathJaxファイル（1.7MB）
@@ -93,7 +99,8 @@ mathjax/ - ローカルバンドルディレクトリ（1.7MB）
 
 ### Key Points（mathjax-full版）
 
-- **数式検出ロジック**: 正規表現で `$...$` (inline) と `$$...$$` (display) を検出（既存コード流用）
+- **数式検出ロジック**: 正規表現で `$...$` (inline) と `$$...$$` (display)
+  を検出（既存コード流用）
 - **SVG出力**: フォント情報をパスデータとしてJS内に埋め込み
 - **完全バンドル**: esbuildでTree Shaking、必要な機能のみ含む
 - **Content Script直接実行**: chrome-extension:// パス制約を完全回避
@@ -103,24 +110,24 @@ mathjax/ - ローカルバンドルディレクトリ（1.7MB）
 
 ```typescript
 // domain/math/renderer.ts
-import { mathjax } from 'mathjax-full/js/mathjax.js';
-import { TeX } from 'mathjax-full/js/input/tex.js';
-import { SVG } from 'mathjax-full/js/output/svg.js';
-import { browserAdaptor } from 'mathjax-full/js/adaptors/browserAdaptor.js';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { browserAdaptor } from "mathjax-full/js/adaptors/browserAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
 
 RegisterHTMLHandler(browserAdaptor());
 
 const mathDocument = mathjax.document(document, {
   InputJax: new TeX({
     packages: AllPackages,
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    inlineMath: [["$", "$"], ["\\(", "\\)"]],
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
   }),
   OutputJax: new SVG({
-    fontCache: 'local'
-  })
+    fontCache: "local",
+  }),
 });
 
 export function renderMath(element: HTMLElement) {
@@ -138,12 +145,14 @@ export function renderMath(element: HTMLElement) {
 ### Unit Tests
 
 #### domain/math/detector.test.ts（既存テスト流用）
+
 - [x] インライン数式 `$x^2$` を検出
 - [x] ディスプレイ数式 `$$\frac{a}{b}$$` を検出
 - [x] 数式が存在しない場合は `false` を返す
 - [x] エスケープされた `\$` は無視
 
 #### domain/math/renderer.test.ts（更新が必要）
+
 - [ ] `renderMath()` が特定要素をレンダリング
 - [ ] インライン数式が `<mjx-container>` に変換される
 - [ ] ディスプレイ数式が `<mjx-container>` に変換される
@@ -167,18 +176,18 @@ export function renderMath(element: HTMLElement) {
 
 ## 📊 Progress（mathjax-full版）
 
-| Step | Status |
-|------|--------|
-| 方針転換の決定（CDN → mathjax-full） | 🟢 |
-| WIPコミットのリセット | 🟢 |
-| deno.json に mathjax-full 追加 | 🟢 |
-| domain/math/renderer.ts 再実装（SVG版） | 🟢 |
-| 不要ファイル削除（loader/script-loader） | 🟢 |
-| Unit Tests 更新・実行 | 🟢 |
-| E2E Tests 実行 | 🟢 |
-| 動作確認（全テーマ） | 🟢 |
-| Security Check | 🟢 |
-| 正式コミット | 🟢 |
+| Step                                     | Status |
+| ---------------------------------------- | ------ |
+| 方針転換の決定（CDN → mathjax-full）     | 🟢     |
+| WIPコミットのリセット                    | 🟢     |
+| deno.json に mathjax-full 追加           | 🟢     |
+| domain/math/renderer.ts 再実装（SVG版）  | 🟢     |
+| 不要ファイル削除（loader/script-loader） | 🟢     |
+| Unit Tests 更新・実行                    | 🟢     |
+| E2E Tests 実行                           | 🟢     |
+| 動作確認（全テーマ）                     | 🟢     |
+| Security Check                           | 🟢     |
+| 正式コミット                             | 🟢     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done · 🔴 Blocked
 
@@ -187,6 +196,7 @@ export function renderMath(element: HTMLElement) {
 **実装完了日:** 2026-02-08 08:06:00
 
 **最終成果:**
+
 - ✅ mathjax-full@3.2.2導入（SVG出力、完全バンドル）
 - ✅ Domain層実装（detector.ts + renderer.ts）
 - ✅ UI層統合（MarkdownViewer.tsx）
@@ -194,6 +204,7 @@ export function renderMath(element: HTMLElement) {
 - ✅ CDN版からの方針転換成功
 
 **テスト結果:**
+
 - Unit Tests: 84テスト通過
   - detector.test.ts: 10テスト
   - renderer.test.ts: 1テスト（placeholder）
@@ -206,6 +217,7 @@ export function renderMath(element: HTMLElement) {
   - SVG出力生成確認
 
 **コミット:**
+
 - `[5d28b00]` feat: MathJax数式表示機能（mathjax-full + SVG）
 
 ---
@@ -217,15 +229,20 @@ export function renderMath(element: HTMLElement) {
 **Problem:** `MathJax.typesetPromise` が定義されない
 
 **Analysis:**
-- ✅ MathJaxスクリプトは正常にロードされている (`chrome-extension://*/mathjax/tex-chtml.js`)
+
+- ✅ MathJaxスクリプトは正常にロードされている
+  (`chrome-extension://*/mathjax/tex-chtml.js`)
 - ✅ 設定オブジェクトは `window.MathJax` に適用されている
 - ❌ しかし、スクリプト実行後も `typesetPromise` が `undefined` のまま
-- ❌ `Object.keys(MathJax)` が4つのみ = 設定オブジェクトのまま、MathJax本体がマージされていない
+- ❌ `Object.keys(MathJax)` が4つのみ =
+  設定オブジェクトのまま、MathJax本体がマージされていない
 
 **Root Cause:**
+
 - Chrome拡張のContent Scriptは隔離されたコンテキストで動作
 - CDN版MathJaxは `window.MathJax` へのグローバルマージを前提とした設計
-- CHTML出力はフォントファイルを別途ロードするため `chrome-extension://` パス制約に引っかかる
+- CHTML出力はフォントファイルを別途ロードするため `chrome-extension://`
+  パス制約に引っかかる
 
 ### 新方針の利点（mathjax-full + SVG）
 
@@ -264,16 +281,19 @@ export function renderMath(element: HTMLElement) {
 ## 🎓 学んだこと・今後の参考
 
 ### Content Scriptでのライブラリ統合
+
 - CDN版ライブラリは Content Script のコンテキスト分離に注意
 - グローバル変数（`window.*`）を前提とするライブラリは動作しない可能性
 - ES Modules import + esbuildバンドルが確実
 
 ### mathjax-full の選択理由
+
 - 完全なカスタマイズ性（入力・出力フォーマット選択可能）
 - Tree Shaking 対応（必要な機能のみバンドル）
 - SVG出力でフォント問題を完全回避
 
 ### テスト戦略
+
 - ブラウザ環境必須のライブラリは Unit Test が困難
 - E2E Tests で実際のブラウザ動作を検証するのが確実
 - placeholder test でテストファイルの存在を維持

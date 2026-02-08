@@ -1,8 +1,6 @@
 # Cycle: 20260208030007 - Markdown Display Quality Improvements
 
-**Type:** Enhancement
-**Started:** 2026-02-08 03:00:07
-**Status:** 🟡 Planning
+**Type:** Enhancement **Started:** 2026-02-08 03:00:07 **Status:** 🟡 Planning
 
 ## Overview
 
@@ -71,6 +69,7 @@ content/index.ts
 **目的:** コードブロックにhighlight.jsを適用
 
 **影響ファイル:**
+
 - 🆕 `src/domain/markdown/highlighter.ts` - highlight.js wrapper（純粋関数）
 - 🔧 `src/domain/markdown/parser.ts` - marked の renderer カスタマイズ
 - 🔧 `src/services/markdown-service.ts` - highlighter を統合
@@ -89,8 +88,8 @@ content/index.ts
    // コードブロックでhighlightCode()を呼び出す
    marked.setOptions({
      renderer: customRenderer,
-     highlight: (code, lang) => highlightCode(code, lang)
-   })
+     highlight: (code, lang) => highlightCode(code, lang),
+   });
    ```
 
 3. **markdown-service.ts 修正**
@@ -103,6 +102,7 @@ content/index.ts
    ```
 
 **テスト:**
+
 - `highlighter.test.ts` - JavaScript/Python/TypeScript コードのハイライト
 - `parser.test.ts` - コードブロックがhighlight.jsを通るか確認
 - `markdown-service.test.ts` - 統合テスト（既存修正）
@@ -114,6 +114,7 @@ content/index.ts
 **目的:** Phase 3-1で作成した6テーマのCSSファイルを読み込む
 
 **影響ファイル:**
+
 - 🔧 `src/domain/theme/loader.ts` - 外部CSS読み込みロジック追加
 - 🔧 `src/domain/theme/types.ts` - ThemeData に cssUrl 追加？
 - 🔧 `src/content/index.ts` - CSS link タグ管理
@@ -124,10 +125,12 @@ content/index.ts
    ```typescript
    export const loadTheme = (themeId?: Theme): ThemeData => {
      return {
-       id: themeId || 'light',
-       cssUrl: chrome.runtime.getURL(`content/styles/themes/${themeId || 'light'}.css`)
+       id: themeId || "light",
+       cssUrl: chrome.runtime.getURL(
+         `content/styles/themes/${themeId || "light"}.css`,
+       ),
      };
-   }
+   };
    ```
 
 2. **applier.ts 修正（またはcontent層で対応）**
@@ -138,6 +141,7 @@ content/index.ts
    - `web_accessible_resources` にCSSファイルが含まれているか確認
 
 **テスト:**
+
 - `loader.test.ts` - 各テーマのcssUrlが正しく生成されるか
 - E2E - 実際にCSSが読み込まれてスタイルが適用されるか
 
@@ -148,12 +152,14 @@ content/index.ts
 **目的:** テーマ切り替え時に表示が消えないようにする
 
 **影響ファイル:**
+
 - 🔧 `src/content/index.ts` - chrome.storage.onChanged ハンドラ修正
 
 **現在の問題:**
+
 ```typescript
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.appState) {
+  if (area === "sync" && changes.appState) {
     const newState = changes.appState.newValue as AppState;
     renderMarkdown(currentMarkdown, newState.theme); // ← 表示が消える
   }
@@ -171,21 +177,23 @@ chrome.storage.onChanged.addListener((changes, area) => {
    - 新しいHTMLが準備できてから一気に差し替え
 
 **実装内容:**
+
 ```typescript
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.appState) {
+  if (area === "sync" && changes.appState) {
     const newState = changes.appState.newValue as AppState;
 
     // CSSファイルのみ差し替え（高速）
-    const linkElement = document.querySelector('link[data-markdown-theme]');
+    const linkElement = document.querySelector("link[data-markdown-theme]");
     if (linkElement) {
-      linkElement.setAttribute('href', getCssUrl(newState.theme));
+      linkElement.setAttribute("href", getCssUrl(newState.theme));
     }
   }
 });
 ```
 
 **テスト:**
+
 - E2E - テーマ切り替え時に表示が維持されるか
 
 ---
@@ -195,9 +203,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 **目的:** シンタックスハイライトのカラーテーマを各テーマに合わせる
 
 **影響ファイル:**
+
 - 🔧 各テーマCSSファイル（`src/content/styles/themes/*.css`）
 
 **実装内容:**
+
 - highlight.jsのテーマCSSを各テーマファイルに追加
   - light: `github.css`
   - dark: `github-dark.css`
@@ -209,6 +219,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 ### Unit Tests (domain層)
 
 #### highlighter.ts
+
 - [ ] `highlightCode()` - JavaScript コードをハイライト
 - [ ] `highlightCode()` - Python コードをハイライト
 - [ ] `highlightCode()` - TypeScript コードをハイライト
@@ -217,11 +228,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
 - [ ] Service Worker環境で動的importが動作する
 
 #### parser.ts (既存修正)
+
 - [ ] `parseMarkdown()` - コードブロックがハイライトされる
 - [ ] `parseMarkdown()` - 複数のコードブロックを処理
 - [ ] 既存テストがすべてパス
 
 #### loader.ts (既存修正)
+
 - [ ] `loadTheme()` - 各テーマのcssUrlが正しい
 - [ ] `loadTheme()` - デフォルトテーマ（light）のcssUrl
 - [ ] 既存テストがすべてパス
@@ -229,6 +242,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 ### Integration Tests (services層)
 
 #### markdown-service.ts (既存修正)
+
 - [ ] `render()` - シンタックスハイライト付きでレンダリング
 - [ ] `render()` - 外部CSSテーマが適用される
 - [ ] XSS防御が維持されている
@@ -251,12 +265,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 ## Progress Tracking
 
-| Step | Description | Status | Files Modified |
-|------|-------------|--------|----------------|
-| 1 | シンタックスハイライト実装 | ⏸️ Pending | highlighter.ts, parser.ts, markdown-service.ts |
-| 2 | 外部CSS読み込み実装 | ⏸️ Pending | loader.ts, types.ts, applier.ts, index.ts |
-| 3 | テーマ切り替え修正 | ⏸️ Pending | content/index.ts |
-| 4 | highlight.js CSSテーマ追加 | ⏸️ Pending | themes/*.css |
+| Step | Description                | Status     | Files Modified                                 |
+| ---- | -------------------------- | ---------- | ---------------------------------------------- |
+| 1    | シンタックスハイライト実装 | ⏸️ Pending | highlighter.ts, parser.ts, markdown-service.ts |
+| 2    | 外部CSS読み込み実装        | ⏸️ Pending | loader.ts, types.ts, applier.ts, index.ts      |
+| 3    | テーマ切り替え修正         | ⏸️ Pending | content/index.ts                               |
+| 4    | highlight.js CSSテーマ追加 | ⏸️ Pending | themes/*.css                                   |
 
 ## Notes
 

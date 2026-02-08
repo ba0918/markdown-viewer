@@ -8,7 +8,7 @@
  * ❌ NG: DOM操作、副作用
  */
 
-import type { TocHeading } from './types.ts';
+import type { TocHeading } from "./types.ts";
 
 /**
  * 見出しレベルを正規化（親検出アルゴリズム）

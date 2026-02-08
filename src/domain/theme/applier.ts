@@ -1,4 +1,4 @@
-import type { ThemeData } from './types.ts';
+import type { ThemeData } from "./types.ts";
 
 /**
  * HTMLにテーマクラスを適用

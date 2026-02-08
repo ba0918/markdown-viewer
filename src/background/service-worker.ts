@@ -1,6 +1,6 @@
 /// <reference types="@types/chrome" />
 
-import { handleBackgroundMessage } from '../messaging/handlers/background-handler.ts';
+import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
 
 /**
  * Service Worker (Background Script)
@@ -15,17 +15,17 @@ import { handleBackgroundMessage } from '../messaging/handlers/background-handle
  * 拡張機能インストール時
  */
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Markdown Viewer installed');
+  console.log("Markdown Viewer installed");
 });
 
 /**
  * メッセージ受信ハンドラ
  * ✅ OK: handlerに委譲するだけ
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   handleBackgroundMessage(message)
     .then(sendResponse)
-    .catch(error => sendResponse({ success: false, error: error.message }));
+    .catch((error) => sendResponse({ success: false, error: error.message }));
 
   // 非同期レスポンスのためtrueを返す
   return true;

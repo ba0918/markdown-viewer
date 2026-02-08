@@ -1,9 +1,9 @@
-import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import { sendMessage } from '../../messaging/client.ts';
-import { ThemeSelector } from './components/ThemeSelector.tsx';
-import type { AppState } from '../../shared/types/state.ts';
-import type { Theme } from '../../shared/types/theme.ts';
+import { h as _h } from "preact";
+import { useEffect, useState } from "preact/hooks";
+import { sendMessage } from "../../messaging/client.ts";
+import { ThemeSelector } from "./components/ThemeSelector.tsx";
+import type { AppState } from "../../shared/types/state.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * Popup メインコンポーネント
@@ -29,12 +29,12 @@ export const App = () => {
       setLoading(true);
       setError(null);
       const response = await sendMessage<AppState>({
-        type: 'GET_SETTINGS',
+        type: "GET_SETTINGS",
         payload: {},
       });
       setSettings(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load settings');
+      setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
       setLoading(false);
     }
@@ -44,12 +44,12 @@ export const App = () => {
     try {
       setError(null);
       await sendMessage({
-        type: 'UPDATE_THEME',
+        type: "UPDATE_THEME",
         payload: { themeId: theme },
       });
       setSettings({ ...settings!, theme });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update theme');
+      setError(err instanceof Error ? err.message : "Failed to update theme");
     }
   };
 
@@ -66,7 +66,7 @@ export const App = () => {
       <div class="popup">
         <div class="error">
           エラー: {error}
-          <button onClick={loadSettings} class="retry-btn">
+          <button type="button" onClick={loadSettings} class="retry-btn">
             再試行
           </button>
         </div>

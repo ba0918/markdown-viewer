@@ -13,7 +13,7 @@
 
 // @ts-ignore: mermaid types not available in Deno
 // Imported from deno.json dependencies
-import mermaid from 'mermaid';
+import mermaid from "mermaid";
 
 /**
  * Mermaid library instance (loaded via Static Import)
@@ -23,7 +23,7 @@ interface MermaidAPI {
   initialize: (config: MermaidConfig) => void;
   render: (
     id: string,
-    code: string
+    code: string,
   ) => Promise<{ svg: string; bindFunctions?: (element: Element) => void }>;
 }
 
@@ -31,9 +31,9 @@ interface MermaidAPI {
  * Mermaid configuration
  */
 interface MermaidConfig {
-  theme?: 'default' | 'dark' | 'forest' | 'neutral' | 'base';
+  theme?: "default" | "dark" | "forest" | "neutral" | "base";
   startOnLoad?: boolean;
-  securityLevel?: 'strict' | 'loose' | 'antiscript';
+  securityLevel?: "strict" | "loose" | "antiscript";
   flowchart?: {
     curve?: string;
     htmlLabels?: boolean;
@@ -48,20 +48,23 @@ const mermaidInstance = mermaid as unknown as MermaidAPI;
 /**
  * Current initialized theme
  */
-let currentTheme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' | null = null;
+let currentTheme: "default" | "dark" | "forest" | "neutral" | "base" | null =
+  null;
 
 /**
  * Initializes Mermaid library
  *
  * @param theme - Mermaid theme
  */
-function initializeMermaid(theme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' = 'default'): void {
+function initializeMermaid(
+  theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
+): void {
   // テーマが変わった場合は再初期化
   if (currentTheme !== theme) {
     mermaidInstance.initialize({
       theme,
       startOnLoad: false, // Manual rendering
-      securityLevel: 'strict', // XSS protection
+      securityLevel: "strict", // XSS protection
       flowchart: {
         htmlLabels: true,
       },
@@ -87,21 +90,27 @@ function initializeMermaid(theme: 'default' | 'dark' | 'forest' | 'neutral' | 'b
  */
 export async function renderMermaid(
   code: string,
-  theme: 'default' | 'dark' | 'forest' | 'neutral' | 'base' = 'default'
+  theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<string> {
   try {
     // Initialize mermaid with theme
     initializeMermaid(theme);
 
     // Generate unique ID for this diagram
-    const id = `mermaid-diagram-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const id = `mermaid-diagram-${Date.now()}-${
+      Math.random().toString(36).substring(2, 9)
+    }`;
 
     // Render diagram to SVG
     const { svg } = await mermaidInstance.render(id, code);
 
     return svg;
   } catch (error) {
-    throw new Error(`Mermaid rendering failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Mermaid rendering failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 }
 
@@ -126,16 +135,21 @@ export async function renderMermaid(
  * getMermaidTheme('solarized-light') // 'forest'
  * ```
  */
-export function getMermaidTheme(appTheme: string): 'default' | 'dark' | 'forest' | 'neutral' | 'base' {
+export function getMermaidTheme(
+  appTheme: string,
+): "default" | "dark" | "forest" | "neutral" | "base" {
   // Map app themes to Mermaid themes
-  const themeMap: Record<string, 'default' | 'dark' | 'forest' | 'neutral' | 'base'> = {
-    'light': 'base',
-    'dark': 'dark',
-    'github': 'neutral',
-    'minimal': 'base',
-    'solarized-light': 'forest',
-    'solarized-dark': 'dark',
+  const themeMap: Record<
+    string,
+    "default" | "dark" | "forest" | "neutral" | "base"
+  > = {
+    "light": "base",
+    "dark": "dark",
+    "github": "neutral",
+    "minimal": "base",
+    "solarized-light": "forest",
+    "solarized-dark": "dark",
   };
 
-  return themeMap[appTheme] || 'default';
+  return themeMap[appTheme] || "default";
 }

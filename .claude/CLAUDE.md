@@ -1,12 +1,15 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## プロジェクト概要
 
-Markdown Viewer Chrome拡張機能 - セキュリティファーストなローカルMarkdownファイル表示ツール
+Markdown Viewer Chrome拡張機能 -
+セキュリティファーストなローカルMarkdownファイル表示ツール
 
-**重要**: このプロジェクトは過去の失敗（DuckDB + offscreen）から学んだ教訓を活かした設計になっています。レイヤー分離とTDDを絶対遵守してください。
+**重要**: このプロジェクトは過去の失敗（DuckDB +
+offscreen）から学んだ教訓を活かした設計になっています。レイヤー分離とTDDを絶対遵守してください。
 
 ## 技術スタック
 
@@ -142,10 +145,13 @@ deno coverage coverage --lcov > coverage.lcov
 
 - **E2Eテストの書き方**
   ```typescript
-  import { test, expect } from './fixtures.ts';
-  import { openMarkdownFile, expectMarkdownRendered } from './helpers/extension-helpers.ts';
+  import { expect, test } from "./fixtures.ts";
+  import {
+    expectMarkdownRendered,
+    openMarkdownFile,
+  } from "./helpers/extension-helpers.ts";
 
-  test('テスト名', async ({ page, testServerUrl }) => {
+  test("テスト名", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
     // assertions...
@@ -180,7 +186,8 @@ shared/
 
 ### 2. 絶対禁止事項（過去の失敗から）
 
-**❌ messaging層にビジネスロジックを書く** - これは過去に大失敗したパターンです！
+**❌ messaging層にビジネスロジックを書く** -
+これは過去に大失敗したパターンです！
 
 ```typescript
 // ❌ NG: messagingでMarkdown処理（死亡フラグ）
@@ -194,7 +201,7 @@ export const handleBackgroundMessage = async (message: Message) => {
 export const handleBackgroundMessage = async (message: Message) => {
   const html = await markdownService.render(
     message.payload.markdown,
-    message.payload.themeId
+    message.payload.themeId,
   );
   return { success: true, data: html };
 };
@@ -204,11 +211,14 @@ export const handleBackgroundMessage = async (message: Message) => {
 
 ```typescript
 // ❌ NG: content層でdomainを直接呼び出し
-import { parseMarkdown } from '../domain/markdown/parser.ts'; // ← ダメ！
+import { parseMarkdown } from "../domain/markdown/parser.ts"; // ← ダメ！
 
 // ✅ OK: messaging経由
-import { sendMessage } from '../messaging/client.ts';
-const html = await sendMessage({ type: 'RENDER_MARKDOWN', payload: { markdown } });
+import { sendMessage } from "../messaging/client.ts";
+const html = await sendMessage({
+  type: "RENDER_MARKDOWN",
+  payload: { markdown },
+});
 ```
 
 **❌ services層がChrome APIを叩く**
@@ -217,7 +227,7 @@ const html = await sendMessage({ type: 'RENDER_MARKDOWN', payload: { markdown } 
 // ❌ NG: services層でChrome API直接使用
 export class ThemeService {
   async load(): Promise<Theme> {
-    const result = await chrome.storage.sync.get('theme'); // ← ダメ！
+    const result = await chrome.storage.sync.get("theme"); // ← ダメ！
   }
 }
 
@@ -229,12 +239,12 @@ export class ThemeService {
 ```typescript
 // ❌ NG: domain間の依存
 // src/domain/markdown/parser.ts
-import { loadTheme } from '../theme/loader.ts'; // ← ダメ！
+import { loadTheme } from "../theme/loader.ts"; // ← ダメ！
 
 // ✅ OK: services層でdomainを組み合わせる
 // src/services/markdown-service.ts
-import { parseMarkdown } from '../domain/markdown/parser.ts';
-import { loadTheme } from '../domain/theme/loader.ts';
+import { parseMarkdown } from "../domain/markdown/parser.ts";
+import { loadTheme } from "../domain/theme/loader.ts";
 ```
 
 ### 3. DRY原則の徹底
@@ -331,10 +341,10 @@ src/
 
 ```typescript
 // XSS攻撃ベクターのテスト例
-Deno.test('XSS: javascript: protocol', () => {
-  const malicious = '<a href="javascript:alert(\'XSS\')">Click</a>';
+Deno.test("XSS: javascript: protocol", () => {
+  const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes('javascript:'), false);
+  assertEquals(result.includes("javascript:"), false);
 });
 ```
 
@@ -414,4 +424,5 @@ Deno.test('XSS: javascript: protocol', () => {
 - `docs/DIRECTORY_STRUCTURE.md` - ディレクトリ構造と責務定義
 - `docs/ARCHITECTURE_DECISIONS.md` - アーキテクチャ決定記録
 
-**原則を守れば、offscreen を含む複雑なChrome拡張でも保守性の高いコードベースが実現できます。**
+**原則を守れば、offscreen
+を含む複雑なChrome拡張でも保守性の高いコードベースが実現できます。**

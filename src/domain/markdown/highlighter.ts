@@ -9,7 +9,7 @@
  */
 
 // highlight.js 全言語サポート版
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 
 /**
  * コードをシンタックスハイライト
@@ -30,7 +30,7 @@ import hljs from 'highlight.js';
 export const highlightCode = (code: string, lang: string): string => {
   try {
     // 言語が登録されているか確認
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    const language = hljs.getLanguage(lang) ? lang : "plaintext";
 
     // ハイライト実行（返り値はオブジェクト）
     const result = hljs.highlight(code, { language });

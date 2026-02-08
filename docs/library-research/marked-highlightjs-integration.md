@@ -1,8 +1,8 @@
 # marked と highlight.js の統合方法（最新版）
 
-**調査日**: 2026-02-08
-**調査方法**: Context7 公式ドキュメント
+**調査日**: 2026-02-08 **調査方法**: Context7 公式ドキュメント
 **対象バージョン**:
+
 - marked: ^11.0.0 (Context7 Library ID: `/markedjs/marked`)
 - highlight.js: ^11.9.0 (Context7 Library ID: `/highlightjs/highlight.js`)
 
@@ -15,24 +15,25 @@
 marked v11.x では `marked.use()` を使用してカスタムレンダラーを設定します。
 
 ```javascript
-import { marked } from 'marked';
+import { marked } from "marked";
 
 const renderer = {
   // heading, link, code 等のレンダラーをオーバーライド
   code({ text, lang }) {
-    const language = lang || 'plaintext';
+    const language = lang || "plaintext";
     return `
       <div class="code-block">
         <button class="copy-btn">Copy</button>
         <pre><code class="language-${language}">${text}</code></pre>
       </div>`;
-  }
+  },
 };
 
 marked.use({ renderer });
 ```
 
 **重要ポイント**:
+
 - `marked.use()` で設定した内容はグローバルに適用される
 - カスタムレンダラーは `{ renderer }` オブジェクトとして渡す
 - レンダラー関数は `{ text, lang, tokens, depth }` 等のオブジェクトを受け取る
@@ -42,20 +43,21 @@ marked.use({ renderer });
 **公式推奨**: `marked-highlight` 拡張を使用
 
 ```javascript
-import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js';
+import { marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
 
 marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
+  langPrefix: "hljs language-",
   highlight(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    const language = hljs.getLanguage(lang) ? lang : "plaintext";
     return hljs.highlight(code, { language }).value;
-  }
+  },
 }));
 ```
 
 **設定項目**:
+
 - `langPrefix`: 生成される `<code>` タグのクラス名プレフィックス
 - `highlight`: ハイライト処理を行うコールバック関数
   - `code`: ハイライト対象のコード文字列
@@ -67,17 +69,17 @@ marked.use(markedHighlight({
 marked は **async モード** をサポートしています。
 
 ```javascript
-import { marked } from 'marked';
+import { marked } from "marked";
 
 // async: true を設定すると marked.parse() が Promise を返す
 marked.use({
   async: true,
   walkTokens: async (token) => {
-    if (token.type === 'link') {
+    if (token.type === "link") {
       // 非同期処理が可能
       await fetch(token.href);
     }
-  }
+  },
 });
 
 // marked.parse() は Promise を返す
@@ -85,31 +87,33 @@ const html = await marked.parse(markdown);
 ```
 
 **重要ポイント**:
+
 - `async: true` を設定すると `marked.parse()` が Promise を返す
 - `walkTokens` 関数で非同期処理が可能になる
-- **highlight 関数自体は同期関数を想定** → 非同期処理が必要な場合は `walkTokens` で事前処理
+- **highlight 関数自体は同期関数を想定** → 非同期処理が必要な場合は `walkTokens`
+  で事前処理
 
 ### 1.4 最新のAPIで推奨される実装パターン
 
 ```javascript
-import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js';
+import { marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
 
 // グローバル設定
 marked.use({
   pedantic: false,
-  gfm: true,        // GitHub Flavored Markdown
-  breaks: true      // 改行を <br> に変換
+  gfm: true, // GitHub Flavored Markdown
+  breaks: true, // 改行を <br> に変換
 });
 
 // シンタックスハイライト拡張
 marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
+  langPrefix: "hljs language-",
   highlight(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    const language = hljs.getLanguage(lang) ? lang : "plaintext";
     return hljs.highlight(code, { language }).value;
-  }
+  },
 }));
 
 // カスタムレンダラー（必要に応じて）
@@ -118,8 +122,8 @@ marked.use({
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
       return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
-    }
-  }
+    },
+  },
 });
 
 // パース実行
@@ -127,6 +131,7 @@ const html = marked.parse(markdown);
 ```
 
 **ベストプラクティス**:
+
 1. **marked.use() でまとめて設定** → グローバル設定として一度だけ呼ぶ
 2. **markedHighlight 拡張を使用** → カスタムレンダラーで実装するより安全
 3. **複数の拡張を連続して use()** → チェーン可能
@@ -142,28 +147,36 @@ const html = marked.parse(markdown);
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-  <script>hljs.highlightAll();</script>
-</head>
-<body>
-  <pre><code class="language-javascript">
+  <head>
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+    >
+    <script
+      src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+    ></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+  </head>
+  <body>
+    <pre>
+<code class="language-javascript">
   function greet(name) {
     console.log('Hello, ' + name);
   }
   </code></pre>
-</body>
+  </body>
 </html>
 ```
 
 #### プログラマティックな使用（推奨）
 
 ```javascript
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 
 // 特定のコードをハイライト
-const result = hljs.highlight(code, { language: 'javascript' });
+const result = hljs.highlight(code, { language: "javascript" });
 console.log(result.value); // ハイライト済みのHTML文字列
 ```
 
@@ -172,14 +185,15 @@ console.log(result.value); // ハイライト済みのHTML文字列
 #### 明示的指定（推奨）
 
 ```javascript
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 
-const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+const language = hljs.getLanguage(lang) ? lang : "plaintext";
 const result = hljs.highlight(code, { language });
 return result.value;
 ```
 
 **メリット**:
+
 - 高速（言語検出の計算コスト不要）
 - 正確（誤検出なし）
 - 予測可能（常に期待通りの結果）
@@ -187,13 +201,14 @@ return result.value;
 #### 自動検出（非推奨 - marked との統合では不要）
 
 ```javascript
-const result = hljs.highlightAuto(code, ['javascript', 'python', 'html']);
-console.log(result.language);   // 検出された言語
-console.log(result.relevance);  // 信頼度スコア
-console.log(result.value);      // ハイライト済みHTML
+const result = hljs.highlightAuto(code, ["javascript", "python", "html"]);
+console.log(result.language); // 検出された言語
+console.log(result.relevance); // 信頼度スコア
+console.log(result.value); // ハイライト済みHTML
 ```
 
 **デメリット**:
+
 - 遅い（全言語を試行）
 - 誤検出の可能性
 - marked では `lang` パラメータで言語が渡されるため不要
@@ -216,6 +231,7 @@ const result = hljs.highlight(code, { language: 'javascript' });
 ```
 
 **markedHighlight で使用する場合**:
+
 ```javascript
 highlight(code, lang) {
   const language = hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -231,26 +247,27 @@ highlight(code, lang) {
 
 ```javascript
 // 全言語をインポート（非推奨 - バンドルサイズ大）
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 
 // コアのみをインポートして必要な言語を登録（推奨）
-import hljs from 'highlight.js/lib/core';
-import javascript from 'highlight.js/lib/languages/javascript';
-import python from 'highlight.js/lib/languages/python';
-import typescript from 'highlight.js/lib/languages/typescript';
-import html from 'highlight.js/lib/languages/xml';  // HTMLはxmlとして提供
-import css from 'highlight.js/lib/languages/css';
-import json from 'highlight.js/lib/languages/json';
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import python from "highlight.js/lib/languages/python";
+import typescript from "highlight.js/lib/languages/typescript";
+import html from "highlight.js/lib/languages/xml"; // HTMLはxmlとして提供
+import css from "highlight.js/lib/languages/css";
+import json from "highlight.js/lib/languages/json";
 
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('python', python);
-hljs.registerLanguage('typescript', typescript);
-hljs.registerLanguage('html', html);
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('json', json);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("html", html);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("json", json);
 ```
 
 **Service Worker での動的インポート（実験的）**:
+
 ```javascript
 // 動的インポートで遅延ロード（実行時にロード）
 async function loadLanguage(lang) {
@@ -266,6 +283,7 @@ async function loadLanguage(lang) {
 ```
 
 **注意点**:
+
 - Chrome Extension の Service Worker では動的インポートが制限される場合がある
 - **推奨**: よく使われる言語を事前に静的インポートしておく
 
@@ -276,26 +294,26 @@ async function loadLanguage(lang) {
 ### 3.1 基本統合パターン
 
 ```javascript
-import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js';
+import { marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
 
 // markedの設定
 marked.use({
   pedantic: false,
   gfm: true,
-  breaks: false
+  breaks: false,
 });
 
 // シンタックスハイライトの統合
 marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
+  langPrefix: "hljs language-",
   highlight(code, lang) {
     // 言語が指定されているか確認
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    const language = hljs.getLanguage(lang) ? lang : "plaintext";
     // ハイライト実行（.value でHTML文字列を取得）
     return hljs.highlight(code, { language }).value;
-  }
+  },
 }));
 
 // Markdownをパース
@@ -306,7 +324,7 @@ const html = marked.parse(markdown);
 
 ```javascript
 marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
+  langPrefix: "hljs language-",
   highlight(code, lang) {
     try {
       // 言語が指定されている場合
@@ -314,13 +332,13 @@ marked.use(markedHighlight({
         return hljs.highlight(code, { language: lang }).value;
       }
       // 言語が指定されていない、または未サポートの場合
-      return hljs.highlight(code, { language: 'plaintext' }).value;
+      return hljs.highlight(code, { language: "plaintext" }).value;
     } catch (err) {
       // ハイライトエラー時はエスケープのみ
-      console.error('Syntax highlighting error:', err);
+      console.error("Syntax highlighting error:", err);
       return code; // エスケープなしで返す（marked側でエスケープされる）
     }
-  }
+  },
 }));
 ```
 
@@ -408,9 +426,11 @@ export const parseMarkdown = (markdown: string): string => {
 
 ### 4.1 バンドルサイズの最適化
 
-**問題**: highlight.js の全言語（190+言語）をインポートすると数MB級のバンドルになる
+**問題**: highlight.js
+の全言語（190+言語）をインポートすると数MB級のバンドルになる
 
 **解決策**:
+
 1. **コアのみをインポート**: `highlight.js/lib/core`
 2. **必要な言語のみを登録**: よく使われる10-15言語に絞る
 3. **エイリアス登録**: `js` → `javascript`, `py` → `python` 等
@@ -431,10 +451,11 @@ highlight.js のCSSテーマは Content Script または Offscreen Document で�
 
 ```javascript
 // content.ts または offscreen.ts
-import 'highlight.js/styles/github.css';
+import "highlight.js/styles/github.css";
 ```
 
-**Service Worker では CSS をインポートできない** → ハイライト処理は Service Worker で行い、CSSは UI層で読み込む
+**Service Worker では CSS をインポートできない** → ハイライト処理は Service
+Worker で行い、CSSは UI層で読み込む
 
 ---
 

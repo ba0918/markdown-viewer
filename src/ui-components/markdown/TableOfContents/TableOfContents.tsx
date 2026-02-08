@@ -6,13 +6,13 @@
  * ❌ NG: ビジネスロジック、messaging直接呼び出し
  */
 
-import { h, Fragment } from 'preact';
-import { useState, useEffect, useCallback } from 'preact/hooks';
-import { signal } from '@preact/signals';
-import type { TocItem } from '../../../domain/toc/types.ts';
-import type { TocState } from '../../../domain/toc/types.ts';
-import { DEFAULT_TOC_STATE } from '../../../domain/toc/types.ts';
-import { useResizable } from './useResizable.ts';
+import { Fragment as _Fragment, h as _h } from "preact";
+import { useCallback, useEffect, useState } from "preact/hooks";
+import { signal } from "@preact/signals";
+import type { TocItem } from "../../../domain/toc/types.ts";
+import type { TocState } from "../../../domain/toc/types.ts";
+import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
+import { useResizable } from "./useResizable.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -49,20 +49,22 @@ const collapsedItems = signal<Set<string>>(new Set());
  * - 横幅リサイズ機能（Resize Handle）
  */
 export const TableOfContents = ({ items, themeId }: Props) => {
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeId, setActiveId] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserClick, setIsUserClick] = useState(false); // クリック直後かどうか
 
   // 永続化された状態を読み込み
   useEffect(() => {
     // chrome.storage が利用可能かチェック
-    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+    if (
+      typeof chrome === "undefined" || !chrome.storage || !chrome.storage.sync
+    ) {
       // E2E環境などchrome.storageが使えない場合はデフォルト値を使用
       setIsLoaded(true);
       return;
     }
 
-    chrome.storage.sync.get(['tocState']).then((result) => {
+    chrome.storage.sync.get(["tocState"]).then((result) => {
       if (result.tocState) {
         const state = result.tocState as TocState;
         tocState.value = state;
@@ -86,7 +88,9 @@ export const TableOfContents = ({ items, themeId }: Props) => {
       tocState.value = newState;
 
       // E2E環境などでchrome.storageが使えない場合はスキップ
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+      if (
+        typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
+      ) {
         chrome.storage.sync.set({ tocState: newState }).catch(() => {
           // 保存失敗時は無視
         });
@@ -109,7 +113,9 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     tocState.value = newState;
 
     // E2E環境などでchrome.storageが使えない場合はスキップ
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    if (
+      typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
+    ) {
       chrome.storage.sync.set({ tocState: newState }).catch(() => {
         // 保存失敗時は無視
       });
@@ -132,7 +138,9 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     tocState.value = newState;
 
     // E2E環境などでchrome.storageが使えない場合はスキップ
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    if (
+      typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
+    ) {
       chrome.storage.sync.set({ tocState: newState }).catch(() => {
         // 保存失敗時は無視
       });
@@ -173,12 +181,12 @@ export const TableOfContents = ({ items, themeId }: Props) => {
       },
       {
         // 画面上部10%〜下部80%の範囲で検出
-        rootMargin: '-10% 0px -80% 0px',
-      }
+        rootMargin: "-10% 0px -80% 0px",
+      },
     );
 
     // 全見出し要素を監視
-    const headings = document.querySelectorAll('h1, h2, h3');
+    const headings = document.querySelectorAll("h1, h2, h3");
     headings.forEach((h) => observer.observe(h));
 
     return () => observer.disconnect();
@@ -198,9 +206,9 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     if (activeLink) {
       // ToCコンテナ内でスムーススクロール
       activeLink.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest', // 上下どちらか近い方に配置
-        inline: 'nearest',
+        behavior: "smooth",
+        block: "nearest", // 上下どちらか近い方に配置
+        inline: "nearest",
       });
     }
   }, [activeId, isUserClick]);
@@ -218,9 +226,9 @@ export const TableOfContents = ({ items, themeId }: Props) => {
       const activeLink = document.querySelector(`.toc-link.active`);
       if (activeLink) {
         activeLink.scrollIntoView({
-          behavior: 'auto', // 即座に移動(スムーズなし)
-          block: 'center', // 画面中央に配置
-          inline: 'nearest',
+          behavior: "auto", // 即座に移動(スムーズなし)
+          block: "center", // 画面中央に配置
+          inline: "nearest",
         });
       }
     }, 50);
@@ -241,16 +249,18 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     };
 
     // マウスホイール、トラックパッド
-    window.addEventListener('wheel', handleManualScroll, { passive: true });
+    globalThis.addEventListener("wheel", handleManualScroll, { passive: true });
     // タッチスワイプ
-    window.addEventListener('touchmove', handleManualScroll, { passive: true });
+    globalThis.addEventListener("touchmove", handleManualScroll, {
+      passive: true,
+    });
     // キーボードスクロール（↑↓, PageUp/Down, Space）
-    window.addEventListener('keydown', handleManualScroll);
+    globalThis.addEventListener("keydown", handleManualScroll);
 
     return () => {
-      window.removeEventListener('wheel', handleManualScroll);
-      window.removeEventListener('touchmove', handleManualScroll);
-      window.removeEventListener('keydown', handleManualScroll);
+      globalThis.removeEventListener("wheel", handleManualScroll);
+      globalThis.removeEventListener("touchmove", handleManualScroll);
+      globalThis.removeEventListener("keydown", handleManualScroll);
     };
   }, [isUserClick]);
 
@@ -268,7 +278,7 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -284,17 +294,18 @@ export const TableOfContents = ({ items, themeId }: Props) => {
         <div class="toc-item-wrapper">
           {hasChildren && (
             <button
+              type="button"
               class="toc-collapse-btn"
               onClick={() => toggleCollapse(item.id)}
-              aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-              title={isCollapsed ? '展開' : '折りたたむ'}
+              aria-label={isCollapsed ? "Expand" : "Collapse"}
+              title={isCollapsed ? "展開" : "折りたたむ"}
             >
-              {isCollapsed ? '▶' : '▼'}
+              {isCollapsed ? "▶" : "▼"}
             </button>
           )}
           <a
             href={`#${item.id}`}
-            class={activeId === item.id ? 'toc-link active' : 'toc-link'}
+            class={activeId === item.id ? "toc-link active" : "toc-link"}
             onClick={(e) => {
               e.preventDefault();
               handleClick(item.id);
@@ -321,41 +332,47 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 
   return (
     <aside
-      class={`toc-container ${tocState.value.visible ? 'visible' : 'hidden'} toc-theme-${themeId}`}
-      style={{ width: tocState.value.visible ? `${width}px` : '40px' }}
+      class={`toc-container ${
+        tocState.value.visible ? "visible" : "hidden"
+      } toc-theme-${themeId}`}
+      style={{ width: tocState.value.visible ? `${width}px` : "40px" }}
     >
-      {tocState.value.visible ? (
-        <>
-          <div class="toc-header">
-            <h2 class="toc-title">目次</h2>
-            <button
-              class="toc-toggle-btn"
-              onClick={toggleVisibility}
-              aria-label="Hide ToC"
-              title="目次を隠す"
-            >
-              ×
-            </button>
-          </div>
-          <nav class="toc" aria-label="Table of Contents">
-            <ul class="toc-list">{items.map((item) => renderItem(item))}</ul>
-          </nav>
-          <div
-            class={`toc-resize-handle ${isResizing ? 'resizing' : ''}`}
-            onMouseDown={startResize}
-            title="ドラッグして幅を調整"
-          />
-        </>
-      ) : (
-        <button
-          class="toc-show-btn"
-          onClick={toggleVisibility}
-          aria-label="Show ToC"
-          title="目次を表示"
-        >
-          ☰
-        </button>
-      )}
+      {tocState.value.visible
+        ? (
+          <>
+            <div class="toc-header">
+              <h2 class="toc-title">目次</h2>
+              <button
+                type="button"
+                class="toc-toggle-btn"
+                onClick={toggleVisibility}
+                aria-label="Hide ToC"
+                title="目次を隠す"
+              >
+                ×
+              </button>
+            </div>
+            <nav class="toc" aria-label="Table of Contents">
+              <ul class="toc-list">{items.map((item) => renderItem(item))}</ul>
+            </nav>
+            <div
+              class={`toc-resize-handle ${isResizing ? "resizing" : ""}`}
+              onMouseDown={startResize}
+              title="ドラッグして幅を調整"
+            />
+          </>
+        )
+        : (
+          <button
+            type="button"
+            class="toc-show-btn"
+            onClick={toggleVisibility}
+            aria-label="Show ToC"
+            title="目次を表示"
+          >
+            ☰
+          </button>
+        )}
     </aside>
   );
 };

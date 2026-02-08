@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { CopyButton } from '../shared/CopyButton.tsx';
+import { h as _h } from "preact";
+import { CopyButton } from "../shared/CopyButton.tsx";
 
 /**
  * CodeBlock コンポーネント
@@ -21,8 +21,8 @@ interface Props {
 }
 
 export const CodeBlock = ({ code, language, className }: Props) => {
-  const codeClassName = language ? `language-${language}` : '';
-  const blockClassName = className || 'code-block-wrapper';
+  const codeClassName = language ? `language-${language}` : "";
+  const blockClassName = className || "code-block-wrapper";
 
   return (
     <div class={blockClassName}>

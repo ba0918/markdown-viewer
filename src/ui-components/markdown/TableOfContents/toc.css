@@ -19,8 +19,9 @@
     2px 0 24px -4px var(--toc-shadow-1, rgba(0, 0, 0, 0.04)),
     8px 0 48px -12px var(--toc-shadow-2, rgba(0, 0, 0, 0.06));
   /* Spring easing - より自然な動き */
-  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -55,7 +56,9 @@
 
 .toc-title {
   /* 美しいフォントスタック - システムフォントの最高の組み合わせ */
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 650;
   margin: 0;
@@ -150,8 +153,7 @@
   background: var(--toc-scrollbar, rgba(0, 0, 0, 0.12));
   border-radius: 10px;
   /* より滑らかな変化 */
-  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.2s ease;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
   /* 細くてエレガント */
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -179,12 +181,24 @@
 }
 
 /* スタガードアニメーション - 順番に表示 */
-.toc-item:nth-child(1) { animation-delay: 0.02s; }
-.toc-item:nth-child(2) { animation-delay: 0.04s; }
-.toc-item:nth-child(3) { animation-delay: 0.06s; }
-.toc-item:nth-child(4) { animation-delay: 0.08s; }
-.toc-item:nth-child(5) { animation-delay: 0.1s; }
-.toc-item:nth-child(n+6) { animation-delay: 0.12s; }
+.toc-item:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.toc-item:nth-child(2) {
+  animation-delay: 0.04s;
+}
+.toc-item:nth-child(3) {
+  animation-delay: 0.06s;
+}
+.toc-item:nth-child(4) {
+  animation-delay: 0.08s;
+}
+.toc-item:nth-child(5) {
+  animation-delay: 0.1s;
+}
+.toc-item:nth-child(n+6) {
+  animation-delay: 0.12s;
+}
 
 @keyframes fadeInSlide {
   from {
@@ -227,7 +241,7 @@
 }
 
 .toc-collapse-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 5px;
@@ -257,8 +271,9 @@
   padding: 0.625rem 1rem 0.625rem 0.875rem;
   border-radius: 8px;
   /* より滑らかで複雑な変化 */
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    all 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-decoration: none;
   color: var(--toc-link, #4b5563);
   /* より太い境界線 - 視覚的重要度 */
@@ -270,7 +285,9 @@
   white-space: nowrap;
   flex: 1;
   /* 美しいフォントスタック */
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable",
+    "Segoe UI", system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 450;
   line-height: 1.5;
@@ -281,7 +298,7 @@
 }
 
 .toc-link::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 8px;
@@ -329,7 +346,7 @@
 }
 
 .toc-level-2::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0.625rem;
   top: 0;
@@ -345,7 +362,7 @@
 }
 
 .toc-level-3::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0.625rem;
   top: 0;
@@ -429,7 +446,7 @@
 }
 
 .toc-resize-handle::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--toc-resize-handle, #3b82f6);

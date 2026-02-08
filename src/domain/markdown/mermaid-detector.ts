@@ -97,17 +97,17 @@ export function hasMermaidBlocks(html: string): boolean {
  */
 function decodeHTMLEntities(html: string): string {
   const entities: Record<string, string> = {
-    '&lt;': '<',
-    '&gt;': '>',
-    '&amp;': '&',
-    '&quot;': '"',
-    '&#39;': "'",
-    '&#x27;': "'",
-    '&apos;': "'",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&amp;": "&",
+    "&quot;": '"',
+    "&#39;": "'",
+    "&#x27;": "'",
+    "&apos;": "'",
   };
 
   return html.replace(
     /&(?:lt|gt|amp|quot|#39|#x27|apos);/g,
-    (match) => entities[match] || match
+    (match) => entities[match] || match,
   );
 }

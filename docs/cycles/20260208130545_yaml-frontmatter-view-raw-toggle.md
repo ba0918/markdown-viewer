@@ -1,14 +1,14 @@
 # YAML Frontmatter処理とView/Rawモード切り替え
 
-**Cycle ID:** `20260208130545`
-**Started:** 2026-02-08 13:05:45
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208130545` **Started:** 2026-02-08 13:05:45 **Status:** 🟡
+Planning
 
 ---
 
 ## 📝 What & Why
 
-GitHub/Jekyll/Hugo等で使われるYAML Frontmatter（`---`で囲まれたメタデータ）を正しく処理し、レンダリング結果から除外。同時にView/Rawモード切り替え機能を実装して、レンダリング結果と元のMarkdownテキストを簡単に確認・コピーできるようにする。
+GitHub/Jekyll/Hugo等で使われるYAML
+Frontmatter（`---`で囲まれたメタデータ）を正しく処理し、レンダリング結果から除外。同時にView/Rawモード切り替え機能を実装して、レンダリング結果と元のMarkdownテキストを簡単に確認・コピーできるようにする。
 
 ## 🎯 Goals
 
@@ -78,7 +78,8 @@ tests/
 
 ### Key Points
 
-- **gray-matterライブラリ使用**: YAML Frontmatterの標準的な解析ライブラリ（Jekyll/Hugo互換）
+- **gray-matterライブラリ使用**: YAML
+  Frontmatterの標準的な解析ライブラリ（Jekyll/Hugo互換）
 - **domain層の分離**: Frontmatter処理は`domain/frontmatter/`に独立
 - **View/Raw状態管理**: Preact Signalsで`viewMode: 'view' | 'raw'`を管理
 - **ミニマルデザイン**: 薄いグレー背景（`#f6f8fa` GitHub風）、控えめでスッキリ
@@ -92,7 +93,8 @@ tests/
    - gray-matterライブラリ導入（`deno.json` imports追加）
    - Context7でgray-matter最新情報確認
    - `domain/frontmatter/parser.ts`でYAML解析 + content分離
-   - gray-matterがFrontmatter除外済みのcontentを返すので、markdown parserは変更不要
+   - gray-matterがFrontmatter除外済みのcontentを返すので、markdown
+     parserは変更不要
 
 2. **Phase 2: サービス層統合**
    - `services/markdown-service.ts`でFrontmatter解析を統合
@@ -182,17 +184,17 @@ mcp__plugin_context7_context7__query-docs
 
 ## 📊 Progress
 
-| Step | Status | Note |
-|------|--------|------|
-| gray-matter調査（Context7） | ⚪ | API・型定義確認 |
-| domain/frontmatter/parser実装 | ⚪ | RED→GREEN→REFACTOR |
-| services/markdown-service統合 | ⚪ | rawMarkdown追加 |
-| DocumentHeader実装（frontend-design） | ⚪ | ミニマルデザイン |
-| RawTextView実装 | ⚪ | |
-| MarkdownViewer統合 | ⚪ | viewMode Signal |
-| E2Eテスト（Frontmatter除外） | ⚪ | |
-| E2Eテスト（View/Raw切り替え） | ⚪ | |
-| Commit | ⚪ | smart-commit |
+| Step                                  | Status | Note               |
+| ------------------------------------- | ------ | ------------------ |
+| gray-matter調査（Context7）           | ⚪     | API・型定義確認    |
+| domain/frontmatter/parser実装         | ⚪     | RED→GREEN→REFACTOR |
+| services/markdown-service統合         | ⚪     | rawMarkdown追加    |
+| DocumentHeader実装（frontend-design） | ⚪     | ミニマルデザイン   |
+| RawTextView実装                       | ⚪     |                    |
+| MarkdownViewer統合                    | ⚪     | viewMode Signal    |
+| E2Eテスト（Frontmatter除外）          | ⚪     |                    |
+| E2Eテスト（View/Raw切り替え）         | ⚪     |                    |
+| Commit                                | ⚪     | smart-commit       |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -240,4 +242,5 @@ mcp__plugin_context7_context7__query-docs
 
 ---
 
-**Next:** Context7でgray-matter調査 → Tests → Implement → frontend-design for UI → Commit 🚀
+**Next:** Context7でgray-matter調査 → Tests → Implement → frontend-design for UI
+→ Commit 🚀

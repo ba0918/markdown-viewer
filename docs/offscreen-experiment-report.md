@@ -1,8 +1,7 @@
 # Offscreen Document API実験レポート
 
-**Cycle ID:** `20260208101823`
-**実験日:** 2026-02-08
-**目的:** WSL2環境でのHot Reload制限をOffscreen Document APIで回避できるか検証
+**Cycle ID:** `20260208101823` **実験日:** 2026-02-08 **目的:** WSL2環境でのHot
+Reload制限をOffscreen Document APIで回避できるか検証
 
 ---
 
@@ -10,7 +9,9 @@
 
 **結論: ❌ Offscreen Document APIではWSL2ファイルアクセス制限を回避できない**
 
-Offscreen Document APIを使用しても、`file://wsl.localhost/...` パスへのアクセスは同じセキュリティポリシーによってブロックされる。Chrome拡張機能のすべてのコンテキスト（Background Script、Content Script、Offscreen Document）で同一の制限が適用される。
+Offscreen Document APIを使用しても、`file://wsl.localhost/...`
+パスへのアクセスは同じセキュリティポリシーによってブロックされる。Chrome拡張機能のすべてのコンテキスト（Background
+Script、Content Script、Offscreen Document）で同一の制限が適用される。
 
 ---
 
@@ -27,7 +28,9 @@ Offscreen Document APIを使用しても、`file://wsl.localhost/...` パスへ�
 
 ### 仮説
 
-Offscreen Document APIは通常のWebページコンテキストに近い環境を提供するため、Background Scriptとは異なるセキュリティポリシーが適用される可能性がある。これによりWSL2ファイルへのアクセスが可能になるかもしれない。
+Offscreen Document
+APIは通常のWebページコンテキストに近い環境を提供するため、Background
+Scriptとは異なるセキュリティポリシーが適用される可能性がある。これによりWSL2ファイルへのアクセスが可能になるかもしれない。
 
 ---
 
@@ -53,7 +56,9 @@ Offscreen Document APIは通常のWebページコンテキストに近い環境�
 
 ```javascript
 // Service Workerコンソールで実行
-testOffscreenFetch("file://wsl.localhost/Ubuntu-24.04/home/mizumi/develop/ba-markdown-viewer/test-offscreen.md")
+testOffscreenFetch(
+  "file://wsl.localhost/Ubuntu-24.04/home/mizumi/develop/ba-markdown-viewer/test-offscreen.md",
+);
 ```
 
 ---
@@ -101,6 +106,7 @@ Not allowed to load local resource: file://wsl.localhost/...
 ```
 
 **エラー分析:**
+
 - `HEAD` / `GET` 両方のメソッドで失敗
 - エラーメッセージは Background Script と全く同じ
 - Chromeのコンソールに `Not allowed to load local resource` が表示
@@ -133,15 +139,18 @@ Not allowed to load local resource: file://wsl.localhost/...
 ### 1. Localhost HTTPサーバー（現行実装・推奨）
 
 **メリット:**
+
 - ✅ すでに実装済み
 - ✅ WSL2環境でも動作確認済み
 - ✅ Hot Reload完全対応
 
 **デメリット:**
+
 - ⚠️ ユーザーが手動でサーバー起動が必要
 - ⚠️ ポート番号管理が必要
 
 **実装例:**
+
 ```bash
 # WSL2内で実行
 python3 -m http.server 8000
@@ -152,10 +161,12 @@ deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts
 ### 2. Native Messaging Host
 
 **メリット:**
+
 - ✅ ファイルシステムへの完全アクセス
 - ✅ WSL2パスも直接アクセス可能
 
 **デメリット:**
+
 - ❌ 複雑なセットアップ（ネイティブアプリのインストール）
 - ❌ クロスプラットフォーム対応が困難
 - ❌ ユーザーフレンドリーでない
@@ -163,10 +174,12 @@ deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts
 ### 3. File System Access API
 
 **メリット:**
+
 - ✅ 標準Web API
 - ✅ 永続的なディレクトリアクセス（一度許可すれば継続）
 
 **デメリット:**
+
 - ❌ ユーザーが毎回ファイルピッカーで選択
 - ❌ Hot Reload の「自動」という特性と矛盾
 - ⚠️ WSL2パス対応は不明
@@ -179,7 +192,8 @@ deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts
 
 **Offscreen Document APIはWSL2 Hot Reload問題の解決策にならない。**
 
-Chromeの拡張機能セキュリティポリシーは、実行コンテキスト（Background/Content/Offscreen）に関わらず一貫して適用される。`file://wsl.localhost/...` へのアクセス制限は、Offscreen Documentでも回避できない。
+Chromeの拡張機能セキュリティポリシーは、実行コンテキスト（Background/Content/Offscreen）に関わらず一貫して適用される。`file://wsl.localhost/...`
+へのアクセス制限は、Offscreen Documentでも回避できない。
 
 ### 推奨事項
 
@@ -235,6 +249,5 @@ scripts/
 
 ---
 
-**実験担当:** Claude Sonnet 4.5
-**検証環境:** Windows 11 + WSL2 (Ubuntu 24.04) + Chrome 131+
-**最終更新:** 2026-02-08
+**実験担当:** Claude Sonnet 4.5 **検証環境:** Windows 11 + WSL2 (Ubuntu 24.04) +
+Chrome 131+ **最終更新:** 2026-02-08

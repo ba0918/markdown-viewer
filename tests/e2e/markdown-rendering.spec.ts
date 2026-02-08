@@ -3,16 +3,15 @@
  * @description Markdown表示機能のE2Eテスト
  */
 
-import { test, expect } from './fixtures.ts';
+import { expect, test } from "./fixtures.ts";
 import {
-  openMarkdownFile,
   expectMarkdownRendered,
   expectThemeApplied,
-} from './helpers/extension-helpers.ts';
+  openMarkdownFile,
+} from "./helpers/extension-helpers.ts";
 
-test.describe('Markdown Rendering', () => {
-
-  test('Markdownファイルが正しくレンダリングされる', async ({ page, testServerUrl }) => {
+test.describe("Markdown Rendering", () => {
+  test("Markdownファイルが正しくレンダリングされる", async ({ page, testServerUrl }) => {
     // Markdownファイルを開く（http://localhost経由）
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/test.md`;
     await openMarkdownFile(page, testUrl);
@@ -29,36 +28,36 @@ test.describe('Markdown Rendering', () => {
     await expect(bold).toBeVisible();
 
     // コードブロックが表示されているか確認
-    const codeBlock = page.locator('pre code');
+    const codeBlock = page.locator("pre code");
     await expect(codeBlock).toBeVisible();
   });
 
-  test('デフォルトテーマ（light）が適用される', async ({ page, testServerUrl }) => {
+  test("デフォルトテーマ（light）が適用される", async ({ page, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/test.md`;
     await openMarkdownFile(page, testUrl);
 
     // lightテーマが適用されているか確認
-    await expectThemeApplied(page, 'light');
+    await expectThemeApplied(page, "light");
   });
 
-  test('シンタックスハイライトが適用される', async ({ page, testServerUrl }) => {
+  test("シンタックスハイライトが適用される", async ({ page, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/test.md`;
     await openMarkdownFile(page, testUrl);
 
     // コードブロックにhighlight.jsのクラスが付与されているか確認
-    const codeBlock = page.locator('pre code');
-    const className = await codeBlock.getAttribute('class');
+    const codeBlock = page.locator("pre code");
+    const className = await codeBlock.getAttribute("class");
 
     // highlight.jsは "language-javascript" や "hljs" などのクラスを付与する
     expect(className).toMatch(/language-javascript|hljs/);
   });
 
-  test('テーブルが正しくレンダリングされる', async ({ page, testServerUrl }) => {
+  test("テーブルが正しくレンダリングされる", async ({ page, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/test.md`;
     await openMarkdownFile(page, testUrl);
 
     // テーブルが表示されているか確認
-    const table = page.locator('table');
+    const table = page.locator("table");
     await expect(table).toBeVisible();
 
     // テーブルヘッダーが存在するか確認
@@ -70,13 +69,13 @@ test.describe('Markdown Rendering', () => {
     await expect(td).toBeVisible();
   });
 
-  test('リンクが正しくレンダリングされる', async ({ page, testServerUrl }) => {
+  test("リンクが正しくレンダリングされる", async ({ page, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/test.md`;
     await openMarkdownFile(page, testUrl);
 
     // リンクが表示されているか確認
     const link = page.locator('a:has-text("Link")');
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute('href', 'https://example.com');
+    await expect(link).toHaveAttribute("href", "https://example.com");
   });
 });

@@ -1,8 +1,7 @@
 # Table of Contents (TOC) Auto-Generation
 
-**Cycle ID:** `20260208105055`
-**Started:** 2026-02-08 10:50:55
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208105055` **Started:** 2026-02-08 10:50:55 **Status:** 🟡
+Planning
 
 ---
 
@@ -79,16 +78,22 @@ src/
 
 ### Key Points
 
-- **見出し抽出（domain層）**: DOMパース不要、marked.lexer()を使用してトークン解析でH1-H3抽出
-- **ID生成**: 見出しテキストからURLフレンドリーなIDを生成（空白→ハイフン、小文字化）
-- **スクロール追従**: IntersectionObserver APIで現在表示中の見出しを検出、アクティブ状態をハイライト
-- **スムーススクロール**: `scrollIntoView({ behavior: 'smooth', block: 'start' })`でナビゲーション
-- **レイアウト**: `.markdown-viewer`を`display: flex`に変更、TOCを左、本文を右に配置
+- **見出し抽出（domain層）**:
+  DOMパース不要、marked.lexer()を使用してトークン解析でH1-H3抽出
+- **ID生成**:
+  見出しテキストからURLフレンドリーなIDを生成（空白→ハイフン、小文字化）
+- **スクロール追従**: IntersectionObserver
+  APIで現在表示中の見出しを検出、アクティブ状態をハイライト
+- **スムーススクロール**:
+  `scrollIntoView({ behavior: 'smooth', block: 'start' })`でナビゲーション
+- **レイアウト**:
+  `.markdown-viewer`を`display: flex`に変更、TOCを左、本文を右に配置
 - **テーマ対応**: 各テーマCSS（6種類）にTOC用カラー変数を追加
 
 ## ✅ Tests
 
 ### domain/toc/extractor.test.ts
+
 - [ ] H1見出しのみのMarkdownからTOC抽出
 - [ ] H1-H3混在のMarkdownからTOC抽出、階層構造保持
 - [ ] H4-H6を含むMarkdownでH1-H3のみ抽出
@@ -97,16 +102,19 @@ src/
 - [ ] 日本語見出しからURLフレンドリーなIDを生成
 
 ### services/toc-service.test.ts
+
 - [ ] レンダリング済みHTMLからTOCデータ生成
 - [ ] DOMPurify sanitize後のHTMLでもTOC生成可能
 - [ ] 見出しのネスト深度が正しく計算される
 
 ### ui-components/markdown/TableOfContents/TableOfContents.test.ts (Optional: E2Eで代替可)
+
 - [ ] TOCアイテムクリックで対象見出しにスクロール
 - [ ] 現在位置の見出しがアクティブ状態でハイライト
 - [ ] テーマ変更時にTOCスタイルが切り替わる
 
 ### E2E Tests (tests/e2e/toc.spec.ts)
+
 - [ ] 長いMarkdownファイルを開くとTOCが左サイドに表示される
 - [ ] TOCをクリックすると対象セクションにスムーススクロール
 - [ ] スクロールすると現在位置の見出しがハイライトされる
@@ -121,16 +129,16 @@ src/
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| domain/toc実装 | ⚪ |
-| services/toc-service実装 | ⚪ |
-| ui-components/TableOfContents実装 | ⚪ |
-| content/MarkdownViewer統合 | ⚪ |
-| テーマCSS追加 | ⚪ |
-| Tests (Unit) | ⚪ |
-| Tests (E2E) | ⚪ |
-| Commit | ⚪ |
+| Step                              | Status |
+| --------------------------------- | ------ |
+| domain/toc実装                    | ⚪     |
+| services/toc-service実装          | ⚪     |
+| ui-components/TableOfContents実装 | ⚪     |
+| content/MarkdownViewer統合        | ⚪     |
+| テーマCSS追加                     | ⚪     |
+| Tests (Unit)                      | ⚪     |
+| Tests (E2E)                       | ⚪     |
+| Commit                            | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -169,8 +177,8 @@ export interface TocItem extends TocHeading {
 **責務**: Markdownテキストから見出し（H1-H3）を抽出し、TOC用データ構造を生成
 
 ```typescript
-import { marked } from 'marked';
-import type { TocHeading } from './types.ts';
+import { marked } from "marked";
+import type { TocHeading } from "./types.ts";
 
 /**
  * 見出しテキストからURLフレンドリーなIDを生成
@@ -180,9 +188,9 @@ export const generateHeadingId = (text: string): string => {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // 英数字、空白、ハイフン以外を削除
-    .replace(/[\s_]+/g, '-')  // 空白とアンダースコアをハイフンに
-    .replace(/^-+|-+$/g, '');  // 先頭/末尾のハイフン削除
+    .replace(/[^\w\s-]/g, "") // 英数字、空白、ハイフン以外を削除
+    .replace(/[\s_]+/g, "-") // 空白とアンダースコアをハイフンに
+    .replace(/^-+|-+$/g, ""); // 先頭/末尾のハイフン削除
 };
 
 /**
@@ -195,7 +203,7 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
   const headings: TocHeading[] = [];
 
   for (const token of tokens) {
-    if (token.type === 'heading' && token.depth <= 3) {
+    if (token.type === "heading" && token.depth <= 3) {
       const text = token.text;
       const id = generateHeadingId(text);
 
@@ -219,7 +227,7 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
 export const buildTocTree = (headings: TocHeading[]): TocItem[] => {
   // 実装は次のフェーズで...
   // シンプルにフラットリストを返す実装からスタートも可
-  return headings.map(h => ({ ...h, children: [] }));
+  return headings.map((h) => ({ ...h, children: [] }));
 };
 ```
 
@@ -228,8 +236,8 @@ export const buildTocTree = (headings: TocHeading[]): TocItem[] => {
 **責務**: domainロジックを組み合わせてTOC生成のビジネスフローを実現
 
 ```typescript
-import { extractHeadings, buildTocTree } from '../domain/toc/extractor.ts';
-import type { TocItem } from '../domain/toc/types.ts';
+import { buildTocTree, extractHeadings } from "../domain/toc/extractor.ts";
+import type { TocItem } from "../domain/toc/types.ts";
 
 export class TocService {
   /**
@@ -251,10 +259,10 @@ export const tocService = new TocService();
 **責務**: TOCの表示、スクロール追従、アクティブ状態管理
 
 ```typescript
-import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import type { TocItem } from '../../../domain/toc/types.ts';
-import './toc.css';
+import { h } from "preact";
+import { useEffect, useState } from "preact/hooks";
+import type { TocItem } from "../../../domain/toc/types.ts";
+import "./toc.css";
 
 interface Props {
   items: TocItem[];
@@ -262,7 +270,7 @@ interface Props {
 }
 
 export const TableOfContents = ({ items, themeId }: Props) => {
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
     // IntersectionObserverで現在表示中の見出しを検出
@@ -274,19 +282,19 @@ export const TableOfContents = ({ items, themeId }: Props) => {
           }
         }
       },
-      { rootMargin: '-10% 0px -80% 0px' }
+      { rootMargin: "-10% 0px -80% 0px" },
     );
 
     // 全見出し要素を監視
-    const headings = document.querySelectorAll('h1, h2, h3');
-    headings.forEach(h => observer.observe(h));
+    const headings = document.querySelectorAll("h1, h2, h3");
+    headings.forEach((h) => observer.observe(h));
 
     return () => observer.disconnect();
   }, [items]);
 
   const handleClick = (id: string) => {
     const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    element?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (items.length === 0) return null;
@@ -295,11 +303,11 @@ export const TableOfContents = ({ items, themeId }: Props) => {
     <nav class={`toc toc-theme-${themeId}`}>
       <h2 class="toc-title">Table of Contents</h2>
       <ul class="toc-list">
-        {items.map(item => (
+        {items.map((item) => (
           <li key={item.id} class={`toc-item toc-level-${item.level}`}>
             <a
               href={`#${item.id}`}
-              class={activeId === item.id ? 'toc-link active' : 'toc-link'}
+              class={activeId === item.id ? "toc-link active" : "toc-link"}
               onClick={(e) => {
                 e.preventDefault();
                 handleClick(item.id);
@@ -368,9 +376,15 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 }
 
 /* レベル別インデント */
-.toc-level-1 { padding-left: 0; }
-.toc-level-2 { padding-left: 1rem; }
-.toc-level-3 { padding-left: 2rem; }
+.toc-level-1 {
+  padding-left: 0;
+}
+.toc-level-2 {
+  padding-left: 1rem;
+}
+.toc-level-3 {
+  padding-left: 2rem;
+}
 ```
 
 ### 6. content/components/MarkdownViewer.tsx
@@ -378,8 +392,8 @@ export const TableOfContents = ({ items, themeId }: Props) => {
 **変更内容**: TOCコンポーネントの統合、レイアウト調整
 
 ```tsx
-import { TableOfContents } from '../../ui-components/markdown/TableOfContents/TableOfContents.tsx';
-import { tocService } from '../../services/toc-service.ts';
+import { TableOfContents } from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
+import { tocService } from "../../services/toc-service.ts";
 
 export const MarkdownViewer = ({ html, themeId, markdown }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -435,23 +449,28 @@ export const MarkdownViewer = ({ html, themeId, markdown }: Props) => {
 ## 🎯 Implementation Strategy
 
 ### Phase 1: Domain層（純粋関数）
+
 1. `domain/toc/types.ts` - 型定義
 2. `domain/toc/extractor.ts` - 見出し抽出ロジック
 3. `domain/toc/extractor.test.ts` - テスト
 
 ### Phase 2: Service層
+
 4. `services/toc-service.ts` - TOC生成サービス
 5. `services/toc-service.test.ts` - テスト
 
 ### Phase 3: UI層
+
 6. `ui-components/markdown/TableOfContents/` - TOCコンポーネント
 7. `content/components/MarkdownViewer.tsx` - 統合
 
 ### Phase 4: スタイリング
+
 8. `ui-components/markdown/TableOfContents/toc.css` - 基本スタイル
 9. `content/styles/themes/*.css` - 各テーマ対応
 
 ### Phase 5: E2Eテスト
+
 10. `tests/e2e/toc.spec.ts` - 機能全体のE2Eテスト
 
 ---

@@ -3,16 +3,20 @@
  * @description Hot Reload機能のE2Eテスト
  */
 
-import { test, expect } from './fixtures.ts';
-import { resolve } from 'node:path';
-import { writeFile } from 'node:fs/promises';
+import { expect, test } from "./fixtures.ts";
+import { resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
 import {
   openMarkdownFile,
   openOptionsPage,
-} from './helpers/extension-helpers.ts';
+} from "./helpers/extension-helpers.ts";
+import process from "node:process";
 
 // テスト用Markdownファイルのパス
-const TEST_MD_PATH = resolve(process.cwd(), 'tests/e2e/fixtures/hot-reload-test.md');
+const TEST_MD_PATH = resolve(
+  process.cwd(),
+  "tests/e2e/fixtures/hot-reload-test.md",
+);
 
 // 元のMarkdownコンテンツ
 const ORIGINAL_CONTENT = `# Hot Reload Test
@@ -26,21 +30,21 @@ const UPDATED_CONTENT = `# Hot Reload Test
 **Updated content!**
 `;
 
-test.describe('Hot Reload', () => {
+test.describe("Hot Reload", () => {
   // Hot Reloadテストは時間がかかるため、タイムアウトを120秒に延長
   test.setTimeout(120000);
 
   test.beforeEach(async () => {
     // テスト用Markdownファイルを作成（元のコンテンツ）
-    await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, 'utf-8');
+    await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, "utf-8");
   });
 
   test.afterEach(async () => {
     // テスト用Markdownファイルを元に戻す
-    await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, 'utf-8');
+    await writeFile(TEST_MD_PATH, ORIGINAL_CONTENT, "utf-8");
   });
 
-  test('Hot Reload有効時、ファイル変更で自動リロードされる', async ({ page, context, extensionId, testServerUrl }) => {
+  test("Hot Reload有効時、ファイル変更で自動リロードされる", async ({ page, context, extensionId, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/hot-reload-test.md`;
 
     // Options画面でHot Reloadを有効化
@@ -48,13 +52,17 @@ test.describe('Hot Reload', () => {
     await openOptionsPage(optionsPage, extensionId);
 
     // Hot Reloadトグルボタンを探す（aria-labelで探す）
-    const hotReloadToggle = optionsPage.getByLabel(/Hot Reload有効化|Hot Reload無効化/);
+    const hotReloadToggle = optionsPage.getByLabel(
+      /Hot Reload有効化|Hot Reload無効化/,
+    );
 
     // トグルボタンが表示されるまで待機
-    await hotReloadToggle.waitFor({ state: 'visible', timeout: 10000 });
+    await hotReloadToggle.waitFor({ state: "visible", timeout: 10000 });
 
     // 現在の状態を確認（activeクラスがあるかチェック）
-    const isActive = await hotReloadToggle.evaluate((el) => el.classList.contains('active'));
+    const isActive = await hotReloadToggle.evaluate((el) =>
+      el.classList.contains("active")
+    );
 
     // 無効の場合のみクリック
     if (!isActive) {
@@ -73,12 +81,12 @@ test.describe('Hot Reload', () => {
 
     // コンソールログを監視
     const consoleLogs: string[] = [];
-    page.on('console', (msg) => {
+    page.on("console", (msg) => {
       consoleLogs.push(msg.text());
     });
 
     // Markdownファイルを更新
-    await writeFile(TEST_MD_PATH, UPDATED_CONTENT, 'utf-8');
+    await writeFile(TEST_MD_PATH, UPDATED_CONTENT, "utf-8");
 
     // Hot Reloadが検知してリロードするまで待機（最大10秒）
     // "File changed detected! Reloading..." ログが出るか、ページがリロードされるのを待つ
@@ -91,12 +99,12 @@ test.describe('Hot Reload', () => {
 
     // コンソールログに "File changed detected!" が含まれているか確認
     const hasDetectedLog = consoleLogs.some((log) =>
-      log.includes('File changed detected')
+      log.includes("File changed detected")
     );
     expect(hasDetectedLog).toBe(true);
   });
 
-  test('Hot Reload無効時、ファイル変更してもリロードされない', async ({ page, context, extensionId, testServerUrl }) => {
+  test("Hot Reload無効時、ファイル変更してもリロードされない", async ({ page, context, extensionId, testServerUrl }) => {
     const testUrl = `${testServerUrl}/tests/e2e/fixtures/hot-reload-test.md`;
 
     // Options画面でHot Reloadを無効化（デフォルトで無効のはず）
@@ -104,13 +112,17 @@ test.describe('Hot Reload', () => {
     await openOptionsPage(optionsPage, extensionId);
 
     // Hot Reloadトグルボタンを探す
-    const hotReloadToggle = optionsPage.getByLabel(/Hot Reload有効化|Hot Reload無効化/);
+    const hotReloadToggle = optionsPage.getByLabel(
+      /Hot Reload有効化|Hot Reload無効化/,
+    );
 
     // トグルボタンが表示されるまで待機
-    await hotReloadToggle.waitFor({ state: 'visible', timeout: 10000 });
+    await hotReloadToggle.waitFor({ state: "visible", timeout: 10000 });
 
     // 現在の状態を確認
-    const isActive = await hotReloadToggle.evaluate((el) => el.classList.contains('active'));
+    const isActive = await hotReloadToggle.evaluate((el) =>
+      el.classList.contains("active")
+    );
 
     // 有効の場合のみクリックして無効化
     if (isActive) {
@@ -127,7 +139,7 @@ test.describe('Hot Reload', () => {
     await expect(page.locator('p:has-text("Original content.")')).toBeVisible();
 
     // Markdownファイルを更新
-    await writeFile(TEST_MD_PATH, UPDATED_CONTENT, 'utf-8');
+    await writeFile(TEST_MD_PATH, UPDATED_CONTENT, "utf-8");
 
     // 5秒待機（Hot Reloadが有効なら検知される時間）
     await page.waitForTimeout(5000);

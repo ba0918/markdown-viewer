@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { CopyButton } from '../../shared/CopyButton.tsx';
+import { h as _h } from "preact";
+import { CopyButton } from "../../shared/CopyButton.tsx";
 
 /**
  * RawTextViewコンポーネント

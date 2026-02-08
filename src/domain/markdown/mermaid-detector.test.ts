@@ -5,14 +5,14 @@
  * These are pure functions that can be tested in Deno environment.
  */
 
-import { assertEquals } from '@std/assert';
+import { assertEquals } from "@std/assert";
 import {
   detectMermaidBlocks,
   hasMermaidBlocks,
-  type MermaidBlock,
-} from './mermaid-detector.ts';
+  type MermaidBlock as _MermaidBlock,
+} from "./mermaid-detector.ts";
 
-Deno.test('detectMermaidBlocks: detects single Mermaid code block', () => {
+Deno.test("detectMermaidBlocks: detects single Mermaid code block", () => {
   const html = `
     <pre><code class="language-mermaid">graph TD
     A[Start] --> B[End]</code></pre>
@@ -21,11 +21,11 @@ Deno.test('detectMermaidBlocks: detects single Mermaid code block', () => {
   const blocks = detectMermaidBlocks(html);
 
   assertEquals(blocks.length, 1);
-  assertEquals(blocks[0].code, 'graph TD\n    A[Start] --> B[End]');
+  assertEquals(blocks[0].code, "graph TD\n    A[Start] --> B[End]");
   assertEquals(blocks[0].index, 0);
 });
 
-Deno.test('detectMermaidBlocks: detects multiple Mermaid code blocks', () => {
+Deno.test("detectMermaidBlocks: detects multiple Mermaid code blocks", () => {
   const html = `
     <h1>Diagrams</h1>
     <pre><code class="language-mermaid">graph LR
@@ -38,13 +38,16 @@ Deno.test('detectMermaidBlocks: detects multiple Mermaid code blocks', () => {
   const blocks = detectMermaidBlocks(html);
 
   assertEquals(blocks.length, 2);
-  assertEquals(blocks[0].code.trim(), 'graph LR\n    A --> B');
+  assertEquals(blocks[0].code.trim(), "graph LR\n    A --> B");
   assertEquals(blocks[0].index, 0);
-  assertEquals(blocks[1].code.trim(), 'sequenceDiagram\n    Alice->>John: Hello');
+  assertEquals(
+    blocks[1].code.trim(),
+    "sequenceDiagram\n    Alice->>John: Hello",
+  );
   assertEquals(blocks[1].index, 1);
 });
 
-Deno.test('detectMermaidBlocks: ignores non-Mermaid code blocks', () => {
+Deno.test("detectMermaidBlocks: ignores non-Mermaid code blocks", () => {
   const html = `
     <pre><code class="language-javascript">console.log('hello');</code></pre>
     <pre><code class="language-python">print('hello')</code></pre>
@@ -55,7 +58,7 @@ Deno.test('detectMermaidBlocks: ignores non-Mermaid code blocks', () => {
   assertEquals(blocks.length, 0);
 });
 
-Deno.test('detectMermaidBlocks: handles empty code blocks', () => {
+Deno.test("detectMermaidBlocks: handles empty code blocks", () => {
   const html = `
     <pre><code class="language-mermaid"></code></pre>
   `;
@@ -66,7 +69,7 @@ Deno.test('detectMermaidBlocks: handles empty code blocks', () => {
   assertEquals(blocks.length, 0);
 });
 
-Deno.test('detectMermaidBlocks: handles HTML-escaped content', () => {
+Deno.test("detectMermaidBlocks: handles HTML-escaped content", () => {
   const html = `
     <pre><code class="language-mermaid">graph TD
     A[Start] --&gt; B[End]</code></pre>
@@ -76,10 +79,10 @@ Deno.test('detectMermaidBlocks: handles HTML-escaped content', () => {
 
   assertEquals(blocks.length, 1);
   // HTML entities should be decoded
-  assertEquals(blocks[0].code.includes('-->'), true);
+  assertEquals(blocks[0].code.includes("-->"), true);
 });
 
-Deno.test('detectMermaidBlocks: returns empty array for HTML without Mermaid', () => {
+Deno.test("detectMermaidBlocks: returns empty array for HTML without Mermaid", () => {
   const html = `
     <h1>No diagrams here</h1>
     <p>Just some text</p>
@@ -90,7 +93,7 @@ Deno.test('detectMermaidBlocks: returns empty array for HTML without Mermaid', (
   assertEquals(blocks.length, 0);
 });
 
-Deno.test('detectMermaidBlocks: handles mixed case class names', () => {
+Deno.test("detectMermaidBlocks: handles mixed case class names", () => {
   const html = `
     <pre><code class="Language-Mermaid">graph TD
     A --> B</code></pre>
@@ -104,7 +107,7 @@ Deno.test('detectMermaidBlocks: handles mixed case class names', () => {
   assertEquals(blocks.length, 2);
 });
 
-Deno.test('hasMermaidBlocks: returns true when Mermaid blocks exist', () => {
+Deno.test("hasMermaidBlocks: returns true when Mermaid blocks exist", () => {
   const html = `
     <pre><code class="language-mermaid">graph TD
     A --> B</code></pre>
@@ -113,7 +116,7 @@ Deno.test('hasMermaidBlocks: returns true when Mermaid blocks exist', () => {
   assertEquals(hasMermaidBlocks(html), true);
 });
 
-Deno.test('hasMermaidBlocks: returns false when no Mermaid blocks', () => {
+Deno.test("hasMermaidBlocks: returns false when no Mermaid blocks", () => {
   const html = `
     <pre><code class="language-javascript">console.log('hello');</code></pre>
   `;
@@ -121,11 +124,11 @@ Deno.test('hasMermaidBlocks: returns false when no Mermaid blocks', () => {
   assertEquals(hasMermaidBlocks(html), false);
 });
 
-Deno.test('hasMermaidBlocks: returns false for empty HTML', () => {
-  assertEquals(hasMermaidBlocks(''), false);
+Deno.test("hasMermaidBlocks: returns false for empty HTML", () => {
+  assertEquals(hasMermaidBlocks(""), false);
 });
 
-Deno.test('detectMermaidBlocks: preserves original code indentation', () => {
+Deno.test("detectMermaidBlocks: preserves original code indentation", () => {
   const html = `
     <pre><code class="language-mermaid">  graph TD
       A --> B
@@ -136,6 +139,6 @@ Deno.test('detectMermaidBlocks: preserves original code indentation', () => {
 
   assertEquals(blocks.length, 1);
   // Indentation should be preserved
-  assertEquals(blocks[0].code.includes('  graph TD'), true);
-  assertEquals(blocks[0].code.includes('    C --> D'), true);
+  assertEquals(blocks[0].code.includes("  graph TD"), true);
+  assertEquals(blocks[0].code.includes("    C --> D"), true);
 });

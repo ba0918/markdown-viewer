@@ -15,5 +15,6 @@ This document contains YAML frontmatter for testing purposes.
 ## Content
 
 The frontmatter above should be:
+
 - Excluded from the rendered View mode
 - Visible in the Raw mode

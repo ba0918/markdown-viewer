@@ -19,9 +19,10 @@ More plain text without LaTeX formulas.
 ## Code
 
 ```javascript
-console.log('No math here!');
+console.log("No math here!");
 ```
 
 ## Conclusion
 
-This file is used to test that MathJax is not loaded when there are no math expressions.
+This file is used to test that MathJax is not loaded when there are no math
+expressions.

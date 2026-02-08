@@ -1,8 +1,7 @@
 # テーマ設定永続化バグ修正
 
-**Cycle ID:** `20260208091700`
-**Started:** 2026-02-08 09:17:00
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208091700` **Started:** 2026-02-08 09:17:00 **Status:** 🟡
+Planning
 
 ---
 
@@ -12,7 +11,8 @@ StateManagerのバリデーションロジックが古く、`light`と`dark`し�
 
 ## 🎯 Goals
 
-- 全6テーマ（light, dark, github, minimal, solarized-light, solarized-dark）の設定永続化を実現
+- 全6テーマ（light, dark, github, minimal, solarized-light,
+  solarized-dark）の設定永続化を実現
 - StateManagerのバリデーションロジックを最新の型定義に合わせて修正
 - 既存のテストを修正し、全テーマの永続化を検証するテストを追加
 - E2Eテストでテーマ切り替え＆リロード後の永続化を検証
@@ -25,7 +25,7 @@ StateManagerのバリデーションロジックが古く、`light`と`dark`し�
 
 ```typescript
 // ❌ 古いバリデーション（2テーマのみ）
-const validThemes: Theme[] = ['light', 'dark'];
+const validThemes: Theme[] = ["light", "dark"];
 const theme = validThemes.includes(stored.theme as Theme)
   ? (stored.theme as Theme)
   : this.DEFAULT_STATE.theme;
@@ -52,9 +52,12 @@ tests/
 
 ### Key Points
 
-- **DRY原則**: `VALID_THEMES`定数を`shared/constants/themes.ts`で一元管理し、StateManagerと型定義（`src/shared/types/theme.ts`）で共有
-- **後方互換性**: 不正な値が入力された場合のフォールバック処理は維持（デフォルト`light`へ）
-- **テスト網羅性**: Unit（全6テーマ）+ E2E（実際のストレージ永続化）でダブルチェック
+- **DRY原則**:
+  `VALID_THEMES`定数を`shared/constants/themes.ts`で一元管理し、StateManagerと型定義（`src/shared/types/theme.ts`）で共有
+- **後方互換性**:
+  不正な値が入力された場合のフォールバック処理は維持（デフォルト`light`へ）
+- **テスト網羅性**: Unit（全6テーマ）+
+  E2E（実際のストレージ永続化）でダブルチェック
 
 ### Implementation Strategy
 
@@ -107,11 +110,11 @@ tests/
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| Tests | ⚪ |
-| Implementation | ⚪ |
-| Commit | ⚪ |
+| Step           | Status |
+| -------------- | ------ |
+| Tests          | ⚪     |
+| Implementation | ⚪     |
+| Commit         | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 

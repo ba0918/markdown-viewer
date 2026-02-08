@@ -1,6 +1,6 @@
-import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import { highlightCode } from './highlighter.ts';
+import { marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import { highlightCode } from "./highlighter.ts";
 
 /**
  * marked 初期化（シングルトンパターン）
@@ -13,14 +13,14 @@ const initializeMarked = () => {
 
   // marked-highlight 拡張を登録
   marked.use(markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight: highlightCode
+    langPrefix: "hljs language-",
+    highlight: highlightCode,
   }));
 
   // GitHub Flavored Markdown (GFM) サポート
   marked.setOptions({
-    gfm: true,           // GFM有効化
-    breaks: true         // 改行をbrタグに変換
+    gfm: true, // GFM有効化
+    breaks: true, // 改行をbrタグに変換
   });
 
   initialized = true;

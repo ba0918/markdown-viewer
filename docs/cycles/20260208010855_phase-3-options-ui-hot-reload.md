@@ -1,14 +1,14 @@
 # Phase 3: Options UI & Hot Reload
 
-**Cycle ID:** `20260208010855`
-**Started:** 2026-02-08 01:08:55
-**Status:** 🟡 Planning
+**Cycle ID:** `20260208010855` **Started:** 2026-02-08 01:08:55 **Status:** 🟡
+Planning
 
 ---
 
 ## 📝 What & Why
 
-Phase 3では、詳細設定ページ (Options UI)、追加テーマ4種、Hot Reload機能を実装し、ユーザーエクスペリエンスを大幅に向上させる。
+Phase 3では、詳細設定ページ (Options UI)、追加テーマ4種、Hot
+Reload機能を実装し、ユーザーエクスペリエンスを大幅に向上させる。
 
 ## 🎯 Goals
 
@@ -54,24 +54,29 @@ src/
 
 ### Key Points
 
-- **レイヤー分離厳守**: Options UIはmessaging I/Oのみ、File WatcherはDomain純粋関数
+- **レイヤー分離厳守**: Options UIはmessaging I/Oのみ、File
+  WatcherはDomain純粋関数
 - **TDD徹底**: File Watcher DomainはRED→GREEN→REFACTORで実装
-- **Progressive Enhancement**: Hot Reloadはオプション機能、無効でも基本機能は動作
+- **Progressive Enhancement**: Hot
+  Reloadはオプション機能、無効でも基本機能は動作
 
 ## ✅ Tests
 
 ### Step 1: Theme System (Domain層)
+
 - [ ] `loader.test.ts` - GitHub テーマ読み込み
 - [ ] `loader.test.ts` - Minimal テーマ読み込み
 - [ ] `loader.test.ts` - Solarized Light テーマ読み込み
 - [ ] `loader.test.ts` - Solarized Dark テーマ読み込み
 
 ### Step 2: File Watcher (Domain層)
+
 - [ ] `file-watcher.test.ts` - getLastModified 現在時刻取得
 - [ ] `file-watcher.test.ts` - hasFileChanged 変更なし判定
 - [ ] `file-watcher.test.ts` - hasFileChanged 変更あり判定
 
 ### Step 3: Integration
+
 - [ ] Options UI でテーマ切り替え動作確認
 - [ ] Options UI で Hot Reload 設定変更確認
 - [ ] Hot Reload 有効時、ファイル変更でリロード確認
@@ -87,33 +92,33 @@ src/
 
 ### Phase 3-1: Theme System (1日目) ✅
 
-| Task | Status |
-|------|--------|
-| 型定義更新 (theme.ts) | 🟢 |
-| CSS 4ファイル作成 | 🟢 |
-| loader.ts 更新 | 🟢 |
-| テスト追加 | 🟢 |
-| Build script 更新 | 🟢 |
+| Task                  | Status |
+| --------------------- | ------ |
+| 型定義更新 (theme.ts) | 🟢     |
+| CSS 4ファイル作成     | 🟢     |
+| loader.ts 更新        | 🟢     |
+| テスト追加            | 🟢     |
+| Build script 更新     | 🟢     |
 
 ### Phase 3-2: Options UI (2日目) ✅
 
-| Task | Status |
-|------|--------|
-| Options コンポーネント作成 | 🟢 |
-| ThemeSelector 実装 | 🟢 |
-| HotReloadSettings 実装 | 🟢 |
-| options.html 更新 | 🟢 |
-| Build script 更新 | 🟢 |
-| Popup ThemeSelector拡張 | 🟢 |
+| Task                       | Status |
+| -------------------------- | ------ |
+| Options コンポーネント作成 | 🟢     |
+| ThemeSelector 実装         | 🟢     |
+| HotReloadSettings 実装     | 🟢     |
+| options.html 更新          | 🟢     |
+| Build script 更新          | 🟢     |
+| Popup ThemeSelector拡張    | 🟢     |
 
 ### Phase 3-3: Hot Reload (3日目)
 
-| Task | Status |
-|------|--------|
-| File Watcher Domain (TDD) | ⚪ |
-| Content Script 更新 | ⚪ |
-| Storage 変更リスナー実装 | ⚪ |
-| E2Eテスト | ⚪ |
+| Task                      | Status |
+| ------------------------- | ------ |
+| File Watcher Domain (TDD) | ⚪     |
+| Content Script 更新       | ⚪     |
+| Storage 変更リスナー実装  | ⚪     |
+| E2Eテスト                 | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -165,6 +170,8 @@ src/
 
 ---
 
-**Reference:** 詳細な実装内容は [.claude/plans/phase-3-planning.md](../../.claude/plans/phase-3-planning.md) を参照
+**Reference:** 詳細な実装内容は
+[.claude/plans/phase-3-planning.md](../../.claude/plans/phase-3-planning.md)
+を参照
 
 **Next:** テスト書いて → 実装して → コミットして 🚀

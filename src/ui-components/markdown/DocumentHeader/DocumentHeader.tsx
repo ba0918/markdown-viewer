@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import type { ViewMode } from '../../../shared/types/view-mode.ts';
+import { h as _h } from "preact";
+import type { ViewMode } from "../../../shared/types/view-mode.ts";
 
 /**
  * DocumentHeaderコンポーネント
@@ -21,38 +21,45 @@ interface Props {
   themeId: string;
 }
 
-export const DocumentHeader = ({ currentMode, onModeChange, style, themeId }: Props) => {
+export const DocumentHeader = (
+  { currentMode, onModeChange, style, themeId }: Props,
+) => {
   const handleTabClick = (mode: ViewMode) => {
     onModeChange(mode);
   };
 
   const handleKeyDown = (event: KeyboardEvent, mode: ViewMode) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onModeChange(mode);
     }
   };
 
   return (
-    <header class={`document-header document-header-theme-${themeId}`} style={style}>
+    <header
+      class={`document-header document-header-theme-${themeId}`}
+      style={style}
+    >
       <div class="document-header-content">
         <div class="document-header-tabs">
           <button
-            class={`tab ${currentMode === 'view' ? 'active' : ''}`}
-            onClick={() => handleTabClick('view')}
-            onKeyDown={(e) => handleKeyDown(e, 'view')}
+            type="button"
+            class={`tab ${currentMode === "view" ? "active" : ""}`}
+            onClick={() => handleTabClick("view")}
+            onKeyDown={(e) => handleKeyDown(e, "view")}
             role="tab"
-            aria-selected={currentMode === 'view'}
+            aria-selected={currentMode === "view"}
             aria-label="View mode"
           >
             View
           </button>
           <button
-            class={`tab ${currentMode === 'raw' ? 'active' : ''}`}
-            onClick={() => handleTabClick('raw')}
-            onKeyDown={(e) => handleKeyDown(e, 'raw')}
+            type="button"
+            class={`tab ${currentMode === "raw" ? "active" : ""}`}
+            onClick={() => handleTabClick("raw")}
+            onKeyDown={(e) => handleKeyDown(e, "raw")}
             role="tab"
-            aria-selected={currentMode === 'raw'}
+            aria-selected={currentMode === "raw"}
             aria-label="Raw mode"
           >
             Raw

@@ -86,7 +86,7 @@ export const hasFileChanged = (
 
   // 新タイムスタンプが空文字列の場合（エラー回避）
   // または両方が空文字列の場合
-  if (newTimestamp === '' || (oldTimestamp === '' && newTimestamp === '')) {
+  if (newTimestamp === "" || (oldTimestamp === "" && newTimestamp === "")) {
     return false; // 空の場合は「変更なし」として扱う
   }
 

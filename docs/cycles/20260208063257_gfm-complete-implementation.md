@@ -1,15 +1,14 @@
 # GitHub Flavored Markdown (GFM) 完全対応
 
-**Cycle ID:** `20260208063257`
-**Started:** 2026-02-08 06:32:57
-**Completed:** 2026-02-08 06:46:52
-**Status:** 🟢 Completed
+**Cycle ID:** `20260208063257` **Started:** 2026-02-08 06:32:57 **Completed:**
+2026-02-08 06:46:52 **Status:** 🟢 Completed
 
 ---
 
 ## 📝 What & Why
 
-markedライブラリの `gfm: true` は既に有効化されているが、打ち消し線・タスクリスト・オートリンクのテストとCSSスタイルが不足している。GFM仕様に完全準拠し、全機能が正しく動作することを保証する。
+markedライブラリの `gfm: true`
+は既に有効化されているが、打ち消し線・タスクリスト・オートリンクのテストとCSSスタイルが不足している。GFM仕様に完全準拠し、全機能が正しく動作することを保証する。
 
 ## 🎯 Goals
 
@@ -23,13 +22,13 @@ markedライブラリの `gfm: true` は既に有効化されているが、打�
 
 ### GFM機能の実装状況
 
-| 機能 | Parser | Test | CSS | Status |
-|------|--------|------|-----|--------|
-| Tables | ✅ | ✅ | ✅ | 完了 |
-| Strikethrough | ✅ | ❌ | ❌ | 未完了 |
-| Task Lists | ✅ | ❌ | ❌ | 未完了 |
-| Autolinks | ✅ | ❌ | - | 未完了 |
-| Line Breaks | ✅ | - | - | 完了 |
+| 機能          | Parser | Test | CSS | Status |
+| ------------- | ------ | ---- | --- | ------ |
+| Tables        | ✅     | ✅   | ✅  | 完了   |
+| Strikethrough | ✅     | ❌   | ❌  | 未完了 |
+| Task Lists    | ✅     | ❌   | ❌  | 未完了 |
+| Autolinks     | ✅     | ❌   | -   | 未完了 |
+| Line Breaks   | ✅     | -    | -   | 完了   |
 
 ### Files to Change
 
@@ -51,8 +50,10 @@ e2e/
 
 ### Key Points
 
-- **Strikethrough CSS**: `<del>` と `<s>` タグに `text-decoration: line-through` を適用
-- **Task List CSS**: `input[type="checkbox"]` のスタイリング（GitHubライクなチェックボックス）
+- **Strikethrough CSS**: `<del>` と `<s>` タグに `text-decoration: line-through`
+  を適用
+- **Task List CSS**: `input[type="checkbox"]`
+  のスタイリング（GitHubライクなチェックボックス）
 - **Autolink**: marked の `gfm: true` で自動処理済み、テストで確認のみ
 - **全テーマ統一**: 各テーマファイルに同じGFMスタイルを追加
 
@@ -87,25 +88,27 @@ e2e/
 ## 🔒 Security
 
 - [x] DOMPurify が打ち消し線タグ（`<del>`, `<s>`）を許可しているか確認
-- [x] タスクリストの `<input>` タグが `disabled` 属性を持つか確認（クリック不可）
+- [x] タスクリストの `<input>` タグが `disabled`
+      属性を持つか確認（クリック不可）
 - [x] オートリンクが `javascript:` プロトコルをブロックするか確認
 - [x] セキュリティテスト追加（sanitizer.test.ts に +6テスト）
 
 ## 📊 Progress
 
-| Step | Status |
-|------|--------|
-| Unit Tests | 🟢 |
-| CSS Styling | 🟢 |
-| E2E Tests | 🟢 |
-| Security Check | 🟢 |
-| Commit | 🟢 |
+| Step           | Status |
+| -------------- | ------ |
+| Unit Tests     | 🟢     |
+| CSS Styling    | 🟢     |
+| E2E Tests      | 🟢     |
+| Security Check | 🟢     |
+| Commit         | 🟢     |
 
 ## 🎉 完了
 
 **実装期間:** 2026-02-08 06:32:57 ～ 2026-02-08 06:46:52（約14分）
 
 **成果物:**
+
 - Unit Tests: parser.test.ts (+9), sanitizer.test.ts (+6)
 - CSS Styling: 全6テーマにGFMスタイル追加
 - Security: sanitizer.ts に <del>, <input> ホワイトリスト追加
@@ -113,6 +116,7 @@ e2e/
 - テスト結果: 全80テスト通過（Unit 73 + E2E 7）
 
 **Commits:**
+
 - `[e32ff4f]` feat: GitHub Flavored Markdown (GFM) 完全対応
 - `[70b0f0e]` test: GFM機能のE2Eテスト追加
 
@@ -124,8 +128,10 @@ e2e/
 
 - [marked.js Documentation](https://marked.js.org/)
 - [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
-- [remark-gfm plugin](https://github.com/remarkjs/remark-gfm) - GFM機能の参考実装
+- [remark-gfm plugin](https://github.com/remarkjs/remark-gfm) -
+  GFM機能の参考実装
 
 ---
 
-**Next:** Write tests → Implement CSS → E2E verification → Commit with `smart-commit` 🚀
+**Next:** Write tests → Implement CSS → E2E verification → Commit with
+`smart-commit` 🚀

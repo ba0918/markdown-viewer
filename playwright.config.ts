@@ -6,17 +6,18 @@
  * NOTE: 拡張機能のロードはfixtures.tsで行うため、ここでは基本設定のみ。
  */
 
-import { defineConfig } from '@playwright/test';
+import { defineConfig } from "@playwright/test";
+import process from "node:process";
 
 // WSL2環境: DBusの問題を回避するために環境変数を設定
 // Reference: https://github.com/microsoft/playwright/issues/11072
-if (process.platform === 'linux') {
-  process.env.DBUS_SESSION_BUS_ADDRESS = '/dev/null';
+if (process.platform === "linux") {
+  process.env.DBUS_SESSION_BUS_ADDRESS = "/dev/null";
 }
 
 export default defineConfig({
   // テストディレクトリ
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
 
   // テストタイムアウト
   timeout: 60000, // Hot Reloadテストは時間がかかるため60秒に延長
@@ -30,19 +31,19 @@ export default defineConfig({
 
   // レポーター
   reporter: [
-    ['list'],
-    ['html', { outputFolder: 'playwright-report' }]
+    ["list"],
+    ["html", { outputFolder: "playwright-report" }],
   ],
 
   // 共通設定
   use: {
     // トレース設定
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     // スクリーンショット
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
 
     // ビデオ
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
   },
 });
