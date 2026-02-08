@@ -90,6 +90,16 @@ try {
   });
   console.log('✅ options.js built');
 
+  // Offscreen Document Script
+  console.log('📦 Building offscreen script...');
+  await esbuild.build({
+    ...commonConfig,
+    entryPoints: ['src/offscreen/hot-reload/offscreen.ts'],
+    outfile: 'dist/offscreen.js',
+    platform: 'browser'
+  });
+  console.log('✅ offscreen.js built');
+
   // manifest.jsonをdist/にコピー
   console.log('📄 Copying manifest.json...');
   await Deno.copyFile('manifest.json', 'dist/manifest.json');
@@ -99,6 +109,7 @@ try {
   console.log('📄 Copying HTML files...');
   await Deno.copyFile('src/settings/popup/popup.html', 'dist/popup.html');
   await Deno.copyFile('src/settings/options/options.html', 'dist/options.html');
+  await Deno.copyFile('src/offscreen/hot-reload/offscreen.html', 'dist/offscreen.html');
   console.log('✅ HTML files copied');
 
   // CSSファイルをdist/にコピー (Phase 3: 6テーマ対応)

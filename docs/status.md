@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 09:18:35
+**Last Updated:** 2026-02-08 10:18:23
 
 ---
 
@@ -8,24 +8,45 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208091700` |
-| **Feature** | テーマ設定永続化バグ修正 |
-| **Started** | 2026-02-08 09:17:00 |
+| **Cycle ID** | `20260208101823` |
+| **Feature** | Offscreen Document Hot Reload実験 |
+| **Started** | 2026-02-08 10:18:23 |
 | **Phase** | 🟡 Planning |
-| **Plan** | [docs/cycles/20260208091700_theme-persistence-bugfix.md](./cycles/20260208091700_theme-persistence-bugfix.md) |
+| **Plan** | [docs/cycles/20260208101823_offscreen-hot-reload-experiment.md](./cycles/20260208101823_offscreen-hot-reload-experiment.md) |
 
 **現在のフォーカス:**
-StateManagerのバリデーションロジックが古く、`light`と`dark`以外のテーマ（`github`, `minimal`, `solarized-light`, `solarized-dark`）がリロード時に`light`へリセットされる不具合を修正。全6テーマの永続化を実現。
+WSL2環境（`file://wsl.localhost/...`）でHot Reload機能が動作しない問題を、offscreen document APIを使用して回避できるか実験的に検証する。manifest設定→offscreen HTML/TS作成→fetch動作検証の順で進める。
 
 ---
 
 ## 📜 Session History
 
-### 20260208080824 - Mermaidダイアグラム機能（Dynamic Import）
+### 20260208101655 - offscreen document実験（前回のプランニングセッション）
+- **Started:** 2026-02-08 10:16:55
+- **Completed:** 2026-02-08 10:18:23
+- **Status:** 🟢 Completed
+- **Summary:** offscreen document実験の計画立案セッション。Hot ReloadのWSL2制限回避を目的とした実験設計を完了。正式な計画ドキュメント（20260208101823）を作成して次セッションに引き継ぎ。
+- **Plan:** （計画立案のみ、実装なし）
+
+### 20260208092300 - テーマ永続化バグ修正・UI改善・Hot Reload実装
+- **Started:** 2026-02-08 09:23:00
+- **Completed:** 2026-02-08 10:15:00
+- **Status:** 🟢 Completed
+- **Summary:** 複数機能の統合改善。(1) 全6テーマの永続化対応（github/minimal/solarized-light/solarized-darkが保存されるように修正）、(2) ポップアップUIを2列グリッドレイアウトに改善（全テーマが物理的に選択可能に）、(3) Mermaidダイアグラムのテーマ対応を5種類に拡張（base/dark/forest/neutral対応）、(4) Hot Reload機能実装（Windowsローカルファイルで動作、WSL2では制限あり）、(5) コードクリーンアップとエラーハンドリング改善。全102テスト通過。
+- **Plan:** [docs/cycles/20260208091700_theme-persistence-bugfix.md](./cycles/20260208091700_theme-persistence-bugfix.md) + UI改善 + Mermaidテーマ + Hot Reload実装
+- **Commits:**
+  - `[2fae1f4]` fix: 全6テーマの設定永続化を実現（github/minimal/solarized対応）
+  - `[最新]` fix: テーマ永続化とHot Reload機能の改善
+- **Note:** Hot ReloadはWindowsローカルファイル（`file:///C:/...`）で動作確認済み。WSL2ファイル（`file://wsl.localhost/...`）ではChromeセキュリティ制限により利用不可。offscreen document APIでの回避可能性を次セッションで検証予定。
+
+### 20260208080824 - Mermaidダイアグラム機能（静的import + Signals）
 - **Started:** 2026-02-08 08:08:24
-- **Status:** 🟡 Planning (未着手)
-- **Summary:** Mermaid記法（```mermaid）のダイアグラム描画機能を追加予定。Dynamic Importで遅延ロード、レイヤー分離を厳守。MathJax実装の成功パターンを活用。
+- **Completed:** 2026-02-08 09:20:00
+- **Status:** 🟢 Completed
+- **Summary:** Mermaid記法（\`\`\`mermaid）のダイアグラム描画機能を実装。当初Dynamic Import予定だったが、esbuildバンドル制約により静的importに方針変更。Preact Signalsで状態管理、レイヤー分離厳守（domain/mermaid-renderer.ts）。全102テスト通過（Unit 97 + E2E 5）。
 - **Plan:** [docs/cycles/20260208080824_mermaid-diagram-dynamic-import.md](./cycles/20260208080824_mermaid-diagram-dynamic-import.md)
+- **Commits:**
+  - `[d0468aa]` feat: Mermaidダイアグラム表示機能（静的import + Signals）
 
 ### 20260208065017 - MathJax数式表示機能
 - **Started:** 2026-02-08 06:50:17

@@ -1,6 +1,8 @@
 /// <reference types="@types/chrome" />
 
 import { handleBackgroundMessage } from '../messaging/handlers/background-handler.ts';
+import { createOffscreenDocument } from './offscreen-manager.ts';
+import './offscreen-test.ts'; // グローバル関数として読み込み
 
 /**
  * Service Worker (Background Script)
@@ -14,8 +16,16 @@ import { handleBackgroundMessage } from '../messaging/handlers/background-handle
 /**
  * 拡張機能インストール時
  */
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   console.log('Markdown Viewer installed');
+
+  // [実験] offscreen document作成テスト
+  try {
+    await createOffscreenDocument('Experimental Hot Reload file fetching');
+    console.log('[Experiment] Offscreen document created successfully');
+  } catch (error) {
+    console.error('[Experiment] Failed to create offscreen document:', error);
+  }
 });
 
 /**
