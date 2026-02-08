@@ -6,7 +6,9 @@
  * ❌ NG: Chrome API、UI処理
  */
 
-import { extractHeadings, buildTocTree } from '../domain/toc/extractor.ts';
+import { extractHeadings } from '../domain/toc/extractor.ts';
+import { normalizeHeadingLevels } from '../domain/toc/normalizer.ts';
+import { buildTocTree } from '../domain/toc/tree-builder.ts';
 import type { TocItem } from '../domain/toc/types.ts';
 
 /**
@@ -16,15 +18,23 @@ export class TocService {
   /**
    * Markdownテキストから目次を生成
    *
+   * 処理フロー:
+   * 1. 見出し抽出（extractHeadings）
+   * 2. レベル正規化（normalizeHeadingLevels）
+   * 3. ツリー構築（buildTocTree）
+   *
    * @param markdown Markdownテキスト
-   * @returns TOCツリー（現状はフラット構造）
+   * @returns TOCツリー（階層構造、不正レベル補正済み）
    */
   generate(markdown: string): TocItem[] {
     // 1. domain層で見出しを抽出
     const headings = extractHeadings(markdown);
 
-    // 2. domain層でツリー構造を構築
-    const tree = buildTocTree(headings);
+    // 2. domain層で見出しレベルを正規化
+    const normalizedHeadings = normalizeHeadingLevels(headings);
+
+    // 3. domain層でツリー構造を構築
+    const tree = buildTocTree(normalizedHeadings);
 
     return tree;
   }
