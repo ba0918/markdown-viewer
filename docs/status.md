@@ -1,25 +1,29 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 14:08:51
+**Last Updated:** 2026-02-08 22:04:22
 
 ---
 
 ## 🎯 Current Session
 
-| Field | Value |
-|-------|-------|
-| **Cycle ID** | 20260208140329 |
-| **Feature** | ToC不正見出しレベル正規化 |
-| **Started** | 2026-02-08 14:03:29 |
-| **Phase** | 🟡 Planning |
-| **Plan** | [docs/cycles/20260208140329_toc-irregular-heading-level-normalization.md](./cycles/20260208140329_toc-irregular-heading-level-normalization.md) |
-
-**Current Focus:**
-h3やh2から始まる不正な見出しレベルのMarkdownでも、ToCが違和感なく表示されるように正規化機能を実装。最小レベルを基準に相対的な階層構造を保持。TDD（RED→GREEN→REFACTOR）で実装予定。
+現在作業中のセッションはありません。新しいセッションを開始してください。
 
 ---
 
 ## 📜 Session History
+
+### 20260208140329 - ToC不正見出しレベル正規化
+- **Started:** 2026-02-08 14:03:29
+- **Completed:** 2026-02-08 22:04:22
+- **Status:** 🟢 Completed
+- **Summary:** h3やh2から始まる不正な見出しレベルのMarkdownでToC表示が違和感のある問題を解決。当初は最小レベル正規化アルゴリズムで実装したが、dig.mdケース（h3→h3→h2）で視覚的違和感が発生。アルゴリズムを「親検出方式」に完全書き換え：1レベル上の親が存在するかチェックし、親がいない場合はh2に変換。さらに、h1がない文書では縦線とインデントを非表示にするCSSルール（`:not(:has(> .toc-level-1))`）を追加。全163テスト通過、ビルド成功。
+- **Plan:** [docs/cycles/20260208140329_toc-irregular-heading-level-normalization.md](./cycles/20260208140329_toc-irregular-heading-level-normalization.md)
+- **Commits:**
+  - `[b3ed3fc]` feat: ToC不正見出しレベル正規化機能を実装
+  - `[0159b3f]` fix: ToC生成時にFrontmatter除外済みcontentを使用（Props整理含む）
+  - `[38468ee]` feat: ToC親検出アルゴリズムとCSS修正（h1なし文書の視覚的違和感を解消）
+- **Algorithm:** 親検出アルゴリズム - h1は親不要、h2はh1が必要、h3はh2が必要。前方に親が存在しない場合はh2に変換（最上位はh2）。
+- **Learning:** 最小レベル正規化では視覚的違和感が残る（縦線が親なし子要素を示唆）。親検出 + CSS（`:has()`疑似クラス）の組み合わせで、アルゴリズムとプレゼンテーションの両面からアプローチすることで、自然な表示を実現。
 
 ### 20260208130545 - YAML Frontmatter処理とView/Rawモード切り替え（Part 1: Frontmatter解析完了）
 - **Started:** 2026-02-08 13:05:45
