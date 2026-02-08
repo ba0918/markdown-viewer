@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 12:55:39
+**Last Updated:** 2026-02-08 13:05:45
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | - |
-| **Feature** | - |
-| **Started** | - |
-| **Phase** | - |
-| **Plan** | - |
+| **Cycle ID** | `20260208130545` |
+| **Feature** | YAML Frontmatter処理とView/Rawモード切り替え |
+| **Started** | 2026-02-08 13:05:45 |
+| **Phase** | 🟡 Planning |
+| **Plan** | [docs/cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md](./cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md) |
 
 **Current Focus:**
-セッション待機中。次のタスクを開始してください。
+YAML Frontmatter（`---`で囲まれたメタデータ）を解析してレンダリング結果から除外（GitHub互換）。View/Rawモード切り替え機能を実装し、レンダリング結果と元のMarkdownテキストを簡単に確認できるようにする。
 
 ---
 

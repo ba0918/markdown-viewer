@@ -6,6 +6,7 @@ import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import type { AppState } from '../shared/types/state.ts';
 import type { Theme } from '../shared/types/theme.ts';
+import type { RenderResult } from '../shared/types/render.ts';
 import { isWslFile } from '../shared/utils/wsl-detector.ts';
 
 // Chrome API型定義（実行時はグローバルに存在する）
@@ -166,7 +167,7 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
     loadThemeCss(theme);
 
     // 3. ✅ OK: messaging経由でserviceを利用
-    const html = await sendMessage<string>({
+    const result = await sendMessage<RenderResult>({
       type: 'RENDER_MARKDOWN',
       payload: { markdown, themeId: theme }
     });
@@ -177,7 +178,11 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
     // 5. Preactでレンダリング（themeIdはSignalで渡す）
     render(
       h(ErrorBoundary, null,
-        h(MarkdownViewer, { html, markdown, themeId: currentTheme })
+        h(MarkdownViewer, {
+          html: result.html,
+          rawMarkdown: result.rawMarkdown,
+          themeId: currentTheme
+        })
       ),
       document.body
     );

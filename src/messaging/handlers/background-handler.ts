@@ -25,11 +25,11 @@ export const handleBackgroundMessage = async (
       case 'RENDER_MARKDOWN': {
         // ✅ OK: serviceに委譲するだけ
         const theme = loadTheme(message.payload.themeId);
-        const html = await markdownService.render(
+        const result = await markdownService.render(
           message.payload.markdown,
           theme
         );
-        return { success: true, data: html };
+        return { success: true, data: result };
       }
 
       case 'LOAD_THEME': {

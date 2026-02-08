@@ -22,19 +22,19 @@ import type { TocItem } from '../../domain/toc/types.ts';
 
 interface Props {
   html: string;
-  markdown: string;
+  rawMarkdown: string;
   themeId: Signal<string>;
 }
 
-export const MarkdownViewer = ({ html, markdown, themeId }: Props) => {
+export const MarkdownViewer = ({ html, rawMarkdown, themeId }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
 
-  // TOC生成
+  // TOC生成（Frontmatter除外済みのcontentではなく、元のmarkdownを使用）
   useEffect(() => {
-    const items = tocService.generate(markdown);
+    const items = tocService.generate(rawMarkdown);
     setTocItems(items);
-  }, [markdown]);
+  }, [rawMarkdown]);
 
   // ToCの状態に合わせて動的に margin-left を計算
   // ⚠️ tocState.value を使うことで、Signalの変更を自動検知（リアクティブ）
