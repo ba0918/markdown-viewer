@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 13:29:18
+**Last Updated:** 2026-02-08 14:00:51
 
 ---
 
@@ -21,15 +21,18 @@
 
 ## 📜 Session History
 
-### 20260208130545 - YAML Frontmatter処理とView/Rawモード切り替え
+### 20260208130545 - YAML Frontmatter処理とView/Rawモード切り替え（Part 1: Frontmatter解析完了）
 - **Started:** 2026-02-08 13:05:45
-- **Completed:** 2026-02-08 13:29:18
-- **Status:** 🟡 In Progress（Part 1完了）
-- **Summary:** YAML Frontmatter解析機能を実装完了。gray-matterライブラリでFrontmatterを解析し、レンダリング結果から除外（GitHub互換）。domain/frontmatter層の実装、services/messaging/content層の統合、全テスト通過、ビルド成功。次はView/Rawモード切り替えUI実装。
+- **Completed:** 2026-02-08 14:00:51
+- **Status:** 🟢 Completed（Part 1のみ）
+- **Summary:** YAML Frontmatter解析機能を実装完了。当初gray-matterを使用したが、ブラウザ環境で"Dynamic require of 'fs' is not supported"エラーが発生したため、Deno標準ライブラリ @std/yaml に置き換え。自前の正規表現でFrontmatter抽出 + @std/yaml でYAML解析する実装に変更。domain/frontmatter層の実装、services/messaging/content層の統合、全155テスト通過、ビルド成功、Chrome拡張で動作確認完了。Part 2（View/Rawモード切り替えUI）は別セッションで実施予定。
 - **Plan:** [docs/cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md](./cycles/20260208130545_yaml-frontmatter-view-raw-toggle.md)
 - **Commits:**
   - `[237e020]` feat: YAML Frontmatter解析機能を実装（レンダリング結果から除外）
-- **Next:** View/Rawモード切り替えUI実装（DocumentHeader, RawTextView, frontend-design使用）
+  - `[78317bb]` docs: セッション20260208130545完了記録を追加（Part 1: Frontmatter解析）
+  - `[872b3b6]` fix: gray-matter を @std/yaml に置き換え（ブラウザ互換性修正）
+- **Learning:** gray-matterはNode.js依存（fs, path等）のためブラウザ環境では動作不可。npm:yaml（eemeli/yaml）も同様にNode.js依存あり。@std/yaml（Deno標準）はブラウザ完全対応で依存なし。
+- **Next:** Part 2: View/Rawモード切り替えUI実装（DocumentHeader, RawTextView, frontend-design使用）は別セッションで実施
 
 ### 20260208111558 - ToC レイアウト可変対応（リサイズ時の被り防止）
 - **Started:** 2026-02-08 11:15:58
