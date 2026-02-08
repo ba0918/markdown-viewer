@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 12:28:40
+**Last Updated:** 2026-02-08 12:55:39
 
 ---
 
@@ -8,18 +8,28 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208111558` |
-| **Feature** | ToC UX Improvements (折りたたみ・固定・リサイズ・デザイン刷新) |
-| **Started** | 2026-02-08 11:15:58 |
-| **Phase** | 🟡 In Progress |
-| **Plan** | [docs/cycles/20260208111558_toc-ux-improvements.md](./cycles/20260208111558_toc-ux-improvements.md) |
+| **Cycle ID** | - |
+| **Feature** | - |
+| **Started** | - |
+| **Phase** | - |
+| **Plan** | - |
 
 **Current Focus:**
-ToC UX改善機能の実装中。(1) 階層の折りたたみ機能（▶/▼アイコン）、(2) ToC全体の表示/非表示Toggle（×/☰ボタン）、(3) position:fixedによる固定表示、(4) 横幅調整機能（Resize Handle、150px-500px）、(5) プロフェッショナルなデザイン刷新（全6テーマ対応）、**(6) レイアウト可変対応（ToCリサイズ時にmarkdown-viewerが被らないよう動的margin-left設定）**。前回のセッションから引き継ぎ、未実装のレイアウト被り問題を解決します。
+セッション待機中。次のタスクを開始してください。
 
 ---
 
 ## 📜 Session History
+
+### 20260208111558 - ToC レイアウト可変対応（リサイズ時の被り防止）
+- **Started:** 2026-02-08 11:15:58
+- **Completed:** 2026-02-08 12:55:39
+- **Status:** 🟢 Completed
+- **Summary:** 前回のセッションから引き継ぎ、ToCリサイズ時にmarkdown-viewerがToCに被さってしまう問題を修正。tocState Signalをexportし、MarkdownViewerで監視することで、ToCの幅に合わせてmarkdown-viewerのmargin-leftを動的に調整。スムーズなtransitionアニメーション付き。レイアウト可変対応が完成。
+- **Plan:** [docs/cycles/20260208111558_toc-ux-improvements.md](./cycles/20260208111558_toc-ux-improvements.md)
+- **Commits:**
+  - `[3dae618]` feat: ToC リサイズ時のレイアウト可変対応（markdown-viewer margin-left 自動調整）
+- **Note:** ToCの基本機能（折りたたみ・Toggle・Resize）は前回実装済み。今回はレイアウト被り問題のみ解決。
 
 ### 20260208105055 - Table of Contents (TOC) Auto-Generation
 - **Started:** 2026-02-08 10:50:55
