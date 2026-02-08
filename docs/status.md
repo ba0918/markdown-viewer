@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 14:00:51
+**Last Updated:** 2026-02-08 14:08:51
 
 ---
 
@@ -8,14 +8,14 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | - |
-| **Feature** | - |
-| **Started** | - |
-| **Phase** | - |
-| **Plan** | - |
+| **Cycle ID** | 20260208140329 |
+| **Feature** | ToC不正見出しレベル正規化 |
+| **Started** | 2026-02-08 14:03:29 |
+| **Phase** | 🟡 Planning |
+| **Plan** | [docs/cycles/20260208140329_toc-irregular-heading-level-normalization.md](./cycles/20260208140329_toc-irregular-heading-level-normalization.md) |
 
 **Current Focus:**
-セッション待機中。次のタスクを開始してください。
+h3やh2から始まる不正な見出しレベルのMarkdownでも、ToCが違和感なく表示されるように正規化機能を実装。最小レベルを基準に相対的な階層構造を保持。TDD（RED→GREEN→REFACTOR）で実装予定。
 
 ---
 
