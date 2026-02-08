@@ -1,289 +1,110 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+Markdown Viewer Chrome拡張 - セキュリティファーストなローカルMarkdownビューア
 
-## プロジェクト概要
+**スタック**: Deno 2.x, esbuild, Preact, marked, DOMPurify, Playwright(E2E)
+**核心思想**:
+レイヤー分離絶対遵守、TDD必須、過去の失敗(messaging層ビジネスロジック)から学習
 
-Markdown Viewer Chrome拡張機能 -
-セキュリティファーストなローカルMarkdownファイル表示ツール
+## 🚨 絶対厳守ルール
 
-**重要**: このプロジェクトは過去の失敗（DuckDB +
-offscreen）から学んだ教訓を活かした設計になっています。レイヤー分離とTDDを絶対遵守してください。
+### パッケージ管理（CRITICAL）
 
-## 技術スタック
+- ❌ `npm/pnpm install` 直接実行禁止 → ✅ `mise exec -- pnpm install`
+- ❌ `package.json/pnpm-lock.yaml` 削除禁止（E2E完全破壊）
 
-- **開発環境**: Deno 2.x以上
-- **パッケージ管理**: mise経由でPlaywright等のNode.jsパッケージをインストール
-- **ビルド**: esbuild
-- **実行環境**: Chrome Extension (Manifest V3)
-- **UI Framework**: Preact
-- **Markdown Parser**: marked
-- **Security**: DOMPurify
-- **State Management**: Preact Signals
-- **テスト**: Deno標準テストランナー + Playwright (E2E)
+### ライブラリ使用（CRITICAL）
 
-## 開発フロー必須ルール
+- ❌ AI記憶に頼る → ✅ Context7で最新公式ドキュメント必須確認
+- 対象全て: Preact, esbuild, marked, DOMPurify, Deno, Chrome API
 
-### 0. パッケージ管理: mise経由での管理
+### コミット管理（CRITICAL）
 
-**⚠️ CRITICAL: Node.jsパッケージは必ずmise経由で管理すること**
+**原則**: 1機能=1コミット、未コミット蓄積=技術的負債
 
-#### Playwright等のNode.jsパッケージインストール
+**pre-commitフック自動実行内容**（`.git/hooks/pre-commit`）:
 
 ```bash
-# mise経由でpnpm installを実行
-mise exec -- pnpm install
-
-# Chromiumブラウザのインストール（必要に応じて）
-mise exec -- pnpm exec playwright install chromium
+1. deno task fmt     # フォーマット自動修正
+2. deno task lint    # Lint 0件必須（エラーあるとコミット中断）
+3. deno task test    # Unit test全通過必須
 ```
 
-#### 絶対禁止事項
+**⚠️ E2Eは自動実行されない → 手動確認必須**
 
-- ❌ **npm install を直接実行しない** - mise経由で実行すること
-- ❌ **pnpm install を直接実行しない** - mise経由で実行すること
-- ❌ **package.json/pnpm-lock.yamlを削除しない** -
-  これらはPlaywright等のNode.jsツールに必須
-- ❌ **"Deno一元管理"と称してNode.jsパッケージを削除しない** -
-  Playwright等は必要
-
-#### package.json/pnpm-lock.yamlの役割
-
-- **package.json**: Playwright等のNode.jsツールのバージョン管理
-- **pnpm-lock.yaml**: 正確なバージョンと依存関係のロック
-- **node_modules/**: pnpmが構築する実際のファイル構造
-- **削除厳禁**: これらを削除するとE2Eテストが完全に壊れる
-
-**原則:
-Node.jsパッケージはmise経由でpnpmを使用。package.json等は絶対に削除しない。**
-
-### 1. ライブラリ使用時: Context7で最新情報確認
-
-**⚠️ CRITICAL: AIの記憶は古い。必ずContext7で公式ドキュメント確認**
+**コミット前必須チェック**:
 
 ```bash
-# 実装前にContext7で公式ドキュメント検索
-mcp__plugin_context7_context7__resolve-library-id
-mcp__plugin_context7_context7__query-docs
+deno task lint           # Lint 0件
+deno task test           # Unit test全通過
+deno task test:e2e:wsl2  # E2E全通過（手動必須！pre-commitで実行されない）
 ```
 
-- ✅ Context7: 最新の公式ドキュメント、ベストプラクティス
-- ❌ AI記憶: 古いAPI、非推奨パターン、ビルドエラーの原因
+**Lint修正後は必ずテスト再実行**（Lint修正→テスト破壊の事件多発中）
 
-対象: Preact, esbuild, marked, DOMPurify, Deno, Chrome Extension API 全て
+**禁止**:
+Lint修正後テスト未実行（テスト破壊の主原因）、`--no-verify`、10+ファイル放置
 
-### 2. コミット管理: 未コミット蓄積の絶対防止
+**smart-commitスキル**: `git status/diff`分析→論理単位分割→Conventional
+Commits形式コミット
 
-**⚠️ CRITICAL: 未コミットの蓄積は技術的負債。こまめなコミット必須**
-
-#### 必須コミットタイミング
-
-1. **機能単位の完成時** - テスト通過後、即コミット
-2. **1ファイル以上の変更完了時** - 論理的なまとまりで即コミット
-3. **作業セッション終了時** - 必ず `git status` 確認、コミット
-4. **別タスク開始前** - 現在の変更を確実にコミット
-
-#### コミット前チェック
+## 主要コマンド
 
 ```bash
-# 毎回実行
-git status
-git diff
-
-# 変更が2ファイル以上 or 1時間経過したら即コミット
+deno task dev               # 開発watch
+deno task build             # ビルド
+deno task test              # Unit (必ずtask経由！deno test直はNG)
+deno task test:e2e:wsl2     # E2E (WSL2: xvfb必須)
+deno task lint/fmt          # Lint/Format
 ```
 
-#### 禁止事項
+**⚠️ `deno test`直接実行禁止理由**:
 
-- ❌ 複数機能の変更を1コミットにまとめる
-- ❌ 「後でまとめてコミット」の思考
-- ❌ 10ファイル以上の未コミット放置
-- ❌ 異なるレイヤー（domain/services/UI）の変更混在
+- `deno.json`の`tasks.test`に`--allow-all`設定済み
+- Chrome APIモック等の必要権限が全て含まれる
+- 直接実行すると型チェックで失敗する
 
-#### `smart-commit` skill の活用
+**特定ファイルのみテスト**:
+`deno test src/path/to/file.test.ts --no-check --allow-all`
 
-```
-ユーザーが「コミットして」と言った時:
-1. git status/diff で変更分析
-2. 論理的な単位に分割（feat/fix/docs/style）
-3. Conventional Commits形式でコミット
-4. 履歴をキレイに保つ
-```
+**E2E構成**:
 
-**原則: "1機能 = 1コミット"。小さく頻繁にコミットする習慣を徹底。**
+- テスト: `tests/e2e/*.spec.ts`
+- フィクスチャ: `tests/e2e/fixtures/`
+- ヘルパー: `tests/e2e/helpers/extension-helpers.ts`
+- 設定: `playwright.config.ts`
 
-### 3. コミット時の絶対ルール
-
-**⚠️ CRITICAL: コミット前に必ず実行。テスト破壊を絶対に防ぐ**
-
-#### コミット前の必須チェックリスト
-
-```bash
-# 1. Lintエラーを0件にする（pre-commitの必須条件）
-deno task lint
-
-# 2. Lint修正後、必ずテスト全通過を確認
-deno task test              # Unit tests
-deno task test:e2e:wsl2     # E2E tests (WSL2環境)
-
-# 3. すべて通過したらコミット
-git add .
-git commit -m "..."
-```
-
-#### テスト破壊の防止
-
-**重要**: Lint修正が原因でテストが破壊される事件が多発している！
-
-- ✅ **Unit test + E2E test 両方の通過を確認すること**
-- ✅ **Lint修正後は必ずテスト再実行**
-- ❌ **Lint修正だけしてテスト実行しない** → これが破壊の原因
-
-#### pre-commitフックの動作
-
-```bash
-# pre-commitで自動実行される（.git/hooks/pre-commit）
-1. deno task fmt    # フォーマット修正
-2. deno task lint   # Lintチェック（0件必須）
-3. deno task test   # Unit testの実行
-
-# E2Eテストはpre-commitで実行されないため、手動確認必須！
-```
-
-#### E2Eテストの実行タイミング
-
-- ✅ **コミット前に必ず手動実行**
-- ✅ **UI層・messaging層・content層の変更時は特に重要**
-- ✅ **E2Eテストが失敗したら絶対にコミットしない**
-
-#### 禁止事項
-
-- ❌ Lintエラーがある状態でコミット
-- ❌ Lint修正後にテストを実行しない
-- ❌ Unit testだけ通ってE2Eテストを確認しない
-- ❌ pre-commitフックをスキップ（`--no-verify`）
-
-**原則: "Lint 0件 + Unit test全通過 + E2E test全通過" を確認してからコミット。**
-
-## コマンド
-
-### 開発コマンド
-
-```bash
-# 開発モード（watch）
-deno task dev
-
-# ビルド
-deno task build
-
-# テスト実行（必ず deno task test を使う！）
-deno task test
-
-# テスト（watchモード）
-deno task test:watch
-
-# E2Eテスト（Playwright）
-deno task test:e2e
-
-# E2Eテスト（WSL2環境下: xvfb使用）
-deno task test:e2e:wsl2
-
-# 特定のE2Eテストファイルを実行
-deno task test:e2e:wsl2 tests/e2e/gfm-rendering.spec.ts
-
-# リンティング
-deno task lint
-
-# フォーマット
-deno task fmt
-
-# 配布用バンドル
-deno task bundle
-
-# テストカバレッジ
-deno task test --coverage=coverage
-deno coverage coverage --lcov > coverage.lcov
-```
-
-**⚠️ テスト実行の重要ルール**
-
-- **必ず `deno task test` を使うこと**
-  - `deno test` を直接使うと型チェックで失敗する
-  - `deno.json` の `tasks.test` に `--allow-all` が設定されている
-  - Chrome API モック等、必要な権限が全て含まれている
-
-- **特定ファイルのテストの場合のみ**直接実行可
-  - 例: `deno test src/background/state-manager.test.ts --no-check --allow-all`
-  - ただし、権限とフラグを忘れずに指定すること
-
-**⚠️ E2Eテストの重要情報**
-
-- **E2Eテストの場所**: `tests/e2e/` ディレクトリ
-  - テストファイル: `tests/e2e/*.spec.ts` (例: `gfm-rendering.spec.ts`)
-  - フィクスチャ: `tests/e2e/fixtures/` (テスト用Markdownファイル等)
-  - ヘルパー関数: `tests/e2e/helpers/extension-helpers.ts`
-  - Playwright設定: `playwright.config.ts` (プロジェクトルート)
-
-- **E2Eテストの実行環境**
-  - Playwrightを使用してChrome拡張をロード
-  - ローカルHTTPサーバー経由でテスト（`testServerUrl`）
-  - WSL2環境では `xvfb-run` が必要
-
-- **E2Eテストの書き方**
-  ```typescript
-  import { expect, test } from "./fixtures.ts";
-  import {
-    expectMarkdownRendered,
-    openMarkdownFile,
-  } from "./helpers/extension-helpers.ts";
-
-  test("テスト名", async ({ page, testServerUrl }) => {
-    await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
-    await expectMarkdownRendered(page);
-    // assertions...
-  });
-  ```
-
-### Chrome拡張として読み込み
-
-1. `chrome://extensions/` を開く
-2. 「デベロッパーモード」を有効化
-3. 「パッケージ化されていない拡張機能を読み込む」
-4. プロジェクトのルートディレクトリを選択
-
-## アーキテクチャの核心原則
-
-### 1. レイヤー分離の絶対遵守
-
-```
-UI層（background/content/offscreen/settings）
-  ↓ messaging I/O のみ（ビジネスロジック禁止）
-ui-components/
-  ↓ 再利用可能なUIパーツ（messaging直接呼び出し禁止）
-messaging/
-  ↓ ルーティングのみ、serviceへの委譲（ビジネスロジック禁止）
-services/
-  ↓ ドメイン組み合わせ、ビジネスフロー（Chrome API直接使用禁止）
-domain/
-  ↓ 純粋なビジネスロジック（他domain依存禁止）
-shared/
-  汎用ユーティリティ（ドメイン非依存）
-```
-
-### 2. 絶対禁止事項（過去の失敗から）
-
-**❌ messaging層にビジネスロジックを書く** -
-これは過去に大失敗したパターンです！
+**E2Eテンプレート**:
 
 ```typescript
-// ❌ NG: messagingでMarkdown処理（死亡フラグ）
+import { expect, test } from "./fixtures.ts";
+import {
+  expectMarkdownRendered,
+  openMarkdownFile,
+} from "./helpers/extension-helpers.ts";
+
+test("description", async ({ page, testServerUrl }) => {
+  await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
+  await expectMarkdownRendered(page);
+  // assertions...
+});
+```
+
+## レイヤーアーキテクチャ（絶対遵守）
+
+```
+UI → messaging → services → domain → shared
+```
+
+**死亡フラグ（過去の大失敗パターン）**:
+
+```typescript
+// ❌ NG: messaging層でビジネスロジック（過去に大失敗）
 export const handleBackgroundMessage = async (message: Message) => {
-  const parsed = marked.parse(message.payload.markdown); // ← ダメ！
-  const sanitized = DOMPurify.sanitize(parsed); // ← ダメ！
+  const parsed = marked.parse(message.payload.markdown); // 死亡フラグ
+  const sanitized = DOMPurify.sanitize(parsed); // 死亡フラグ
   return { success: true, data: sanitized };
 };
-
 // ✅ OK: serviceに委譲
 export const handleBackgroundMessage = async (message: Message) => {
   const html = await markdownService.render(
@@ -292,224 +113,61 @@ export const handleBackgroundMessage = async (message: Message) => {
   );
   return { success: true, data: html };
 };
-```
 
-**❌ UI層（content/settings）がservices/domainを直接呼ぶ**
-
-```typescript
-// ❌ NG: content層でdomainを直接呼び出し
-import { parseMarkdown } from "../domain/markdown/parser.ts"; // ← ダメ！
-
+// ❌ NG: UI層でdomain直接import
+import { parseMarkdown } from "../domain/markdown/parser.ts";
 // ✅ OK: messaging経由
 import { sendMessage } from "../messaging/client.ts";
 const html = await sendMessage({
   type: "RENDER_MARKDOWN",
   payload: { markdown },
 });
+
+// ❌ NG: services層でChrome API
+const result = await chrome.storage.sync.get("theme");
+// ✅ OK: background/state-manager経由
+
+// ❌ NG: domain間依存
+import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
+// ✅ OK: services層で組み合わせ
 ```
 
-**❌ services層がChrome APIを叩く**
+**原則**: DRY徹底（2回目→shared/移動）、TDD必須（RED→GREEN→REFACTOR）
 
-```typescript
-// ❌ NG: services層でChrome API直接使用
-export class ThemeService {
-  async load(): Promise<Theme> {
-    const result = await chrome.storage.sync.get("theme"); // ← ダメ！
-  }
-}
+## レイヤー責務（詳細→`docs/DIRECTORY_STRUCTURE.md`）
 
-// ✅ OK: Chrome API操作はbackground/state-manager.tsで行う
-```
+| Layer                            | 責務                      | 禁止                                  | 依存              |
+| -------------------------------- | ------------------------- | ------------------------------------- | ----------------- |
+| UI (background/content/settings) | messaging I/O, UI         | ビジネスロジック, services/domain直接 | messaging, shared |
+| ui-components                    | 再利用UI                  | messaging直接                         | shared            |
+| messaging                        | ルーティング, service委譲 | ビジネスロジック                      | services, shared  |
+| services                         | domain組合せ, フロー      | Chrome API直接                        | domain, shared    |
+| domain                           | 純粋ビジネスロジック      | 他domain依存                          | shared            |
+| shared                           | 汎用utility               | レイヤー依存                          | なし              |
 
-**❌ domain層が他のdomainに依存する**
+## セキュリティ（最優先）
 
-```typescript
-// ❌ NG: domain間の依存
-// src/domain/markdown/parser.ts
-import { loadTheme } from "../theme/loader.ts"; // ← ダメ！
+**XSS防御**:
+全Markdown描画で`sanitizeHTML()`必須通過、DOMPurifyで`javascript:`/`onerror`等ブロック
+**テスト**: XSS攻撃ベクター13ケース必須（`tests/e2e/xss.spec.ts`）
+詳細→`docs/SECURITY.md`
 
-// ✅ OK: services層でdomainを組み合わせる
-// src/services/markdown-service.ts
-import { parseMarkdown } from "../domain/markdown/parser.ts";
-import { loadTheme } from "../domain/theme/loader.ts";
-```
+## 実装フロー
 
-### 3. DRY原則の徹底
-
-- 同じロジックは**一度だけ**実装
-- 2回目に同じコードを書きたくなったら`shared/`に移動
-- 「ほぼ同じ」でも許さない → 共通化してパラメータで分岐
-
-### 4. TDD絶対遵守
-
-**Red-Green-Refactor サイクル**を必ず実行する:
-
-1. **RED**: テストを先に書き、失敗することを確認
-2. **GREEN**: 最小限の実装でテストを通す
-3. **REFACTOR**: コード品質を改善
-
-```bash
-# テストファイルは実装と同層に配置（Denoの思想）
-message.ts         # 実装
-message.test.ts    # テスト
-```
-
-## ディレクトリ構造と責務
-
-```
-src/
-  background/          # Service Worker層
-    責務: messaging I/O のみ、状態管理
-    禁止: ビジネスロジック、ドメインロジック
-    依存: messaging/, shared/
-
-  content/             # Content Script層
-    責務: messaging I/O のみ、UI描画
-    禁止: ビジネスロジック、services/domain直接呼び出し
-    依存: ui-components/, messaging/, shared/
-
-  offscreen/           # Offscreen Document層（将来用）
-    責務: messaging I/O のみ
-    禁止: ビジネスロジック
-    依存: messaging/, shared/
-
-  settings/            # 設定画面層
-    popup/             # クイック設定（ツールバーアイコンクリック）
-    options/           # 詳細設定（フルページ）
-    責務: messaging I/O のみ、設定UI
-    禁止: ビジネスロジック、services/domain直接呼び出し
-    依存: ui-components/, messaging/, shared/
-
-  ui-components/       # UI部品層（全UI層で共有）
-    markdown/          # Markdown表示用
-    settings/          # 設定画面用
-    shared/            # 汎用UI
-    責務: 再利用可能なUIコンポーネント
-    禁止: ビジネスロジック、messaging直接呼び出し
-    依存: shared/
-
-  messaging/           # メッセージング層
-    責務: ルーティングのみ、serviceへの委譲
-    禁止: ビジネスロジック、domain直接呼び出し
-    依存: services/, shared/
-
-  services/            # サービス層
-    責務: ドメイン組み合わせ、ビジネスフロー
-    禁止: Chrome API直接使用、UI処理
-    依存: domain/, shared/
-
-  domain/              # ドメイン層（純粋関数のみ）
-    markdown/          # Markdown処理
-    theme/             # テーマ処理
-    file-watcher/      # ファイル監視
-    責務: 純粋なビジネスロジック（単一責任）
-    禁止: 他domainへの依存、副作用の隠蔽
-    依存: shared/
-
-  shared/              # 共通層
-    types/             # 型定義
-    utils/             # ユーティリティ
-    constants/         # 定数
-    責務: 汎用ユーティリティ（ドメイン非依存）
-    禁止: Chrome API、特定レイヤーへの依存
-    依存: なし
-```
-
-## セキュリティ要件（最優先）
-
-### XSS Protection
-
-- **DOMPurify**による厳格なHTMLサニタイゼーション必須
-- `javascript:` protocol完全ブロック
-- `onerror`, `onload`等のイベントハンドラ除去
-- **全てのMarkdown描画でsanitizeHTML()を必ず通す**
-
-### セキュリティテスト必須
-
-```typescript
-// XSS攻撃ベクターのテスト例
-Deno.test("XSS: javascript: protocol", () => {
-  const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
-  const result = sanitizeHTML(malicious);
-  assertEquals(result.includes("javascript:"), false);
-});
-```
-
-### Content Security Policy
-
-```json
-{
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'"
-  }
-}
-```
-
-## 実装パターン
-
-### Markdown機能追加: domain → services → messaging → UI
-
-1. **domain層**: 純粋関数 + テスト
-2. **services層**: domain組み合わせ
-3. **messaging層**: 変更不要（すでにservice委譲）
-4. **UI層**: 変更不要（messaging使用）
-
-### メッセージタイプ追加: types → services → messaging
-
-1. **shared/types/message.ts**: 型定義追加
-2. **services層**: ビジネスロジック実装
-3. **messaging層**: ルーティング追加
-
-詳細は `docs/IMPLEMENTATION_GUIDE.md` 参照。
-
-## デバッグ & トラブルシューティング
-
-- **Content Script**: DevToolsでconsole.log確認
-- **Background Script**: `chrome://extensions/` → サービスワーカー
-- **ソースマップ**: `sourcemap: true` で元のTypeScriptデバッグ可能
-- **拡張読み込み失敗**: manifest.json構文、ビルドエラー確認
-- **Markdown表示失敗**: `file:///*` 権限、Content Script実行、Consoleエラー
-- **テスト失敗**: 型定義最新化、deno.json imports確認
+**機能追加**: domain(純粋関数+test) → services(組合せ) → messaging(委譲) → UI
+**型追加**: shared/types → services → messaging
+詳細→`docs/IMPLEMENTATION_GUIDE.md`
 
 ## チェックリスト
 
-### 実装前
+**実装前**: レイヤー/責務確認, 重複排除(→shared/), 依存方向, sanitizeHTML
+**コミット前**: lint 0件, test全通過, E2E通過, git diff確認,
+即コミット（放置禁止）
 
-- [ ] レイヤー確認: UI/ui-components/messaging/services/domain/shared?
-- [ ] 責務適切: 各レイヤーの責務を守っているか?
-- [ ] 重複確認: 同じ処理が既存コードにないか? shared/に汎用化すべきか?
-- [ ] 依存方向: import文の方向、循環依存がないか?
-- [ ] セキュリティ: sanitizeHTML使用、XSS対策、入力検証
+## 詳細ドキュメント
 
-### 作業完了時（コミット前）
+`spec.md`, `docs/ARCHITECTURE.md`, `docs/CODING_PRINCIPLES.md`,
+`docs/IMPLEMENTATION_GUIDE.md`, `docs/SECURITY.md`,
+`docs/DIRECTORY_STRUCTURE.md`, `docs/ARCHITECTURE_DECISIONS.md`
 
-- [ ] **テスト全通過**: `deno task test` 実行、全テスト通過確認
-- [ ] **ビルド成功**: `deno task build` 実行、エラーなし確認
-- [ ] **git status確認**: 意図しないファイル変更がないか
-- [ ] **変更レビュー**: `git diff` で変更内容を自己レビュー
-- [ ] **論理的分割**: 複数機能が混在していないか? 分割すべきか?
-- [ ] **即コミット**: 完了したら即コミット（未コミット放置禁止）
-
-## 重要な心構え
-
-1. **レイヤー意識** - コードがどのレイヤーか常に意識
-2. **過去の失敗回避** - messaging層にビジネスロジック禁止
-3. **型駆動設計** - 実装前に型定義、型で設計表現
-4. **TDD遵守** - RED→GREEN→REFACTOR、テストできない設計は悪い設計
-5. **迷ったら分離** - 共通化・汎用化を優先
-6. **こまめなコミット** - 1機能完了 = 即コミット、未コミット放置は技術的負債
-
-## 参考ドキュメント
-
-プロジェクトルートの以下のドキュメントに詳細な情報があります:
-
-- `spec.md` - 機能仕様とフェーズ計画
-- `docs/ARCHITECTURE.md` - アーキテクチャ設計の詳細
-- `docs/CODING_PRINCIPLES.md` - コーディング原則と実装パターン
-- `docs/IMPLEMENTATION_GUIDE.md` - 段階的な実装手順
-- `docs/SECURITY.md` - セキュリティ設計と脅威モデル
-- `docs/DIRECTORY_STRUCTURE.md` - ディレクトリ構造と責務定義
-- `docs/ARCHITECTURE_DECISIONS.md` - アーキテクチャ決定記録
-
-**原則を守れば、offscreen
-を含む複雑なChrome拡張でも保守性の高いコードベースが実現できます。**
+**原則厳守→保守性の高いコードベース実現**
