@@ -31,7 +31,7 @@ export class StateManager {
     theme: DEFAULT_THEME,
     hotReload: {
       enabled: false,
-      interval: 0,
+      interval: 3000, // デフォルト3秒（最小値1000ms）
       autoReload: false,
     },
   };
