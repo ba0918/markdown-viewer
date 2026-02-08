@@ -32,9 +32,13 @@ jobs:
           path: |
             ~/.cache/deno
             ~/.deno
+            node_modules
           key: ${{ runner.os }}-deno-${{ hashFiles('deno.json', 'deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-
+
+      - name: Install dependencies
+        run: deno install
 
       - name: Run linter
         run: deno task lint
