@@ -1,6 +1,7 @@
 import { sendMessage } from '../messaging/client.ts';
 import { render } from 'preact';
 import { h } from 'preact';
+import { signal } from '@preact/signals';
 import { MarkdownViewer } from './components/MarkdownViewer.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import type { AppState } from '../shared/types/state.ts';
@@ -35,6 +36,9 @@ let currentMarkdown = '';
 // Hot Reload用のグローバル変数
 let hotReloadInterval: number | null = null;
 let lastFileContent: string | null = null;
+
+// 現在のテーマをSignalで管理（リアクティブ）
+const currentTheme = signal<Theme>('light');
 
 /**
  * Markdownファイル判定
@@ -147,22 +151,25 @@ const stopHotReload = (): void => {
  */
 const renderMarkdown = async (markdown: string, theme: Theme) => {
   try {
-    // 1. テーマCSSを読み込み
+    // 1. テーマをSignalに設定
+    currentTheme.value = theme;
+
+    // 2. テーマCSSを読み込み
     loadThemeCss(theme);
 
-    // 2. ✅ OK: messaging経由でserviceを利用
+    // 3. ✅ OK: messaging経由でserviceを利用
     const html = await sendMessage<string>({
       type: 'RENDER_MARKDOWN',
       payload: { markdown, themeId: theme }
     });
 
-    // 3. 既存のbody内容をクリア
+    // 4. 既存のbody内容をクリア
     document.body.innerHTML = '';
 
-    // 4. Preactでレンダリング
+    // 5. Preactでレンダリング（themeIdはSignalで渡す）
     render(
       h(ErrorBoundary, null,
-        h(MarkdownViewer, { html })
+        h(MarkdownViewer, { html, themeId: currentTheme })
       ),
       document.body
     );
@@ -212,9 +219,13 @@ const init = async () => {
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === 'sync' && changes.appState) {
       const newState = changes.appState.newValue as AppState;
-      console.log('Settings changed, updating theme CSS:', newState.theme);
+      console.log('Settings changed, updating theme:', newState.theme);
+
       // CSSファイルのみ差し替え（高速・表示が消えない！）
       loadThemeCss(newState.theme);
+
+      // Signalを更新（MarkdownViewerが自動的に再レンダリングされる）
+      currentTheme.value = newState.theme;
 
       // Hot Reload設定の変更を反映
       if (newState.hotReload.enabled) {

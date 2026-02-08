@@ -37,16 +37,16 @@ export const test = base.extend<ExtensionFixtures>({
   context: async ({}, use) => {
     // 拡張機能のdistディレクトリパス
     const pathToExtension = path.join(process.cwd(), 'dist');
-    console.log('[Fixture] Extension path:', pathToExtension);
+    //console.log('[Fixture] Extension path:', pathToExtension);
 
     // 一時的なユーザーデータディレクトリを作成
     // NOTE: 空文字列だと予期しない動作になる可能性があるため、明示的に一時ディレクトリを作成
     const { tmpdir } = await import('node:os');
     const { mkdtemp } = await import('node:fs/promises');
     const userDataDir = await mkdtemp(path.join(tmpdir(), 'playwright-'));
-    console.log('[Fixture] User data dir:', userDataDir);
+    //console.log('[Fixture] User data dir:', userDataDir);
 
-    console.log('[Fixture] Launching browser...');
+    //console.log('[Fixture] Launching browser...');
     // Chrome拡張機能をロードしてBrowserContextを作成
     // NOTE: launchPersistentContextを使用すると拡張機能が確実にロードされる
     const context = await chromium.launchPersistentContext(userDataDir, {
@@ -67,32 +67,32 @@ export const test = base.extend<ExtensionFixtures>({
         '--disable-setuid-sandbox',
       ],
     });
-    console.log('[Fixture] Browser launched');
+    //console.log('[Fixture] Browser launched');
 
     await use(context);
 
-    console.log('[Fixture] Closing browser...');
+    //console.log('[Fixture] Closing browser...');
     await context.close();
-    console.log('[Fixture] Browser closed');
+    //console.log('[Fixture] Browser closed');
   },
 
   extensionId: async ({ context }, use) => {
-    console.log('[Fixture] Getting extension ID...');
+    //console.log('[Fixture] Getting extension ID...');
     // Manifest V3: Service Workerから拡張機能IDを取得
     let [serviceWorker] = context.serviceWorkers();
-    console.log('[Fixture] Existing service workers:', context.serviceWorkers().length);
+    //console.log('[Fixture] Existing service workers:', context.serviceWorkers().length);
 
     // Service Workerがまだ起動していない場合は待機
     if (!serviceWorker) {
-      console.log('[Fixture] Waiting for service worker...');
+      //console.log('[Fixture] Waiting for service worker...');
       serviceWorker = await context.waitForEvent('serviceworker', { timeout: 30000 });
-      console.log('[Fixture] Service worker detected');
+      //console.log('[Fixture] Service worker detected');
     }
 
     // Service Worker URLから拡張機能IDを抽出
     // URL形式: chrome-extension://{extensionId}/service-worker.js
     const extensionId = serviceWorker.url().split('/')[2];
-    console.log('[Fixture] Extension ID:', extensionId);
+    //console.log('[Fixture] Extension ID:', extensionId);
 
     await use(extensionId);
   },
@@ -101,7 +101,7 @@ export const test = base.extend<ExtensionFixtures>({
     // ローカルサーバーを起動
     const PORT = 8765; // テスト用ポート
 
-    console.log('[Fixture] Starting test server...');
+    //console.log('[Fixture] Starting test server...');
 
     // 接続を追跡して強制終了できるようにする
     const connections = new Set<Socket>();
@@ -111,7 +111,7 @@ export const test = base.extend<ExtensionFixtures>({
       const url = new URL(req.url || '/', `http://localhost:${PORT}`);
       const filePath = path.join(process.cwd(), url.pathname.slice(1)); // 先頭の / を除去
 
-      console.log(`[Server] Request: ${req.url} -> ${filePath}`);
+     // console.log(`[Server] Request: ${req.url} -> ${filePath}`);
 
       try {
         const file = await readFile(filePath);
@@ -121,7 +121,7 @@ export const test = base.extend<ExtensionFixtures>({
         res.writeHead(200, { 'Content-Type': contentType });
         res.end(file);
       } catch (err) {
-        console.error(`[Server] File not found: ${filePath}`, err);
+        //console.error(`[Server] File not found: ${filePath}`, err);
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
       }
@@ -136,18 +136,18 @@ export const test = base.extend<ExtensionFixtures>({
     // サーバー起動を Promise でラップ
     await new Promise<void>((resolve) => {
       server.listen(PORT, () => {
-        console.log(`[Fixture] Test server started on port ${PORT}`);
+        //console.log(`[Fixture] Test server started on port ${PORT}`);
         resolve();
       });
     });
 
     const testServerUrl = `http://localhost:${PORT}`;
 
-    console.log('[Fixture] Server ready, providing URL to tests');
+    //console.log('[Fixture] Server ready, providing URL to tests');
 
     await use(testServerUrl);
 
-    console.log('[Fixture] Stopping test server...');
+    //console.log('[Fixture] Stopping test server...');
 
     // 全接続を強制終了
     for (const conn of connections) {
@@ -158,17 +158,17 @@ export const test = base.extend<ExtensionFixtures>({
     // テスト終了後にサーバーを停止
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        console.log('[Fixture] Server close timeout, forcing shutdown');
+        //console.log('[Fixture] Server close timeout, forcing shutdown');
         resolve();
       }, 5000); // 5秒タイムアウト
 
       server.close((err) => {
         clearTimeout(timeout);
         if (err) {
-          console.error('[Fixture] Server close error:', err);
+          //console.error('[Fixture] Server close error:', err);
           reject(err);
         } else {
-          console.log('[Fixture] Test server stopped');
+          //console.log('[Fixture] Test server stopped');
           resolve();
         }
       });

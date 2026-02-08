@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 08:06:00
+**Last Updated:** 2026-02-08 08:08:24
 
 ---
 
@@ -8,19 +8,14 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208065017` |
-| **Feature** | MathJax数式表示機能 |
-| **Started** | 2026-02-08 06:50:17 |
-| **Completed** | 2026-02-08 08:06:00 |
-| **Phase** | 🟢 Completed |
-| **Plan** | [docs/cycles/20260208065017_mathjax-math-rendering.md](./cycles/20260208065017_mathjax-math-rendering.md) |
+| **Cycle ID** | `20260208080824` |
+| **Feature** | Mermaidダイアグラム機能（Dynamic Import） |
+| **Started** | 2026-02-08 08:08:24 |
+| **Phase** | 🟡 Planning |
+| **Plan** | [docs/cycles/20260208080824_mermaid-diagram-dynamic-import.md](./cycles/20260208080824_mermaid-diagram-dynamic-import.md) |
 
-**成果:**
-✅ mathjax-full@3.2.2導入（SVG出力、完全バンドル）
-✅ Domain層実装（detector.ts, renderer.ts）
-✅ UI層統合（MarkdownViewer.tsx）
-✅ 全89テスト通過（Unit 84 + E2E 5）
-✅ CDN版からの方針転換成功（Content Scriptコンテキスト分離問題解決）
+**現在のフォーカス:**
+Mermaid記法（```mermaid）のダイアグラム描画機能を追加。Dynamic Importで遅延ロード、レイヤー分離を厳守。MathJax実装の成功パターンを活用。
 
 ---
 

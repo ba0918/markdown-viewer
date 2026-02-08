@@ -23,6 +23,7 @@
     "@preact/signals": "npm:@preact/signals@^1.2.0",
     "marked": "npm:marked@^11.0.0",
     "marked-highlight": "npm:marked-highlight@^2.0.0",
+    "mermaid": "npm:mermaid@^11.12.2",
     "dompurify": "npm:dompurify@^3.0.0",
     "xss": "npm:xss@^1.0.15",
     "highlight.js": "npm:highlight.js@^11.9.0",
