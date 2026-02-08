@@ -1,28 +1,60 @@
 # Project Status
 
-**Last Updated:** 2026-02-09 02:45:45
+**Last Updated:** 2026-02-09 06:30:00
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260209024545`                                                                                                      |
-| **Feature**  | CSS Build System Refactoring                                                                                          |
-| **Started**  | 2026-02-09 02:45:45                                                                                                   |
-| **Phase**    | 🟡 Planning                                                                                                           |
-| **Plan**     | [docs/cycles/20260209024545_css-build-system-refactoring.md](./cycles/20260209024545_css-build-system-refactoring.md) |
-
-**Current Focus:**
-CSS構造を分割・整理し、ビルドシステムを堅牢に。手動の行数ハードコード +
-括弧カウントから、PostCSS + Lightning CSSによるツール駆動ビルドへ移行。ToC
-CSSファイルを分割（base.css +
-variables/各テーマ.css）し、@importで正しい順序を保証。ダークテーマのホバー色バグ修正も含む。
+**No active session.** Ready for next cycle! 🚀
 
 ---
 
 ## 📜 Session History
+
+### 20260209045749 - UI Test, Mermaid Race Condition, Settings Validation Improvements
+
+- **Started:** 2026-02-09 04:57:49
+- **Completed:** 2026-02-09 06:30:00 (推定)
+- **Status:** 🟢 Completed
+- **Summary:** 前回のコードレビューで特定された改善タスク完了。(1)
+  UIコンポーネント単体テスト16個追加（CopyButton 7個、TableOfContents
+  9個、linkedom導入でDOM環境セットアップ）、(2) Mermaid race
+  condition修正（Promise-based初期化で並行初期化防止）、(3)
+  Settings画面バリデーション追加（Hot Reload
+  interval検証、エラー表示UI実装）。全214テスト通過。
+- **Plan:**
+  [docs/cycles/20260209045749_ui-test-mermaid-settings-improvements.md](./cycles/20260209045749_ui-test-mermaid-settings-improvements.md)
+- **Key Changes:**
+  - linkedom (npm:linkedom@0.18.12) 導入
+  - CopyButton.test.tsx, TableOfContents.test.tsx 新規作成
+  - mermaid-renderer.ts: async/await初期化、initPromise共有
+  - HotReloadSettings.tsx: バリデーションロジック、エラーUI
+
+### 20260209045421 - Code Review & Critical Issues Fix
+
+- **Started:** 2026-02-09 04:54:21
+- **Completed:** 2026-02-09 04:57:49
+- **Status:** 🟢 Completed
+- **Summary:**
+  E2E/UIコンポーネントの包括的レビュー（SubAgent並行実行）、Critical問題修正（セキュリティテスト13ケース追加、TableOfContentsグローバルSignal
+  → ローカル修正）完了。次フェーズではUIコンポーネント単体テスト作成、Mermaid
+  race condition修正、Settings画面バリデーション追加を実施予定。
+- **Plan:**
+  [docs/cycles/20260209045421_code-review-critical-fixes.md](./cycles/20260209045421_code-review-critical-fixes.md)
+
+### 20260209024545 - CSS Build System Refactoring
+
+- **Started:** 2026-02-09 02:45:45
+- **Completed:** 2026-02-09 04:00:00（推定）
+- **Status:** 🟢 Completed
+- **Summary:**
+  CSS構造を分割・整理し、ビルドシステムを堅牢に。手動の行数ハードコード +
+  括弧カウントから、PostCSS + Lightning CSSによるツール駆動ビルドへ移行。ToC
+  CSSファイルを分割（base.css +
+  variables/各テーマ.css）し、@importで正しい順序を保証。ダークテーマのホバー色バグ修正も含む。
+- **Plan:**
+  [docs/cycles/20260209024545_css-build-system-refactoring.md](./cycles/20260209024545_css-build-system-refactoring.md)
 
 ### 20260208235036 - MarkdownViewer UI Refinement
 
