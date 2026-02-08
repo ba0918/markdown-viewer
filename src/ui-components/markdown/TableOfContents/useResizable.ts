@@ -1,0 +1,105 @@
+/**
+ * useResizable Hook
+ *
+ * 責務: ToC横幅のリサイズ機能を提供
+ * ✅ OK: ドラッグ操作の状態管理、イベントハンドリング
+ * ❌ NG: ビジネスロジック、messaging直接呼び出し
+ */
+
+import { useState, useEffect, useCallback } from 'preact/hooks';
+
+/**
+ * useResizable Hook のオプション
+ */
+interface UseResizableOptions {
+  /** 初期横幅（px） */
+  initialWidth: number;
+  /** 最小横幅（px） */
+  minWidth: number;
+  /** 最大横幅（px） */
+  maxWidth: number;
+  /** 横幅変更時のコールバック */
+  onWidthChange?: (width: number) => void;
+}
+
+/**
+ * useResizable Hook の戻り値
+ */
+interface UseResizableReturn {
+  /** 現在の横幅（px） */
+  width: number;
+  /** リサイズ中かどうか */
+  isResizing: boolean;
+  /** リサイズ開始ハンドラ */
+  startResize: () => void;
+}
+
+/**
+ * ToC横幅のリサイズ機能を提供するカスタムHook
+ *
+ * @param options - useResizableのオプション
+ * @returns リサイズ状態と制御関数
+ *
+ * @example
+ * ```tsx
+ * const { width, isResizing, startResize } = useResizable({
+ *   initialWidth: 250,
+ *   minWidth: 150,
+ *   maxWidth: 500,
+ *   onWidthChange: (w) => saveToStorage(w),
+ * });
+ * ```
+ */
+export const useResizable = ({
+  initialWidth,
+  minWidth,
+  maxWidth,
+  onWidthChange,
+}: UseResizableOptions): UseResizableReturn => {
+  const [width, setWidth] = useState(initialWidth);
+  const [isResizing, setIsResizing] = useState(false);
+
+  /**
+   * リサイズ開始ハンドラ
+   */
+  const startResize = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  /**
+   * リサイズ中のイベントリスナーを登録
+   */
+  useEffect(() => {
+    if (!isResizing) return;
+
+    /**
+     * マウス移動ハンドラ
+     */
+    const handleMouseMove = (e: MouseEvent) => {
+      // マウスX座標を横幅として使用、最小・最大幅で制約
+      const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth);
+      setWidth(newWidth);
+    };
+
+    /**
+     * マウスアップハンドラ
+     */
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      // リサイズ終了時にコールバックを実行
+      onWidthChange?.(width);
+    };
+
+    // グローバルイベントリスナーを登録
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    // クリーンアップ
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, minWidth, maxWidth, width, onWidthChange]);
+
+  return { width, isResizing, startResize };
+};

@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 10:54:22
+**Last Updated:** 2026-02-08 11:42:00
 
 ---
 
@@ -8,18 +8,28 @@
 
 | Field | Value |
 |-------|-------|
-| **Cycle ID** | `20260208105055` |
-| **Feature** | Table of Contents (TOC) Auto-Generation |
-| **Started** | 2026-02-08 10:50:55 |
-| **Phase** | 🟡 Planning |
-| **Plan** | [docs/cycles/20260208105055_table-of-contents.md](./cycles/20260208105055_table-of-contents.md) |
+| **Cycle ID** | `20260208111558` |
+| **Feature** | ToC UX Improvements (折りたたみ・固定・リサイズ・デザイン刷新) |
+| **Started** | 2026-02-08 11:15:58 |
+| **Phase** | 🟡 In Progress |
+| **Plan** | [docs/cycles/20260208111558_toc-ux-improvements.md](./cycles/20260208111558_toc-ux-improvements.md) |
 
 **Current Focus:**
-長いMarkdownドキュメントにH1〜H3見出しを自動抽出して左サイドに追従するTOCメニューを追加。ナビゲーション性向上を実現。
+ToC UX改善機能の実装中。(1) 階層の折りたたみ機能（▶/▼アイコン）、(2) ToC全体の表示/非表示Toggle（×/☰ボタン）、(3) position:fixedによる固定表示、(4) 横幅調整機能（Resize Handle、150px-500px）、(5) プロフェッショナルなデザイン刷新（全6テーマ対応）。実装完了、CSS読み込み調整中。E2Eテスト要修正、デザインfrontend-design適用予定。
 
 ---
 
 ## 📜 Session History
+
+### 20260208105055 - Table of Contents (TOC) Auto-Generation
+- **Started:** 2026-02-08 10:50:55
+- **Completed:** 2026-02-08 11:15:58
+- **Status:** 🟢 Completed
+- **Summary:** 長いMarkdownドキュメントにH1〜H3見出しを自動抽出して左サイドに追従するTOCメニューを実装。marked.lexer()でトークン解析、IntersectionObserverで現在位置ハイライト、スムーススクロールナビゲーション。全6テーマ対応のスタイリング完了。基本的なToC機能が完成し、次のUX改善フェーズへ。
+- **Plan:** [docs/cycles/20260208105055_table-of-contents.md](./cycles/20260208105055_table-of-contents.md)
+- **Commits:**
+  - `[cb5eb1e]` feat: Table of Contents (TOC) 自動生成機能を追加
+- **Note:** ToC基本機能が完成。次セッションでUX改善（折りたたみ・Toggle・Resize・デザイン刷新）を実施予定。
 
 ### 20260208101823 - Offscreen Document Hot Reload実験
 - **Started:** 2026-02-08 10:18:23
@@ -30,7 +40,7 @@
 - **Report:** [docs/offscreen-experiment-report.md](./offscreen-experiment-report.md)
 - **Commits:**
   - `[b4002b9]` experiment: Offscreen Document APIによるWSL2 Hot Reload制限回避の検証
-  - `[pending]` cleanup: 実験コード削除、レポートのみ残す
+  - `[a841b6a]` cleanup: 実験コード削除、レポートのみ残す
 - **Learning:** Offscreen Document APIの使い方習得、Chrome拡張セキュリティモデルの理解深化
 - **Note:** Hot Reload機能の優先度を再評価。Windowsローカルファイルでは動作、WSL2環境ではlocalhost HTTPサーバー推奨として運用。
 
@@ -49,7 +59,7 @@
 - **Plan:** [docs/cycles/20260208091700_theme-persistence-bugfix.md](./cycles/20260208091700_theme-persistence-bugfix.md) + UI改善 + Mermaidテーマ + Hot Reload実装
 - **Commits:**
   - `[2fae1f4]` fix: 全6テーマの設定永続化を実現（github/minimal/solarized対応）
-  - `[最新]` fix: テーマ永続化とHot Reload機能の改善
+  - `[8ab4f8f]` fix: WSL環境でのHot Reload自動無効化とコード重複解消
 - **Note:** Hot ReloadはWindowsローカルファイル（`file:///C:/...`）で動作確認済み。WSL2ファイル（`file://wsl.localhost/...`）ではChromeセキュリティ制限により利用不可。offscreen document APIでの回避可能性を次セッションで検証予定。
 
 ### 20260208080824 - Mermaidダイアグラム機能（静的import + Signals）

@@ -114,6 +114,15 @@ try {
   }
   console.log('✅ CSS files copied (6 themes)');
 
+  // ToC CSSファイルをdist/にコピー
+  console.log('🎨 Copying ToC CSS...');
+  await Deno.mkdir('dist/ui-components/markdown/TableOfContents', { recursive: true });
+  await Deno.copyFile(
+    'src/ui-components/markdown/TableOfContents/toc.css',
+    'dist/ui-components/markdown/TableOfContents/toc.css'
+  );
+  console.log('✅ ToC CSS copied');
+
   // アイコンをdist/にコピー
   console.log('🎨 Copying icons...');
   await Deno.mkdir('dist/icons', { recursive: true });

@@ -5,8 +5,6 @@
 
 /* TOC + Content レイアウト */
 .markdown-viewer-layout {
-  display: flex;
-  gap: 2rem;
   background: #ffffff;
   min-height: 100vh;
 }
@@ -15,11 +13,12 @@
   background: transparent;
   color: #24292e;
   padding: 2rem;
+  margin-left: 270px; /* ToC width (250px) + gap (20px) */
   max-width: 900px;
-  flex: 1;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
+  transition: margin-left 0.3s ease;
 }
 
 /* 見出し */
@@ -212,23 +211,4 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
   border-right: 1px solid #e1e4e8;
 }
 
-.toc-theme-light .toc-title {
-  color: #24292e;
-  border-bottom: 1px solid #e1e4e8;
-  padding-bottom: 0.5rem;
-}
-
-.toc-theme-light .toc-link {
-  color: #24292e;
-}
-
-.toc-theme-light .toc-link:hover {
-  background: #e1e4e8;
-  color: #0366d6;
-}
-
-.toc-theme-light .toc-link.active {
-  color: #0366d6;
-  border-left-color: #0366d6;
-  background: #ffffff;
-}
+/* ToC variables are defined in toc.css (.toc-theme-light) */
