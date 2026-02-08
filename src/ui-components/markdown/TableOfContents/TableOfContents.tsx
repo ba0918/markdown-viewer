@@ -8,7 +8,6 @@
 
 import { Fragment as _Fragment, h as _h } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { signal } from "@preact/signals";
 import type { TocItem } from "../../../domain/toc/types.ts";
 import type { TocState } from "../../../domain/toc/types.ts";
 import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
@@ -29,12 +28,9 @@ interface Props {
   items: TocItem[];
   /** 現在のテーマID */
   themeId: string;
+  /** ToC状態変更時のコールバック（レイアウト調整用） */
+  onTocStateChange?: (state: TocState) => void;
 }
-
-// ToC状態をSignalで管理（グローバル）
-// ⚠️ エクスポートして MarkdownViewer.tsx から参照可能にする（レイアウト可変対応）
-export const tocState = signal<TocState>(DEFAULT_TOC_STATE);
-const collapsedItems = signal<Set<string>>(new Set());
 
 /**
  * Table of Contentsコンポーネント
@@ -48,10 +44,16 @@ const collapsedItems = signal<Set<string>>(new Set());
  * - ToC全体の表示/非表示Toggle（×/☰ボタン）
  * - 横幅リサイズ機能（Resize Handle）
  */
-export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
+export const TableOfContents = ({
+  items,
+  themeId: _themeId,
+  onTocStateChange,
+}: Props) => {
   const [activeId, setActiveId] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserClick, setIsUserClick] = useState(false); // クリック直後かどうか
+  const [tocState, setTocState] = useState<TocState>(DEFAULT_TOC_STATE);
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
 
   // 永続化された状態を読み込み
   useEffect(() => {
@@ -67,8 +69,8 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
     chrome.storage.sync.get(["tocState"]).then((result) => {
       if (result.tocState) {
         const state = result.tocState as TocState;
-        tocState.value = state;
-        collapsedItems.value = new Set(state.collapsedItems);
+        setTocState(state);
+        setCollapsedItems(new Set(state.collapsedItems));
       }
       setIsLoaded(true);
     }).catch(() => {
@@ -79,13 +81,14 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
 
   // Resize Hook
   const { width, isResizing, startResize } = useResizable({
-    initialWidth: tocState.value.width,
+    initialWidth: tocState.width,
     minWidth: 150,
     maxWidth: 500,
     onWidthChange: (newWidth) => {
       // 横幅変更時に永続化
-      const newState = { ...tocState.value, width: newWidth };
-      tocState.value = newState;
+      const newState = { ...tocState, width: newWidth };
+      setTocState(newState);
+      onTocStateChange?.(newState);
 
       // E2E環境などでchrome.storageが使えない場合はスキップ
       if (
@@ -98,19 +101,22 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
     },
   });
 
-  // widthの変化に応じてtocState.valueを更新
+  // widthの変化に応じてtocStateを更新
   useEffect(() => {
-    if (isLoaded && width !== tocState.value.width) {
-      tocState.value = { ...tocState.value, width };
+    if (isLoaded && width !== tocState.width) {
+      const newState = { ...tocState, width };
+      setTocState(newState);
+      onTocStateChange?.(newState);
     }
-  }, [width, isLoaded]);
+  }, [width, isLoaded, tocState, onTocStateChange]);
 
   /**
    * ToC全体の表示/非表示を切り替え
    */
   const toggleVisibility = useCallback(() => {
-    const newState = { ...tocState.value, visible: !tocState.value.visible };
-    tocState.value = newState;
+    const newState = { ...tocState, visible: !tocState.visible };
+    setTocState(newState);
+    onTocStateChange?.(newState);
 
     // E2E環境などでchrome.storageが使えない場合はスキップ
     if (
@@ -120,22 +126,23 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
         // 保存失敗時は無視
       });
     }
-  }, []);
+  }, [tocState, onTocStateChange]);
 
   /**
    * 項目の折りたたみ状態を切り替え
    */
   const toggleCollapse = useCallback((id: string) => {
-    const newSet = new Set(collapsedItems.value);
+    const newSet = new Set(collapsedItems);
     if (newSet.has(id)) {
       newSet.delete(id);
     } else {
       newSet.add(id);
     }
-    collapsedItems.value = newSet;
+    setCollapsedItems(newSet);
 
-    const newState = { ...tocState.value, collapsedItems: Array.from(newSet) };
-    tocState.value = newState;
+    const newState = { ...tocState, collapsedItems: Array.from(newSet) };
+    setTocState(newState);
+    onTocStateChange?.(newState);
 
     // E2E環境などでchrome.storageが使えない場合はスキップ
     if (
@@ -145,7 +152,7 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
         // 保存失敗時は無視
       });
     }
-  }, []);
+  }, [collapsedItems, tocState, onTocStateChange]);
 
   /**
    * IntersectionObserverで現在表示中の見出しを検出
@@ -199,7 +206,7 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
    * ToCが表示されている時のみスムーススクロール
    */
   useEffect(() => {
-    if (!activeId || isUserClick || !tocState.value.visible) return;
+    if (!activeId || isUserClick || !tocState.visible) return;
 
     // アクティブなToCリンクを取得
     const activeLink = document.querySelector(`.toc-link.active`);
@@ -219,7 +226,7 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
    */
   useEffect(() => {
     // ToCが表示状態になった瞬間のみ実行
-    if (!tocState.value.visible || !activeId) return;
+    if (!tocState.visible || !activeId) return;
 
     // 少し遅延させてDOMが安定してから実行
     const timer = setTimeout(() => {
@@ -234,7 +241,7 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
     }, 50);
 
     return () => clearTimeout(timer);
-  }, [tocState.value.visible]); // visible が変わった時のみ
+  }, [tocState.visible]); // visible が変わった時のみ
 
   /**
    * ユーザーの手動スクロールを検出
@@ -287,7 +294,7 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
    */
   const renderItem = (item: TocItem) => {
     const hasChildren = item.children.length > 0;
-    const isCollapsed = collapsedItems.value.has(item.id);
+    const isCollapsed = collapsedItems.has(item.id);
 
     return (
       <li key={item.id} class={`toc-item toc-level-${item.level}`}>
@@ -332,10 +339,10 @@ export const TableOfContents = ({ items, themeId: _themeId }: Props) => {
 
   return (
     <aside
-      class={`toc-container ${tocState.value.visible ? "visible" : "hidden"}`}
-      style={{ width: tocState.value.visible ? `${width}px` : "40px" }}
+      class={`toc-container ${tocState.visible ? "visible" : "hidden"}`}
+      style={{ width: tocState.visible ? `${width}px` : "40px" }}
     >
-      {tocState.value.visible
+      {tocState.visible
         ? (
           <>
             <div class="toc-header">

@@ -1,5 +1,5 @@
 import { h as _h, render } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
 import { renderMath } from "../../domain/math/renderer.ts";
 import { hasMathExpression } from "../../domain/math/detector.ts";
@@ -8,12 +8,11 @@ import {
   getMermaidTheme,
   renderMermaid,
 } from "../../domain/markdown/mermaid-renderer.ts";
-import {
-  TableOfContents,
-  tocState,
-} from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
+import { TableOfContents } from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
 import { tocService } from "../../services/toc-service.ts";
 import type { TocItem } from "../../domain/toc/types.ts";
+import type { TocState } from "../../domain/toc/types.ts";
+import { DEFAULT_TOC_STATE } from "../../domain/toc/types.ts";
 import type { RenderResult } from "../../shared/types/render.ts";
 import { DocumentHeader } from "../../ui-components/markdown/DocumentHeader/DocumentHeader.tsx";
 import { RawTextView } from "../../ui-components/markdown/RawTextView/RawTextView.tsx";
@@ -43,6 +42,7 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(DEFAULT_VIEW_MODE);
+  const [tocState, setTocState] = useState<TocState>(DEFAULT_TOC_STATE);
 
   // TOC生成（Frontmatter除外済みのcontentを使用）
   useEffect(() => {
@@ -50,11 +50,15 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
     setTocItems(items);
   }, [result.content]);
 
+  // ToCの状態変更ハンドラ（レイアウト調整用）
+  const handleTocStateChange = useCallback((newState: TocState) => {
+    setTocState(newState);
+  }, []);
+
   // ToCの状態に合わせて動的に margin-left を計算
-  // ⚠️ tocState.value を使うことで、Signalの変更を自動検知（リアクティブ）
   // - ToCが表示されている場合: ToCの幅 + パディング
   // - ToCが非表示の場合: 最小サイドバー幅（40px）
-  const marginLeft = tocState.value.visible ? tocState.value.width : 40;
+  const marginLeft = tocState.visible ? tocState.width : 40;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -175,7 +179,11 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
         }}
         themeId={themeId.value}
       />
-      <TableOfContents items={tocItems} themeId={themeId.value} />
+      <TableOfContents
+        items={tocItems}
+        themeId={themeId.value}
+        onTocStateChange={handleTocStateChange}
+      />
       <div
         class="markdown-viewer"
         style={{
