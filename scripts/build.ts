@@ -23,8 +23,8 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
     "global": "globalThis",
     "process.env.NODE_ENV": '"production"',
   },
-  jsxFactory: "h",
-  jsxFragment: "Fragment",
+  jsxFactory: "_h",
+  jsxFragment: "_Fragment",
   mainFields: ["browser", "module", "main"],
   conditions: ["browser", "import", "module", "default"],
   // Node.js の組み込みモジュールを空のモジュールに置き換え

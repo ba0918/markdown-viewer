@@ -34,7 +34,8 @@ type ExtensionFixtures = {
  * - extensionId: 拡張機能ID（Service Workerから動的取得）
  */
 export const test = base.extend<ExtensionFixtures>({
-  context: async (_, use) => {
+  // deno-lint-ignore no-empty-pattern
+  context: async ({}, use) => {
     // 拡張機能のdistディレクトリパス
     const pathToExtension = path.join(process.cwd(), "dist");
     //console.log('[Fixture] Extension path:', pathToExtension);
@@ -99,7 +100,8 @@ export const test = base.extend<ExtensionFixtures>({
     await use(extensionId);
   },
 
-  testServerUrl: async (_, use) => {
+  // deno-lint-ignore no-empty-pattern
+  testServerUrl: async ({}, use) => {
     // ローカルサーバーを起動
     const PORT = 8765; // テスト用ポート
 
