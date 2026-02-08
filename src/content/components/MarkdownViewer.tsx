@@ -1,25 +1,36 @@
 import { h } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Signal } from '@preact/signals';
 import { renderMath } from '../../domain/math/renderer.ts';
 import { hasMathExpression } from '../../domain/math/detector.ts';
 import { detectMermaidBlocks } from '../../domain/markdown/mermaid-detector.ts';
 import { renderMermaid, getMermaidTheme } from '../../domain/markdown/mermaid-renderer.ts';
+import { TableOfContents } from '../../ui-components/markdown/TableOfContents/TableOfContents.tsx';
+import { tocService } from '../../services/toc-service.ts';
+import type { TocItem } from '../../domain/toc/types.ts';
 
 /**
  * MarkdownViewerコンポーネント
  *
- * 責務: Markdownの表示、MathJax数式レンダリング、Mermaid図レンダリング
+ * 責務: Markdownの表示、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示
  * ❌ 禁止: ビジネスロジック
  */
 
 interface Props {
   html: string;
+  markdown: string;
   themeId: Signal<string>;
 }
 
-export const MarkdownViewer = ({ html, themeId }: Props) => {
+export const MarkdownViewer = ({ html, markdown, themeId }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [tocItems, setTocItems] = useState<TocItem[]>([]);
+
+  // TOC生成
+  useEffect(() => {
+    const items = tocService.generate(markdown);
+    setTocItems(items);
+  }, [markdown]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -91,12 +102,15 @@ export const MarkdownViewer = ({ html, themeId }: Props) => {
   }, [html, themeId.value]);
 
   return (
-    <div class="markdown-viewer">
-      <div
-        ref={containerRef}
-        class="markdown-body"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+    <div class="markdown-viewer-layout">
+      <TableOfContents items={tocItems} themeId={themeId.value} />
+      <div class="markdown-viewer">
+        <div
+          ref={containerRef}
+          class="markdown-body"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
     </div>
   );
 };

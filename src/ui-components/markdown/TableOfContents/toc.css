@@ -1,0 +1,95 @@
+/**
+ * Table of Contents (TOC) スタイル
+ *
+ * 基本スタイル定義（テーマ非依存）
+ * テーマ固有のカラーは各テーマCSSで定義
+ */
+
+.toc {
+  position: sticky;
+  top: 2rem;
+  width: 250px;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* スクロールバーのスタイリング（Webkit） */
+.toc::-webkit-scrollbar {
+  width: 6px;
+}
+
+.toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.toc::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.toc::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* TOCタイトル */
+.toc-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+/* TOCリスト */
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-item {
+  margin: 0.5rem 0;
+}
+
+/* TOCリンク */
+.toc-link {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.toc-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.toc-link.active {
+  font-weight: 600;
+  padding-left: 0.75rem;
+}
+
+/* レベル別インデント */
+.toc-level-1 {
+  padding-left: 0;
+}
+
+.toc-level-2 {
+  padding-left: 1rem;
+}
+
+.toc-level-3 {
+  padding-left: 2rem;
+}
+
+/* サブリスト（将来の階層構造対応用） */
+.toc-sublist {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}

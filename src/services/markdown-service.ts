@@ -1,6 +1,7 @@
 import { parseMarkdown } from '../domain/markdown/parser.ts';
 import { sanitizeHTML } from '../domain/markdown/sanitizer.ts';
 import { applyTheme } from '../domain/theme/applier.ts';
+import { addHeadingIds } from '../domain/toc/html-processor.ts';
 import type { ThemeData } from '../domain/theme/types.ts';
 
 /**
@@ -30,8 +31,12 @@ export class MarkdownService {
     // セキュリティファースト: 全Markdown描画でDOMPurify必須
     const sanitized = await sanitizeHTML(parsed);
 
-    // 3. テーマ適用（domain/theme）
-    return applyTheme(sanitized, theme);
+    // 3. 見出しにID属性を付与（domain/toc）
+    // TOC機能のために、H1-H3タグにid属性を追加
+    const withHeadingIds = addHeadingIds(sanitized);
+
+    // 4. テーマ適用（domain/theme）
+    return applyTheme(withHeadingIds, theme);
   }
 }
 

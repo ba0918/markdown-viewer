@@ -1,14 +1,21 @@
 # Project Status
 
-**Last Updated:** 2026-02-08 10:30:00
+**Last Updated:** 2026-02-08 10:54:22
 
 ---
 
 ## 🎯 Current Session
 
-**現在進行中のセッションなし**
+| Field | Value |
+|-------|-------|
+| **Cycle ID** | `20260208105055` |
+| **Feature** | Table of Contents (TOC) Auto-Generation |
+| **Started** | 2026-02-08 10:50:55 |
+| **Phase** | 🟡 Planning |
+| **Plan** | [docs/cycles/20260208105055_table-of-contents.md](./cycles/20260208105055_table-of-contents.md) |
 
-次の作業を開始する際は `timestamped-plan` スキルを使用してください。
+**Current Focus:**
+長いMarkdownドキュメントにH1〜H3見出しを自動抽出して左サイドに追従するTOCメニューを追加。ナビゲーション性向上を実現。
 
 ---
 

@@ -3,12 +3,20 @@
  * Solarized配色スキーム - ダークバージョン
  */
 
-.markdown-viewer {
+/* TOC + Content レイアウト */
+.markdown-viewer-layout {
+  display: flex;
+  gap: 2rem;
   background: #002b36;
+  min-height: 100vh;
+}
+
+.markdown-viewer {
+  background: transparent;
   color: #839496;
   padding: 2rem;
   max-width: 900px;
-  margin: 0 auto;
+  flex: 1;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
@@ -201,3 +209,32 @@
  * highlight.js Theme: GitHub Dark - Solarized風に調整
  * ================================================ */
 pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}.hljs{color:#839496;background:#073642}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#d33682}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#6c71c4}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#268bd2}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#2aa198}.hljs-built_in,.hljs-symbol{color:#cb4b16}.hljs-code,.hljs-comment,.hljs-formula{color:#586e75}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#859900}.hljs-subst{color:#839496}.hljs-section{color:#268bd2;font-weight:700}.hljs-bullet{color:#b58900}.hljs-emphasis{color:#839496;font-style:italic}.hljs-strong{color:#839496;font-weight:700}.hljs-addition{color:#859900;background-color:#073642}.hljs-deletion{color:#dc322f;background-color:#073642}
+
+/* ================================================
+ * Table of Contents (TOC) - Solarized Dark Theme
+ * ================================================ */
+.toc-theme-solarized-dark {
+  background: #073642;
+  border-right: 1px solid #586e75;
+}
+
+.toc-theme-solarized-dark .toc-title {
+  color: #93a1a1;
+  border-bottom: 1px solid #586e75;
+  padding-bottom: 0.5rem;
+}
+
+.toc-theme-solarized-dark .toc-link {
+  color: #839496;
+}
+
+.toc-theme-solarized-dark .toc-link:hover {
+  background: #586e75;
+  color: #268bd2;
+}
+
+.toc-theme-solarized-dark .toc-link.active {
+  color: #268bd2;
+  border-left-color: #268bd2;
+  background: #002b36;
+}

@@ -176,7 +176,7 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
     // 5. Preactでレンダリング（themeIdはSignalで渡す）
     render(
       h(ErrorBoundary, null,
-        h(MarkdownViewer, { html, themeId: currentTheme })
+        h(MarkdownViewer, { html, markdown, themeId: currentTheme })
       ),
       document.body
     );
