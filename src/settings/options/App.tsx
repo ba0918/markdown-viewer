@@ -150,18 +150,13 @@ export const App = () => {
       </main>
 
       <footer class="footer">
-        <div class="version">v0.3.0 (Phase 3)</div>
         <div class="links">
           <a
-            href="https://github.com/yourusername/ba-markdown-viewer"
+            href="https://github.com/ba0918/markdown-viewer"
             target="_blank"
             rel="noopener noreferrer"
           >
             GitHub
-          </a>
-          {' | '}
-          <a href="#" onClick={(e) => { e.preventDefault(); chrome.runtime.openOptionsPage(); }}>
-            設定を開く
           </a>
         </div>
       </footer>

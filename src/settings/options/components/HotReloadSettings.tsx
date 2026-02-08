@@ -65,7 +65,7 @@ export const HotReloadSettings = ({
           </button>
         </div>
         <p class="description">
-          ファイルの変更を自動検知してMarkdownを再読み込みします（Phase 3-3で実装予定）
+          ファイルの変更を自動検知してMarkdownを再読み込みします
         </p>
       </div>
 
