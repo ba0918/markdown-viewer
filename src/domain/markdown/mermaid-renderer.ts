@@ -52,25 +52,58 @@ let currentTheme: "default" | "dark" | "forest" | "neutral" | "base" | null =
   null;
 
 /**
+ * Initialization promise to ensure single initialization at a time
+ */
+let initPromise: Promise<void> | null = null;
+
+/**
  * Initializes Mermaid library
  *
+ * Race condition防止:
+ * - 初期化中は同じPromiseを返して並行初期化を防ぐ
+ * - 初期化完了を待ってから次の初期化を実行
+ *
  * @param theme - Mermaid theme
+ * @returns Promise that resolves when initialization is complete
  */
-function initializeMermaid(
+async function initializeMermaid(
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
-): void {
-  // テーマが変わった場合は再初期化
-  if (currentTheme !== theme) {
-    mermaidInstance.initialize({
-      theme,
-      startOnLoad: false, // Manual rendering
-      securityLevel: "strict", // XSS protection
-      flowchart: {
-        htmlLabels: true,
-      },
-    });
-    currentTheme = theme;
+): Promise<void> {
+  // テーマが同じで既に初期化済みなら何もしない
+  if (currentTheme === theme && initPromise === null) {
+    return Promise.resolve();
   }
+
+  // 既に初期化中の場合は、その初期化を待つ
+  if (initPromise !== null) {
+    await initPromise;
+    // 初期化完了後、テーマが同じなら何もしない
+    if (currentTheme === theme) {
+      return Promise.resolve();
+    }
+  }
+
+  // 新しい初期化を開始
+  initPromise = (async () => {
+    try {
+      mermaidInstance.initialize({
+        theme,
+        startOnLoad: false, // Manual rendering
+        securityLevel: "strict", // XSS protection
+        flowchart: {
+          htmlLabels: true,
+        },
+      });
+      currentTheme = theme;
+      // 初期化完了後、少し待機（Mermaidの内部処理完了を待つ）
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    } finally {
+      // 初期化完了後はPromiseをクリア
+      initPromise = null;
+    }
+  })();
+
+  await initPromise;
 }
 
 /**
@@ -93,8 +126,8 @@ export async function renderMermaid(
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<string> {
   try {
-    // Initialize mermaid with theme
-    initializeMermaid(theme);
+    // Initialize mermaid with theme (await完了を待つ)
+    await initializeMermaid(theme);
 
     // Generate unique ID for this diagram
     const id = `mermaid-diagram-${Date.now()}-${

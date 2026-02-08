@@ -24,6 +24,16 @@ Deno.test("renderer: placeholder test (actual tests in E2E)", () => {
   assertEquals(1 + 1, 2);
 });
 
+// Note: Race condition tests are covered by E2E tests
+// The initializeMermaid() function now uses a Promise-based approach to prevent:
+// 1. Multiple concurrent initializations
+// 2. Rendering before initialization completes
+//
+// E2E tests verify:
+// - Multiple Mermaid diagrams render correctly
+// - Theme switching works without race conditions
+// - Concurrent rendering of different diagram types
+
 /**
  * Test coverage by E2E tests (tests/e2e/mermaid-rendering.spec.ts):
  * - Flowchart rendering to SVG
