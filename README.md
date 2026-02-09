@@ -1,7 +1,7 @@
 # Markdown Viewer
 
-[![CI/CD Pipeline](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/ba0918/markdown-viewer/actions/workflows/ci.yml)
-[![Release](https://github.com/ba0918/ba-markdown-viewer/actions/workflows/release.yml/badge.svg)](https://github.com/ba0918/markdown-viewer/actions/workflows/release.yml)
+[![CI/CD Pipeline](https://github.com/ba0918/markdown-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/ba0918/markdown-viewer/actions/workflows/ci.yml)
+[![Release](https://github.com/ba0918/markdown-viewer/actions/workflows/release.yml/badge.svg)](https://github.com/ba0918/markdown-viewer/actions/workflows/release.yml)
 
 セキュアなローカルMarkdownファイルビューアーChrome拡張機能
 
