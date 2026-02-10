@@ -88,4 +88,34 @@
   --markdown-table-row-alt-bg: #f6f8fa;
   --markdown-hr-bg: #e1e4e8;
   --markdown-strikethrough-color: #6a737d;
+
+  /* Syntax Highlighting (GitHub) */
+  --hljs-base: #24292e;
+  --hljs-base-bg: #ffffff;
+  --hljs-keyword: #d73a49;
+  --hljs-title: #6f42c1;
+  --hljs-function: #6f42c1;
+  --hljs-class: #6f42c1;
+  --hljs-attr: #005cc5;
+  --hljs-literal: #005cc5;
+  --hljs-number: #005cc5;
+  --hljs-operator: #005cc5;
+  --hljs-variable: #24292e;
+  --hljs-string: #032f62;
+  --hljs-regexp: #032f62;
+  --hljs-built-in: #e36209;
+  --hljs-symbol: #e36209;
+  --hljs-comment: #6a737d;
+  --hljs-code: #6a737d;
+  --hljs-formula: #6a737d;
+  --hljs-name: #22863a;
+  --hljs-quote: #22863a;
+  --hljs-selector-tag: #22863a;
+  --hljs-subst: #24292e;
+  --hljs-section: #005cc5;
+  --hljs-bullet: #735c0f;
+  --hljs-addition: #22863a;
+  --hljs-addition-bg: #f0fff4;
+  --hljs-deletion: #b31d28;
+  --hljs-deletion-bg: #ffeef0;
 }

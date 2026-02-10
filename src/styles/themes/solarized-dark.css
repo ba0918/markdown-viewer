@@ -88,4 +88,34 @@
   --markdown-table-row-alt-bg: #073642;
   --markdown-hr-bg: #586e75;
   --markdown-strikethrough-color: #657b83;
+
+  /* Syntax Highlighting (Solarized Dark) */
+  --hljs-base: #839496;
+  --hljs-base-bg: #002b36;
+  --hljs-keyword: #859900;
+  --hljs-title: #268bd2;
+  --hljs-function: #268bd2;
+  --hljs-class: #268bd2;
+  --hljs-attr: #b58900;
+  --hljs-literal: #2aa198;
+  --hljs-number: #2aa198;
+  --hljs-operator: #859900;
+  --hljs-variable: #268bd2;
+  --hljs-string: #2aa198;
+  --hljs-regexp: #dc322f;
+  --hljs-built-in: #b58900;
+  --hljs-symbol: #cb4b16;
+  --hljs-comment: #586e75;
+  --hljs-code: #586e75;
+  --hljs-formula: #586e75;
+  --hljs-name: #268bd2;
+  --hljs-quote: #586e75;
+  --hljs-selector-tag: #859900;
+  --hljs-subst: #839496;
+  --hljs-section: #268bd2;
+  --hljs-bullet: #859900;
+  --hljs-addition: #859900;
+  --hljs-addition-bg: #073642;
+  --hljs-deletion: #dc322f;
+  --hljs-deletion-bg: #073642;
 }

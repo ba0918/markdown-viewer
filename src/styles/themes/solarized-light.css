@@ -88,4 +88,34 @@
   --markdown-table-row-alt-bg: #eee8d5;
   --markdown-hr-bg: #93a1a1;
   --markdown-strikethrough-color: #93a1a1;
+
+  /* Syntax Highlighting (Solarized Light) */
+  --hljs-base: #657b83;
+  --hljs-base-bg: #fdf6e3;
+  --hljs-keyword: #859900;
+  --hljs-title: #268bd2;
+  --hljs-function: #268bd2;
+  --hljs-class: #268bd2;
+  --hljs-attr: #b58900;
+  --hljs-literal: #2aa198;
+  --hljs-number: #2aa198;
+  --hljs-operator: #859900;
+  --hljs-variable: #268bd2;
+  --hljs-string: #2aa198;
+  --hljs-regexp: #dc322f;
+  --hljs-built-in: #b58900;
+  --hljs-symbol: #cb4b16;
+  --hljs-comment: #93a1a1;
+  --hljs-code: #93a1a1;
+  --hljs-formula: #93a1a1;
+  --hljs-name: #268bd2;
+  --hljs-quote: #93a1a1;
+  --hljs-selector-tag: #859900;
+  --hljs-subst: #657b83;
+  --hljs-section: #268bd2;
+  --hljs-bullet: #859900;
+  --hljs-addition: #859900;
+  --hljs-addition-bg: #eee8d5;
+  --hljs-deletion: #dc322f;
+  --hljs-deletion-bg: #eee8d5;
 }

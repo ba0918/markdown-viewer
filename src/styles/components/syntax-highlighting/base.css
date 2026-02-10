@@ -1,0 +1,160 @@
+/**
+ * Syntax Highlighting Styles
+ * highlight.js のクラスにCSS変数を適用
+ *
+ * 責務:
+ * - highlight.js が生成する .hljs-* クラスにスタイルを適用
+ * - テーマごとのCSS変数（--hljs-*）を使用して色を定義
+ * - 全テーマ共通のスタイル定義（フォントスタイル、太字など）
+ *
+ * 注意:
+ * - 色の定義は各テーマCSS（light.css, dark.css等）で行う
+ * - このファイルはクラスと変数のマッピングのみ
+ */
+
+/* ベーススタイル */
+.hljs {
+  color: var(--hljs-base);
+  background: var(--hljs-base-bg, transparent);
+}
+
+/* キーワード・型・テンプレート */
+.hljs-keyword,
+.hljs-type,
+.hljs-template-tag,
+.hljs-variable.language_ {
+  color: var(--hljs-keyword);
+}
+
+/* タイトル・関数・クラス名 */
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited,
+.hljs-title.function,
+.hljs-title.function_.invoke {
+  color: var(--hljs-title);
+}
+
+/* 属性・リテラル・数値・演算子・変数 */
+.hljs-attr,
+.hljs-attribute,
+.hljs-literal,
+.hljs-number,
+.hljs-operator,
+.hljs-variable,
+.hljs-punctuation,
+.hljs-property {
+  color: var(--hljs-attr);
+}
+
+/* 文字列・正規表現 */
+.hljs-string,
+.hljs-regexp,
+.hljs-char.escape_ {
+  color: var(--hljs-string);
+}
+
+/* ビルトイン・シンボル */
+.hljs-built_in,
+.hljs-symbol {
+  color: var(--hljs-built-in);
+}
+
+/* コメント・ドキュメント・式 */
+.hljs-comment,
+.hljs-doctag,
+.hljs-code,
+.hljs-formula {
+  color: var(--hljs-comment);
+  font-style: italic;
+}
+
+/* 名前・引用・セレクタ */
+.hljs-name,
+.hljs-quote,
+.hljs-selector-tag {
+  color: var(--hljs-name);
+}
+
+/* CSS セレクタ類 */
+.hljs-selector-id {
+  color: var(--hljs-attr);
+}
+
+.hljs-selector-class {
+  color: var(--hljs-class);
+}
+
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--hljs-attr);
+}
+
+/* テンプレート変数・置換 */
+.hljs-template-variable,
+.hljs-subst {
+  color: var(--hljs-subst);
+}
+
+/* パラメータ */
+.hljs-params {
+  color: var(--hljs-variable);
+}
+
+/* メタ情報 */
+.hljs-meta {
+  color: var(--hljs-comment);
+}
+
+.hljs-meta .hljs-keyword {
+  color: var(--hljs-keyword);
+}
+
+.hljs-meta .hljs-string {
+  color: var(--hljs-string);
+}
+
+.hljs-meta-prompt {
+  color: var(--hljs-comment);
+  font-weight: bold;
+}
+
+/* セクション・見出し */
+.hljs-section {
+  color: var(--hljs-section);
+  font-weight: bold;
+}
+
+/* タグ（XML/HTML） */
+.hljs-tag {
+  color: var(--hljs-name);
+}
+
+/* マークアップ */
+.hljs-bullet {
+  color: var(--hljs-bullet);
+}
+
+.hljs-link {
+  color: var(--hljs-string);
+  text-decoration: underline;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+/* Diff */
+.hljs-addition {
+  color: var(--hljs-addition);
+  background-color: var(--hljs-addition-bg);
+}
+
+.hljs-deletion {
+  color: var(--hljs-deletion);
+  background-color: var(--hljs-deletion-bg);
+}

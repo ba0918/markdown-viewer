@@ -203,6 +203,7 @@ try {
 @import '../components/document-header/base.css' layer(components);
 @import '../components/raw-text-view/base.css' layer(components);
 @import '../components/code-block/base.css' layer(components);
+@import '../components/syntax-highlighting/base.css' layer(components);
 
 @layer base, components, utilities;
 
