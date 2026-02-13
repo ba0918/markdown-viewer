@@ -60,6 +60,16 @@ export const useResizable = ({
   const [isResizing, setIsResizing] = useState(false);
 
   /**
+   * initialWidthが変更されたら、リサイズ中でない時のみwidthを更新
+   * （chrome.storageから読み込んだ値を反映するため）
+   */
+  useEffect(() => {
+    if (!isResizing) {
+      setWidth(initialWidth);
+    }
+  }, [initialWidth, isResizing]);
+
+  /**
    * リサイズ開始ハンドラ
    */
   const startResize = useCallback(() => {
@@ -76,12 +86,16 @@ export const useResizable = ({
     document.body.style.userSelect = "none";
     document.body.style.cursor = "ew-resize"; // カーソルもリサイズ用に変更
 
+    // 最新の横幅を保持する変数（クロージャの問題を回避）
+    let latestWidth = width;
+
     /**
      * マウス移動ハンドラ
      */
     const handleMouseMove = (e: MouseEvent) => {
       // マウスX座標を横幅として使用、最小・最大幅で制約
       const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth);
+      latestWidth = newWidth; // 最新の横幅を保持
       setWidth(newWidth);
     };
 
@@ -93,8 +107,8 @@ export const useResizable = ({
       // リサイズ終了時にテキスト選択とカーソルを元に戻す
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
-      // リサイズ終了時にコールバックを実行
-      onWidthChange?.(width);
+      // リサイズ終了時にコールバックを実行（最新の横幅を使用）
+      onWidthChange?.(latestWidth);
     };
 
     // グローバルイベントリスナーを登録

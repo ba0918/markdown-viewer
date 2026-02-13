@@ -71,13 +71,15 @@ export const TableOfContents = ({
         const state = result.tocState as TocState;
         setTocState(state);
         setCollapsedItems(new Set(state.collapsedItems));
+        // 初期化時に読み込んだ状態を親に通知（レイアウト調整のため）
+        onTocStateChange?.(state);
       }
       setIsLoaded(true);
     }).catch(() => {
       // storage取得失敗時はデフォルト値を使用
       setIsLoaded(true);
     });
-  }, []);
+  }, [onTocStateChange]);
 
   // Resize Hook
   const { width, isResizing, startResize } = useResizable({
@@ -100,15 +102,6 @@ export const TableOfContents = ({
       }
     },
   });
-
-  // widthの変化に応じてtocStateを更新
-  useEffect(() => {
-    if (isLoaded && width !== tocState.width) {
-      const newState = { ...tocState, width };
-      setTocState(newState);
-      onTocStateChange?.(newState);
-    }
-  }, [width, isLoaded, tocState, onTocStateChange]);
 
   /**
    * ToC全体の表示/非表示を切り替え
