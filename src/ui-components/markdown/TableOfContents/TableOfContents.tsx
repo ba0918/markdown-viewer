@@ -7,7 +7,12 @@
  */
 
 import { Fragment as _Fragment, h as _h } from "preact";
-import { useCallback, useEffect, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "preact/hooks";
 import type { TocItem } from "../../../domain/toc/types.ts";
 import type { TocState } from "../../../domain/toc/types.ts";
 import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
@@ -30,6 +35,8 @@ interface Props {
   themeId: string;
   /** ToC状態変更時のコールバック（レイアウト調整用） */
   onTocStateChange?: (state: TocState) => void;
+  /** ToC初期状態（CLS削減用、指定時はChrome Storage読み込みをスキップ） */
+  initialState?: TocState;
 }
 
 /**
@@ -48,15 +55,29 @@ export const TableOfContents = ({
   items,
   themeId: _themeId,
   onTocStateChange,
+  initialState,
 }: Props) => {
   const [activeId, setActiveId] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserClick, setIsUserClick] = useState(false); // クリック直後かどうか
-  const [tocState, setTocState] = useState<TocState>(DEFAULT_TOC_STATE);
-  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
+  const [tocState, setTocState] = useState<TocState>(
+    initialState || DEFAULT_TOC_STATE,
+  );
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(
+    new Set(initialState?.collapsedItems || []),
+  );
 
-  // 永続化された状態を読み込み
-  useEffect(() => {
+  // 永続化された状態を読み込み（initialStateが指定されている場合はスキップ）
+  // useLayoutEffectを使用して、レンダリング前に同期的に親に通知（CLS削減）
+  useLayoutEffect(() => {
+    // initialStateが指定されている場合はChrome Storage読み込みをスキップ（CLS削減）
+    if (initialState) {
+      setIsLoaded(true);
+      // 初期状態を親に通知（同期的に実行）
+      onTocStateChange?.(initialState);
+      return;
+    }
+
     // chrome.storage が利用可能かチェック
     if (
       typeof chrome === "undefined" || !chrome.storage || !chrome.storage.sync
@@ -79,7 +100,7 @@ export const TableOfContents = ({
       // storage取得失敗時はデフォルト値を使用
       setIsLoaded(true);
     });
-  }, [onTocStateChange]);
+  }, [onTocStateChange, initialState]);
 
   // Resize Hook
   const { width, isResizing, startResize } = useResizable({

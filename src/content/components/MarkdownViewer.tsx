@@ -36,13 +36,18 @@ import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
 interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<string>;
+  initialTocState?: TocState; // ToC初期状態（CLS削減用）
 }
 
-export const MarkdownViewer = ({ result, themeId }: Props) => {
+export const MarkdownViewer = ({ result, themeId, initialTocState }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(DEFAULT_VIEW_MODE);
-  const [tocState, setTocState] = useState<TocState>(DEFAULT_TOC_STATE);
+  const [tocState, setTocState] = useState<TocState>(
+    initialTocState || DEFAULT_TOC_STATE,
+  );
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false); // 初期レイアウト確定フラグ（CLS削減）
 
   // TOC生成（Frontmatter除外済みのcontentを使用）
   useEffect(() => {
@@ -50,9 +55,26 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
     setTocItems(items);
   }, [result.content]);
 
+  // 初回レンダリング完了後、transitionを有効化 & 表示（CLS削減）
+  useEffect(() => {
+    // 少し遅延させてから有効化（初期レイアウト確定後）
+    const timer = setTimeout(() => {
+      setIsInitialRender(false);
+      setIsLoaded(true); // レイアウト確定後に表示
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // ToCの状態変更ハンドラ（レイアウト調整用）
+  // 同値チェックでムダな再レンダリングを防止（CLS削減）
   const handleTocStateChange = useCallback((newState: TocState) => {
-    setTocState(newState);
+    setTocState((prev) => {
+      // visible と width が既に同じなら更新しない
+      if (prev.visible === newState.visible && prev.width === newState.width) {
+        return prev;
+      }
+      return newState;
+    });
   }, []);
 
   // ToCの状態に合わせて動的に margin-left を計算
@@ -170,7 +192,14 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
   }, [result.html, themeId.value, viewMode]);
 
   return (
-    <div class={`markdown-viewer-layout theme-${themeId.value}`}>
+    <div
+      class={`markdown-viewer-layout theme-${themeId.value}`}
+      style={{
+        // 初期レイアウト確定まで非表示（CLS削減）
+        opacity: isLoaded ? "1" : "0",
+        transition: isLoaded ? "opacity 0.15s ease-in" : "none",
+      }}
+    >
       <DocumentHeader
         currentMode={viewMode}
         onModeChange={setViewMode}
@@ -183,12 +212,14 @@ export const MarkdownViewer = ({ result, themeId }: Props) => {
         items={tocItems}
         themeId={themeId.value}
         onTocStateChange={handleTocStateChange}
+        initialState={initialTocState}
       />
       <div
         class="markdown-viewer"
         style={{
           marginLeft: `${marginLeft}px`,
-          transition: "margin-left 0.3s ease", // ToCリサイズに合わせてスムーズに変化
+          // 初回レンダリング時はtransition無効化（CLS削減）
+          transition: isInitialRender ? "none" : "margin-left 0.3s ease",
         }}
       >
         {viewMode === "view"

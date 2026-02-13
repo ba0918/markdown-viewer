@@ -7,6 +7,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import type { AppState } from "../shared/types/state.ts";
 import type { Theme } from "../shared/types/theme.ts";
 import type { RenderResult } from "../shared/types/render.ts";
+import type { TocState } from "../domain/toc/types.ts";
 import { isWslFile } from "../shared/utils/wsl-detector.ts";
 import {
   isRelativeLink,
@@ -19,6 +20,11 @@ declare const chrome: {
     getURL: (path: string) => string;
   };
   storage: {
+    sync: {
+      get: (
+        keys: string | string[],
+      ) => Promise<Record<string, unknown>>;
+    };
     onChanged: {
       addListener: (
         callback: (
@@ -213,8 +219,18 @@ const setupRelativeLinkHandler = (): void => {
 
 /**
  * Markdownをレンダリング
+ *
+ * @param markdown - Markdownコンテンツ
+ * @param theme - テーマID
+ * @param clearBody - bodyをクリアするか（デフォルト: true）
+ * @param initialTocState - ToCの初期状態（オプション、CLS削減用）
  */
-const renderMarkdown = async (markdown: string, theme: Theme) => {
+const renderMarkdown = async (
+  markdown: string,
+  theme: Theme,
+  clearBody = true,
+  initialTocState?: TocState,
+) => {
   try {
     // 1. テーマをSignalに設定
     currentTheme.value = theme;
@@ -228,8 +244,13 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
       payload: { markdown, themeId: theme },
     });
 
-    // 4. 既存のbody内容をクリア
-    document.body.innerHTML = "";
+    // 4. bodyをクリア（オプション）してMarkdownビューア用のコンテナを作成
+    if (clearBody) {
+      document.body.innerHTML = "";
+    }
+    const viewerContainer = document.createElement("div");
+    viewerContainer.id = "markdown-viewer-container";
+    document.body.appendChild(viewerContainer);
 
     // 5. Preactでレンダリング（themeIdはSignalで渡す）
     render(
@@ -239,9 +260,10 @@ const renderMarkdown = async (markdown: string, theme: Theme) => {
         h(MarkdownViewer, {
           result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
           themeId: currentTheme,
+          initialTocState, // ToC初期状態（CLS削減用）
         }),
       ),
-      document.body,
+      viewerContainer,
     );
 
     // 6. 相対リンクハンドラを設定（レンダリング後に実行）
@@ -267,7 +289,23 @@ const init = async () => {
   if (!isMarkdownFile()) return;
 
   // Markdownコンテンツを保存
-  currentMarkdown = document.body.textContent || "";
+  if (!currentMarkdown) {
+    currentMarkdown = document.body.textContent || "";
+  }
+
+  // bodyをクリア（CLS削減: ここで1回だけクリア）
+  document.body.innerHTML = "";
+
+  // ToCの初期状態をChrome Storageから読み込み（CLS削減）
+  let initialTocState: TocState | undefined;
+  try {
+    const result = await chrome.storage.sync.get(["tocState"]);
+    if (result.tocState) {
+      initialTocState = result.tocState as TocState;
+    }
+  } catch {
+    // Storage読み込み失敗時はundefined（デフォルト値使用）
+  }
 
   // 設定を取得してレンダリング
   try {
@@ -276,7 +314,13 @@ const init = async () => {
       payload: {},
     });
 
-    await renderMarkdown(currentMarkdown, settings.theme);
+    // 初回レンダリング（bodyクリア済み、ToC初期状態を渡す）
+    await renderMarkdown(
+      currentMarkdown,
+      settings.theme,
+      false,
+      initialTocState,
+    );
 
     // Hot Reload設定を反映
     if (settings.hotReload.enabled) {
@@ -284,8 +328,8 @@ const init = async () => {
     }
   } catch (error) {
     console.error("Failed to load settings, using default theme:", error);
-    // デフォルトテーマでレンダリング
-    await renderMarkdown(currentMarkdown, "light");
+    // デフォルトテーマでレンダリング（bodyクリア済み、ToC初期状態を渡す）
+    await renderMarkdown(currentMarkdown, "light", false, initialTocState);
   }
 
   // Chrome Storage変更イベントをリッスン

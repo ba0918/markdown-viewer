@@ -129,6 +129,15 @@ try {
     /url\(\.\/files\//g,
     "url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/",
   );
+  // font-display を swap から block に変更（CLS削減）
+  interFontCss400 = interFontCss400.replace(
+    /font-display:\s*swap/g,
+    "font-display: block",
+  );
+  interFontCss600 = interFontCss600.replace(
+    /font-display:\s*swap/g,
+    "font-display: block",
+  );
   const interFontCss = interFontCss400 + "\n" + interFontCss600;
 
   // JetBrains Mono fonts (400, 500)
@@ -142,6 +151,15 @@ try {
   jetbrainsFontCss500 = jetbrainsFontCss500.replace(
     /url\(\.\/files\//g,
     "url(chrome-extension://__MSG_@@extension_id__/content/styles/fonts/files/",
+  );
+  // font-display を swap から block に変更（CLS削減）
+  jetbrainsFontCss400 = jetbrainsFontCss400.replace(
+    /font-display:\s*swap/g,
+    "font-display: block",
+  );
+  jetbrainsFontCss500 = jetbrainsFontCss500.replace(
+    /font-display:\s*swap/g,
+    "font-display: block",
   );
   const jetbrainsFontCss = jetbrainsFontCss400 + "\n" + jetbrainsFontCss500;
 
