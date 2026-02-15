@@ -60,8 +60,9 @@ let initPromise: Promise<void> | null = null;
  * Initializes Mermaid library
  *
  * Race condition防止:
- * - 初期化中は同じPromiseを返して並行初期化を防ぐ
- * - 初期化完了を待ってから次の初期化を実行
+ * - initPromiseをロックとして使用し、並行初期化を防ぐ
+ * - 初期化中の場合はその完了を待ってからテーマ比較
+ * - 同じテーマで初期化済みなら何もしない
  *
  * @param theme - Mermaid theme
  * @returns Promise that resolves when initialization is complete
@@ -69,21 +70,17 @@ let initPromise: Promise<void> | null = null;
 async function initializeMermaid(
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<void> {
-  // テーマが同じで既に初期化済みなら何もしない
-  if (currentTheme === theme && initPromise === null) {
-    return Promise.resolve();
-  }
-
-  // 既に初期化中の場合は、その初期化を待つ
-  if (initPromise !== null) {
+  // 既に初期化中の場合は完了を待つ（ロック待機）
+  while (initPromise !== null) {
     await initPromise;
-    // 初期化完了後、テーマが同じなら何もしない
-    if (currentTheme === theme) {
-      return Promise.resolve();
-    }
   }
 
-  // 新しい初期化を開始
+  // テーマが同じで既に初期化済みなら何もしない
+  if (currentTheme === theme) {
+    return;
+  }
+
+  // 新しい初期化を開始（ロック取得）
   initPromise = (async () => {
     try {
       mermaidInstance.initialize({
@@ -98,7 +95,7 @@ async function initializeMermaid(
       // 初期化完了後、少し待機（Mermaidの内部処理完了を待つ）
       await new Promise((resolve) => setTimeout(resolve, 10));
     } finally {
-      // 初期化完了後はPromiseをクリア
+      // ロック解放
       initPromise = null;
     }
   })();

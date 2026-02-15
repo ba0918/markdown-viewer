@@ -85,14 +85,8 @@ export const RemoteUrlSettings = () => {
         return;
       }
 
-      // Content Scriptを動的に登録
-      // IDはドメインをBase64エンコードして一意性を確保（URLセーフ）
-      const scriptId = `custom-origin-${
-        btoa(trimmed).replace(
-          /[+/=]/g,
-          (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
-        )
-      }`;
+      // Content Scriptを動的に登録（getScriptIdで一意のID生成）
+      const scriptId = getScriptId(trimmed);
       await chrome.scripting.registerContentScripts([{
         id: scriptId,
         matches: [trimmed],
@@ -120,36 +114,43 @@ export const RemoteUrlSettings = () => {
     }
   };
 
+  /**
+   * originからContent Script IDを生成（addOriginと同じロジック）
+   */
+  const getScriptId = (origin: string): string => {
+    return `custom-origin-${
+      btoa(origin).replace(
+        /[+/=]/g,
+        (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
+      )
+    }`;
+  };
+
   const removeOrigin = async (origin: string) => {
     try {
-      // 権限を削除
+      // 1. 対象のContent Scriptを特定して解除（addOriginと同じID生成ロジック）
+      const scriptId = getScriptId(origin);
+      try {
+        await chrome.scripting.unregisterContentScripts({
+          ids: [scriptId],
+        });
+      } catch (e) {
+        // スクリプトが存在しない場合はエラーを無視（既に解除済み等）
+        console.warn(`Failed to unregister content script ${scriptId}:`, e);
+      }
+
+      // 2. 権限を削除
       await chrome.permissions.remove({
         origins: [origin],
       });
 
-      // Content Scriptを解除（全てのカスタムスクリプトをクリア）
-      // Note: 正確なIDを追跡するのは複雑なので、エラーは無視
-      try {
-        const scripts = await chrome.scripting.getRegisteredContentScripts();
-        const customScriptIds = scripts
-          .filter((s) => s.id.startsWith("custom-origin-"))
-          .map((s) => s.id);
-
-        if (customScriptIds.length > 0) {
-          await chrome.scripting.unregisterContentScripts({
-            ids: customScriptIds,
-          });
-        }
-      } catch (e) {
-        console.warn("Failed to unregister content scripts:", e);
-      }
-
-      // Storageから削除
+      // 3. Storageから削除
       const updated = customOrigins.filter((o) => o.origin !== origin);
       setCustomOrigins(updated);
       await saveCustomOrigins(updated);
     } catch (err) {
       console.error("Failed to remove origin:", err);
+      setError(err instanceof Error ? err.message : "Failed to remove origin");
     }
   };
 

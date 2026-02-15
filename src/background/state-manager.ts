@@ -31,7 +31,7 @@ export class StateManager {
     theme: DEFAULT_THEME,
     hotReload: {
       enabled: false,
-      interval: 3000, // デフォルト3秒（最小値1000ms）
+      interval: 3000, // デフォルト3秒（最小値2000ms）
       autoReload: false,
     },
   };
@@ -62,7 +62,7 @@ export class StateManager {
           ? stored.hotReload.enabled
           : this.DEFAULT_STATE.hotReload.enabled,
         interval: typeof stored.hotReload?.interval === "number" &&
-            stored.hotReload.interval >= 1000
+            stored.hotReload.interval >= 2000
           ? stored.hotReload.interval
           : this.DEFAULT_STATE.hotReload.interval,
         autoReload: typeof stored.hotReload?.autoReload === "boolean"

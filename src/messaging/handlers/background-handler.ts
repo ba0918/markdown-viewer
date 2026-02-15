@@ -26,7 +26,7 @@ export const handleBackgroundMessage = async (
       case "RENDER_MARKDOWN": {
         // ✅ OK: serviceに委譲するだけ
         const theme = loadTheme(message.payload.themeId);
-        const result = await markdownService.render(
+        const result = markdownService.render(
           message.payload.markdown,
           theme,
         );
@@ -59,15 +59,38 @@ export const handleBackgroundMessage = async (
         // ✅ Background Scriptでfile://を読み込み（キャッシュ回避）
         try {
           const url = message.payload.url + "?preventCache=" + Date.now();
+
+          // WSL2ファイルはChromeのセキュリティポリシーでfetch不可
+          if (url.includes("file://wsl.localhost/")) {
+            return {
+              success: false,
+              error:
+                "Hot Reload is not supported for WSL2 files (file://wsl.localhost/...). " +
+                "Please use a localhost HTTP server instead.",
+            };
+          }
+
           const response = await fetch(url);
+
+          // HTTPステータスチェック
+          if (!response.ok) {
+            return {
+              success: false,
+              error:
+                `Failed to fetch file: HTTP ${response.status} ${response.statusText}`,
+            };
+          }
+
           const content = await response.text();
           return { success: true, data: content };
         } catch (error) {
+          const errorMsg = error instanceof Error
+            ? error.message
+            : "Unknown error";
           return {
             success: false,
-            error: error instanceof Error
-              ? error.message
-              : "Failed to fetch file",
+            error:
+              `Failed to fetch file: ${errorMsg}. Hot Reload may not be available for this file.`,
           };
         }
       }

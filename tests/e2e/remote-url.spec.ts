@@ -16,7 +16,7 @@ test.describe("Remote URL Settings", () => {
     // Remote URL Support セクションが表示される
     await expect(page.locator("text=Remote URL Support")).toBeVisible();
     await expect(
-      page.locator("text=Add custom domains to enable Markdown"),
+      page.locator("text=Enable Markdown viewing from remote URLs"),
     ).toBeVisible();
   });
 
@@ -47,11 +47,11 @@ test.describe("Remote URL Settings", () => {
 
     // セキュリティ情報ボックスが表示される
     await expect(page.locator("text=Security & Privacy")).toBeVisible();
-    await expect(page.locator("text=HTTPS only")).toBeVisible();
-    await expect(page.locator("text=No tracking, no data collection"))
+    await expect(page.locator("text=HTTPS Only")).toBeVisible();
+    await expect(page.locator("text=Zero tracking, zero data collection"))
       .toBeVisible();
     await expect(
-      page.locator("text=Only add domains you trust"),
+      page.locator("text=Trust Carefully"),
     ).toBeVisible();
   });
 
@@ -98,8 +98,8 @@ test.describe("Remote URL Settings", () => {
     const response = await page.goto(manifestUrl);
     const manifest = await response?.json();
 
-    // optional_host_permissionsが存在しない、または空であることを確認
-    expect(manifest.optional_host_permissions || []).toHaveLength(0);
+    // optional_host_permissionsはhttps://*/*のみ（カスタムドメイン用）
+    expect(manifest.optional_host_permissions).toEqual(["https://*/*"]);
 
     // host_permissionsはfile://のみ
     expect(manifest.host_permissions).toEqual(["file:///*"]);

@@ -166,8 +166,8 @@ const startHotReload = async (interval: number): Promise<void> => {
     clearInterval(hotReloadInterval);
   }
 
-  // 最小間隔1000ms（1秒）を保証
-  const safeInterval = Math.max(interval, 1000);
+  // 最小間隔2000ms（2秒）を保証
+  const safeInterval = Math.max(interval, 2000);
 
   // 初回のファイル内容を取得（Background Scriptでfetch）
   // Note: Windows local files (file:///C:/...) work fine
@@ -210,11 +210,19 @@ const startHotReload = async (interval: number): Promise<void> => {
         if (DEBUG) {
           console.log("Markdown Viewer: File changed detected! Reloading...");
         }
-        stopHotReload(); // リロード前にintervalをクリア
+        // リロード前にintervalとフラグを確実にクリア
+        stopHotReload();
+        isChecking = false;
         globalThis.location.reload();
+        return; // reload後の処理は不要
       }
-    } catch {
-      // Fetch failed, stop Hot Reload (silently)
+    } catch (error) {
+      if (DEBUG) {
+        console.warn(
+          "Markdown Viewer: Hot Reload fetch failed, stopping:",
+          error instanceof Error ? error.message : error,
+        );
+      }
       stopHotReload();
     } finally {
       isChecking = false;

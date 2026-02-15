@@ -43,8 +43,8 @@ export const HotReloadSettings = ({
       return;
     }
 
-    if (value < 1000) {
-      setValidationError("Minimum interval is 1000ms (1 second)");
+    if (value < 2000) {
+      setValidationError("Minimum interval is 2000ms (2 seconds)");
       return;
     }
 
@@ -93,16 +93,16 @@ export const HotReloadSettings = ({
             </label>
             <input
               type="range"
-              min="1000"
-              max="10000"
-              step="1000"
+              min="2000"
+              max="20000"
+              step="2000"
               value={localInterval}
               onInput={handleIntervalChange}
               class="slider"
             />
             {validationError
               ? <p class="error-message">{validationError}</p>
-              : <p class="hint">Minimum: 1000ms (1 second)</p>}
+              : <p class="hint">Minimum: 2000ms (2 seconds)</p>}
           </div>
 
           <div class="setting-group">

@@ -27,7 +27,7 @@ export class MarkdownService {
    * @param theme - テーマデータ
    * @returns RenderResult（html, rawMarkdown, content, frontmatter）
    */
-  async render(markdown: string, theme: ThemeData): Promise<RenderResult> {
+  render(markdown: string, theme: ThemeData): RenderResult {
     // 0. Frontmatter解析（domain/frontmatter）
     const { data: frontmatter, content } = parseFrontmatter(markdown);
 
@@ -36,8 +36,8 @@ export class MarkdownService {
     const parsed = parseMarkdown(content);
 
     // 2. サニタイズ（domain/markdown）
-    // セキュリティファースト: 全Markdown描画でDOMPurify必須
-    const sanitized = await sanitizeHTML(parsed);
+    // セキュリティファースト: 全Markdown描画でsanitizeHTML必須
+    const sanitized = sanitizeHTML(parsed);
 
     // 3. 見出しにID属性を付与（domain/toc）
     // TOC機能のために、H1-H3タグにid属性を追加

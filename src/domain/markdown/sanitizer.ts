@@ -82,6 +82,5 @@ const xssOptions = {
  * - シンタックスハイライト用のクラス属性を許可
  */
 export const sanitizeHTML = (html: string): string => {
-  // xss は同期関数だが、インターフェース統一のため async を維持
   return xss(html, xssOptions);
 };

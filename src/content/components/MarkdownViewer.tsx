@@ -157,12 +157,29 @@ export const MarkdownViewer = (
         for (const diagram of existingDiagrams) {
           try {
             const code = diagram.getAttribute("data-mermaid-code");
-            if (code) {
-              const svg = await renderMermaid(code, theme);
-              diagram.innerHTML = svg;
+            if (!code) {
+              console.warn(
+                "Mermaid diagram missing data-mermaid-code attribute",
+              );
+              continue;
             }
+            const svg = await renderMermaid(code, theme);
+            diagram.innerHTML = svg;
           } catch (error) {
             console.error("Mermaid re-rendering failed:", error);
+            // フォールバック: 元のコードブロックを表示
+            const code = diagram.getAttribute("data-mermaid-code");
+            if (code) {
+              const escaped = code.replace(/</g, "&lt;").replace(
+                />/g,
+                "&gt;",
+              );
+              diagram.innerHTML =
+                `<pre style="padding: 1rem; background: var(--markdown-viewer-code-bg, #f5f5f5); border-radius: 4px; overflow-x: auto;">` +
+                `<code class="language-mermaid">${escaped}</code></pre>` +
+                `<p style="color: var(--markdown-viewer-error-color, #c53030); font-size: 0.875rem; margin-top: 0.5rem;">` +
+                `Failed to render Mermaid diagram</p>`;
+            }
           }
         }
       })();
@@ -188,6 +205,7 @@ export const MarkdownViewer = (
                 const container = document.createElement("div");
                 container.className = "mermaid-diagram";
                 container.setAttribute("data-mermaid-code", block.code); // 元のコードを保存
+                container.setAttribute("data-mermaid-rendered", "true"); // レンダリング済みマーク
                 container.innerHTML = svg;
 
                 // 元の<pre>要素を置き換え
