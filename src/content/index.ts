@@ -82,23 +82,39 @@ const getThemeCssUrl = (theme: Theme): string => {
  */
 const loadThemeCss = (theme: Theme): void => {
   const cssUrl = getThemeCssUrl(theme);
-  let linkElement = document.querySelector(
+  const existingLink = document.querySelector(
     "link[data-markdown-theme]",
   ) as HTMLLinkElement;
 
-  if (!linkElement) {
+  if (!existingLink) {
     // 初回: <link>タグを作成して<head>に追加
-    linkElement = document.createElement("link");
+    const linkElement = document.createElement("link");
     linkElement.rel = "stylesheet";
     linkElement.setAttribute("data-markdown-theme", theme);
     linkElement.href = cssUrl;
     document.head.appendChild(linkElement);
     if (DEBUG) console.log(`Markdown Viewer: Theme CSS loaded - ${theme}`);
   } else {
-    // テーマ変更時: hrefを更新（再レンダリング不要！）
-    linkElement.setAttribute("data-markdown-theme", theme);
-    linkElement.href = cssUrl;
-    if (DEBUG) console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
+    // テーマ変更時: 新しい<link>を先に作成してロード完了後に古いのを削除
+    // これにより暗転を防ぐ（スムーズなテーマ切り替え）
+    const newLink = document.createElement("link");
+    newLink.rel = "stylesheet";
+    newLink.setAttribute("data-markdown-theme", theme);
+    newLink.href = cssUrl;
+
+    // 新しいCSSがロード完了したら古いのを削除
+    newLink.onload = () => {
+      existingLink.remove();
+      if (DEBUG) console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
+    };
+
+    // エラー時も古いのを削除（フォールバック）
+    newLink.onerror = () => {
+      existingLink.remove();
+    };
+
+    // 新しい<link>を追加（古いのと並行してロード）
+    document.head.appendChild(newLink);
   }
 
   // bodyにテーマクラスを付与（CSS変数のスコープを全ページに拡大）
