@@ -145,3 +145,48 @@ Content`;
   assertEquals(Array.isArray(result.data.tags), true);
   assertEquals((result.data.tags as string[])[0], "test");
 });
+
+Deno.test("parseFrontmatter: プロトタイプ汚染攻撃を防ぐ (__proto__)", () => {
+  const markdown = `---
+__proto__:
+  polluted: true
+title: Safe Title
+---
+# Content`;
+
+  const result = parseFrontmatter(markdown);
+
+  // プロトタイプ汚染が検出された場合は空オブジェクト
+  assertEquals(result.data, {});
+  assertEquals(result.content.trim(), "# Content");
+});
+
+Deno.test("parseFrontmatter: プロトタイプ汚染攻撃を防ぐ (constructor)", () => {
+  const markdown = `---
+constructor:
+  bad: value
+title: Safe Title
+---
+# Content`;
+
+  const result = parseFrontmatter(markdown);
+
+  // プロトタイプ汚染が検出された場合は空オブジェクト
+  assertEquals(result.data, {});
+  assertEquals(result.content.trim(), "# Content");
+});
+
+Deno.test("parseFrontmatter: プロトタイプ汚染攻撃を防ぐ (prototype)", () => {
+  const markdown = `---
+prototype:
+  malicious: true
+title: Safe Title
+---
+# Content`;
+
+  const result = parseFrontmatter(markdown);
+
+  // プロトタイプ汚染が検出された場合は空オブジェクト
+  assertEquals(result.data, {});
+  assertEquals(result.content.trim(), "# Content");
+});

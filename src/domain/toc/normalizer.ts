@@ -54,37 +54,30 @@ export function normalizeHeadingLevels(headings: TocHeading[]): TocHeading[] {
     return [];
   }
 
-  /**
-   * 指定されたインデックスの見出しに「1レベル上の親」が存在するかチェック
-   *
-   * @param level 見出しレベル
-   * @param index 見出しのインデックス
-   * @returns 親が存在する場合 true
-   */
-  const hasImmediateParent = (level: number, index: number): boolean => {
-    // h1 は親不要
-    if (level === 1) {
-      return true;
-    }
-
-    // 1レベル上の親レベル
-    const parentLevel = level - 1;
-
-    // それより前に parentLevel が存在するか？
-    for (let i = 0; i < index; i++) {
-      if (headings[i].level === parentLevel) {
-        return true;
-      }
-    }
-
-    return false;
-  };
+  // 過去に出現した「元の(変換前の)」レベルを O(1) でチェックするための Set
+  // ※重要: 変換前の元のレベルを記録することで、正しく親の存在を判定
+  const seenOriginalLevels = new Set<number>();
 
   // 親がいない場合は h2 に変換
-  return headings.map((h, i) => {
-    if (!hasImmediateParent(h.level, i)) {
+  return headings.map((h) => {
+    // 現在の見出しの元のレベルを記録
+    seenOriginalLevels.add(h.level);
+
+    // h1 は親不要
+    if (h.level === 1) {
+      return h;
+    }
+
+    // 1レベル上の親が「元の文書」に存在するかチェック
+    const parentLevel = h.level - 1;
+    const hasParent = seenOriginalLevels.has(parentLevel);
+
+    if (hasParent) {
+      // 親が存在する場合はそのまま保持
+      return h;
+    } else {
+      // 親がいない場合は h2 に変換（最上位は h2）
       return { ...h, level: 2 as 1 | 2 | 3 };
     }
-    return h;
   });
 }

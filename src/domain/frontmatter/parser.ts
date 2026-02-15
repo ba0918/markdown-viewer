@@ -55,6 +55,20 @@ export function parseFrontmatter(markdown: string): FrontmatterResult {
     let data = {};
     if (yamlString.trim()) {
       data = parse(yamlString) || {};
+
+      // プロトタイプ汚染チェック（トップレベルのキーのみチェック）
+      if (data && typeof data === "object") {
+        if (
+          Object.prototype.hasOwnProperty.call(data, "__proto__") ||
+          Object.prototype.hasOwnProperty.call(data, "constructor") ||
+          Object.prototype.hasOwnProperty.call(data, "prototype")
+        ) {
+          console.warn(
+            "Frontmatter: Prototype pollution attempt detected, ignoring data",
+          );
+          data = {};
+        }
+      }
     }
 
     return {

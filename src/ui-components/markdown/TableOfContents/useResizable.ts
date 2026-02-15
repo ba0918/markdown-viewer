@@ -6,7 +6,7 @@
  * ❌ NG: ビジネスロジック、messaging直接呼び出し
  */
 
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 /**
  * useResizable Hook のオプション
@@ -59,6 +59,9 @@ export const useResizable = ({
   const [width, setWidth] = useState(initialWidth);
   const [isResizing, setIsResizing] = useState(false);
 
+  // widthの最新値をRefで保持（依存配列から除外するため）
+  const widthRef = useRef(initialWidth);
+
   /**
    * initialWidthが変更されたら、リサイズ中でない時のみwidthを更新
    * （chrome.storageから読み込んだ値を反映するため）
@@ -66,8 +69,16 @@ export const useResizable = ({
   useEffect(() => {
     if (!isResizing) {
       setWidth(initialWidth);
+      widthRef.current = initialWidth;
     }
   }, [initialWidth, isResizing]);
+
+  /**
+   * width変更時にRefを更新
+   */
+  useEffect(() => {
+    widthRef.current = width;
+  }, [width]);
 
   /**
    * リサイズ開始ハンドラ
@@ -86,16 +97,13 @@ export const useResizable = ({
     document.body.style.userSelect = "none";
     document.body.style.cursor = "ew-resize"; // カーソルもリサイズ用に変更
 
-    // 最新の横幅を保持する変数（クロージャの問題を回避）
-    let latestWidth = width;
-
     /**
      * マウス移動ハンドラ
      */
     const handleMouseMove = (e: MouseEvent) => {
       // マウスX座標を横幅として使用、最小・最大幅で制約
       const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth);
-      latestWidth = newWidth; // 最新の横幅を保持
+      widthRef.current = newWidth; // Refで最新の横幅を保持
       setWidth(newWidth);
     };
 
@@ -107,8 +115,8 @@ export const useResizable = ({
       // リサイズ終了時にテキスト選択とカーソルを元に戻す
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
-      // リサイズ終了時にコールバックを実行（最新の横幅を使用）
-      onWidthChange?.(latestWidth);
+      // リサイズ終了時にコールバックを実行（Refから最新の横幅を取得）
+      onWidthChange?.(widthRef.current);
     };
 
     // グローバルイベントリスナーを登録
@@ -123,7 +131,7 @@ export const useResizable = ({
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
     };
-  }, [isResizing, minWidth, maxWidth, width, onWidthChange]);
+  }, [isResizing, minWidth, maxWidth, onWidthChange]);
 
   return { width, isResizing, startResize };
 };

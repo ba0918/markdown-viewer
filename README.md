@@ -18,6 +18,20 @@ Built to avoid extension malware risks with minimal permissions.
 - 🎨 **6 themes** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
 - **GFM support** - Syntax highlight, Mermaid, Math, ToC
 
+## Screenshots
+
+### Light Theme
+
+![Light Theme](docs/images/screenshot-light.png)
+
+### Dark Theme
+
+![Dark Theme](docs/images/screenshot-dark.png)
+
+### GitHub Theme with ToC
+
+![GitHub Theme](docs/images/screenshot-github-toc.png)
+
 ## Install
 
 ### From Chrome Web Store

@@ -166,7 +166,7 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 
 ## 詳細ドキュメント
 
-`spec.md`, `docs/ARCHITECTURE.md`, `docs/CODING_PRINCIPLES.md`,
+`docs/ARCHITECTURE.md`, `docs/CODING_PRINCIPLES.md`,
 `docs/IMPLEMENTATION_GUIDE.md`, `docs/SECURITY.md`,
 `docs/DIRECTORY_STRUCTURE.md`, `docs/ARCHITECTURE_DECISIONS.md`
 

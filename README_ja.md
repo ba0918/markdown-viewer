@@ -18,6 +18,20 @@
 - 🎨 **6つのテーマ** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
 - **GFM対応** - シンタックスハイライト、Mermaid、数式、目次
 
+## スクリーンショット
+
+### Lightテーマ
+
+![Light Theme](docs/images/screenshot-light.png)
+
+### Darkテーマ
+
+![Dark Theme](docs/images/screenshot-dark.png)
+
+### GitHubテーマ + 目次
+
+![GitHub Theme](docs/images/screenshot-github-toc.png)
+
 ## インストール
 
 ### Chrome Web Storeから
