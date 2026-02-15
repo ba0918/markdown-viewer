@@ -27,13 +27,20 @@
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 2rem;
+  gap: 1rem;
 }
 
 .document-header-tabs {
   display: flex;
   gap: 0;
+}
+
+.document-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .document-header-tabs .tab {

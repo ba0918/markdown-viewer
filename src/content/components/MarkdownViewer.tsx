@@ -21,6 +21,9 @@ import {
   type ViewMode,
 } from "../../shared/types/view-mode.ts";
 import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
+import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
+import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
+import type { Theme } from "../../shared/types/theme.ts";
 
 /**
  * MarkdownViewerコンポーネント
@@ -35,11 +38,14 @@ import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
 
 interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
-  themeId: Signal<string>;
+  themeId: Signal<Theme>;
   initialTocState?: TocState; // ToC初期状態（CLS削減用）
+  fileUrl: string; // ファイルURL (エクスポート用)
 }
 
-export const MarkdownViewer = ({ result, themeId, initialTocState }: Props) => {
+export const MarkdownViewer = (
+  { result, themeId, initialTocState, fileUrl }: Props,
+) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(DEFAULT_VIEW_MODE);
@@ -207,7 +213,15 @@ export const MarkdownViewer = ({ result, themeId, initialTocState }: Props) => {
           left: `${marginLeft - 20}px`, // ToCの幅（marginLeft - gap 20px）
         }}
         themeId={themeId.value}
-      />
+      >
+        <DocumentHeaderMenu>
+          <ExportMenuItem
+            html={result.html}
+            themeId={themeId}
+            fileUrl={fileUrl}
+          />
+        </DocumentHeaderMenu>
+      </DocumentHeader>
       <TableOfContents
         items={tocItems}
         themeId={themeId.value}

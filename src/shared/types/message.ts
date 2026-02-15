@@ -14,7 +14,16 @@ export type Message =
   }
   | { type: "CHECK_FILE_CHANGE"; payload: { url: string } }
   | { type: "GET_SETTINGS"; payload: Record<string, never> }
-  | { type: "UPDATE_SETTINGS"; payload: Partial<AppState> };
+  | { type: "UPDATE_SETTINGS"; payload: Partial<AppState> }
+  | {
+    type: "EXPORT_HTML";
+    payload: {
+      html: string;
+      themeId: Theme;
+      filename: string;
+      title?: string;
+    };
+  };
 
 /**
  * メッセージレスポンス型定義

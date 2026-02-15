@@ -294,6 +294,7 @@ const renderMarkdown = async (
           result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
           themeId: currentTheme,
           initialTocState, // ToC初期状態（CLS削減用）
+          fileUrl: location.href, // ファイルURL（エクスポート用）
         }),
       ),
       viewerContainer,

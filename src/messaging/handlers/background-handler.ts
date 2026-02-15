@@ -1,4 +1,5 @@
 import { markdownService } from "../../services/markdown-service.ts";
+import { exportService } from "../../services/export-service.ts";
 import { loadTheme } from "../../domain/theme/loader.ts";
 import { StateManager } from "../../background/state-manager.ts";
 import type { Message, MessageResponse } from "../types.ts";
@@ -82,6 +83,12 @@ export const handleBackgroundMessage = async (
         await stateManager.save(message.payload);
         const updated = await stateManager.load();
         return { success: true, data: updated };
+      }
+
+      case "EXPORT_HTML": {
+        // ✅ HTMLエクスポート（serviceに委譲）
+        await exportService.exportAsHTMLFile(message.payload);
+        return { success: true, data: null };
       }
 
       default:

@@ -69,6 +69,16 @@
   --raw-text-copy-button-hover-color: #f0f6fc;
   --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 
+  /* ExportButton */
+  --export-button-bg: rgba(30, 30, 30, 0.9);
+  --export-button-color: #c9d1d9;
+  --export-button-border: rgba(255, 255, 255, 0.2);
+  --export-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --export-button-hover-bg: #58a6ff;
+  --export-button-hover-color: #ffffff;
+  --export-button-hover-border: #58a6ff;
+  --export-button-hover-shadow: 0 4px 12px rgba(88, 166, 255, 0.4);
+
   /* Markdown Viewer */
   --markdown-viewer-layout-bg: #0d1117;
   --markdown-viewer-bg: transparent;

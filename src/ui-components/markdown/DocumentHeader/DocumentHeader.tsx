@@ -1,16 +1,18 @@
 import { h as _h } from "preact";
+import type { ComponentChildren } from "preact";
 import type { ViewMode } from "../../../shared/types/view-mode.ts";
 
 /**
  * DocumentHeaderコンポーネント
  *
- * 責務: View/Rawモード切り替えタブUI
+ * 責務: View/Rawモード切り替えタブUI、アクションメニュー表示
  * ❌ 禁止: ビジネスロジック、messaging直接呼び出し
  *
  * デザイン:
  * - 固定ヘッダー（position: fixed, top: 0）
  * - 半透明背景 + Blur Effect
- * - 右端にView/Rawタブ
+ * - 左側: View/Rawタブ
+ * - 右側: アクションメニュー(children経由)
  * - ホバー・アクティブアニメーション
  */
 
@@ -19,10 +21,11 @@ interface Props {
   onModeChange: (mode: ViewMode) => void;
   style?: { left: string };
   themeId: string;
+  children?: ComponentChildren; // アクションメニュー用
 }
 
 export const DocumentHeader = (
-  { currentMode, onModeChange, style, themeId }: Props,
+  { currentMode, onModeChange, style, themeId, children }: Props,
 ) => {
   const handleTabClick = (mode: ViewMode) => {
     onModeChange(mode);
@@ -65,6 +68,7 @@ export const DocumentHeader = (
             Raw
           </button>
         </div>
+        {children && <div class="document-header-actions">{children}</div>}
       </div>
     </header>
   );
