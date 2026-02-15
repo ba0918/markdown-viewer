@@ -3,10 +3,10 @@
  *
  * 責務: HTML Export メニュー項目
  * - Background Script: 重い処理（CSS fetch、HTML生成）
- * - Content Script: 軽い処理（Data URL化、<a>ダウンロード）
+ * - Content Script: 軽い処理（Blob URL化、<a>ダウンロード）
  *
  * ❌ 禁止: 重いビジネスロジック、services/domain直接呼び出し
- * ✅ OK: 軽量な処理（Data URL変換、DOM操作）
+ * ✅ OK: 軽量な処理（Blob URL変換、DOM操作）
  */
 
 import { h as _h } from "preact";
@@ -21,22 +21,22 @@ interface Props {
   html: string;
   /** テーマID Signal */
   themeId: Signal<Theme>;
-  /** ファイルURL (file://... または http://localhost:...) */
+  /** ファイルURL (file://..., http://localhost:..., https://...) */
   fileUrl: string;
   /** クリック後のコールバック（メニューを閉じるため） */
   onExported?: () => void;
 }
 
 /**
- * Data URLを生成（Content Script側の軽量な処理）
+ * Blob URLを生成（Content Script側の軽量な処理）
+ *
+ * data: URLではなくBlob URLを使用する理由:
+ * - リモートURL（https://）ではdata: URLのダウンロードがブロックされる
+ * - Blob URLは同一オリジン制限を受けないため、全環境で動作する
  */
-const toDataUrl = (html: string): string => {
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(html);
-  const binaryString = Array.from(bytes, (byte) => String.fromCharCode(byte))
-    .join("");
-  const base64 = btoa(binaryString);
-  return `data:text/html;charset=utf-8;base64,${base64}`;
+const toBlobUrl = (html: string): string => {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  return URL.createObjectURL(blob);
 };
 
 export const ExportMenuItem = ({
@@ -63,14 +63,17 @@ export const ExportMenuItem = ({
         },
       })) as string;
 
-      // 2. Content Script側でData URL化 + ダウンロード（軽い処理）
-      const dataUrl = toDataUrl(exportedHTML);
+      // 2. Content Script側でBlob URL化 + ダウンロード（軽い処理）
+      const blobUrl = toBlobUrl(exportedHTML);
 
       // 3. <a>タグでダウンロード（downloads権限不要）
       const a = document.createElement("a");
-      a.href = dataUrl;
+      a.href = blobUrl;
       a.download = filename.replace(/\.md$/, ".html");
       a.click();
+
+      // メモリリーク防止: Blob URLを解放
+      URL.revokeObjectURL(blobUrl);
 
       // エクスポート完了後のコールバック
       onExported?.();
