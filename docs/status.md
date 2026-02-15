@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated:** 2026-02-15 13:45:00
+**Last Updated:** 2026-02-15 14:30:00
 
 ---
 
@@ -14,13 +14,15 @@
   StateManager型バリデーション（interval≥1000ms必須）、(2) Hot Reload Race
   Condition修正、(3) console.log DEBUG化、(4)
   デッドコード削除（CodeBlock.tsx、未使用関数4個）、(5)
-  未使用パッケージ削除（lightningcss、dompurify：868KB削減）。全206テスト通過。次はPhase
-  2.7: @preact/signals削除 → useState化を実施予定。
+  未使用パッケージ削除（lightningcss、dompurify：868KB削減）、(6)
+  @preact/signals保持決定（テーマ変更時のスムーズな再レンダリングに必須）。全206テスト通過。Phase
+  3未着手。
 - **Plan:**
   [docs/cycles/20260215131738_code-quality-comprehensive-refactoring.md](./cycles/20260215131738_code-quality-comprehensive-refactoring.md)
 - **Commits:**
   - `[0b72598]` refactor: code quality improvements (Phase 1 & 2)
-- **Progress:** Phase 1 & 2完了 (40分)、Phase 2.7実施中、Phase 3未着手
+  - `[4420aea]` docs: keep @preact/signals for smooth theme switching
+- **Progress:** Phase 1 & 2完了 (55分)、Phase 3未着手
 
 ---
 
