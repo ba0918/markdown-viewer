@@ -53,20 +53,39 @@ declare const chrome: {
 let currentMarkdown = "";
 
 // Hot Reload用のグローバル変数
-let hotReloadInterval: number | null = null;
+// Note: setInterval()の戻り値はブラウザ環境ではnumber、Deno環境ではTimeout型
+// ブラウザ実行時の型としてnumberを指定しつつ、Timeout型も許容
+let hotReloadInterval: ReturnType<typeof globalThis.setInterval> | null = null;
 let lastFileContent: string | null = null;
 
 // 現在のテーマをSignalで管理（リアクティブ）
 const currentTheme = signal<Theme>("light");
 
 /**
- * Markdownファイル判定
+ * Markdownファイル判定（ローカル＋リモートURL対応）
+ *
+ * - ローカルファイル（file://）とlocalhost: URL拡張子で判定
+ * - リモートURL: Content-Type（text/markdown, text/plain）またはURL拡張子で判定
+ * - GitHubのrawファイルはtext/plainで配信されることが多いため、text/plainも許可
  */
 const isMarkdownFile = (): boolean => {
-  return (
-    document.contentType === "text/markdown" ||
-    location.pathname.match(/\.(md|markdown)$/i) !== null
-  );
+  const url = location.href;
+
+  // ローカルファイルとlocalhostは既存の拡張子判定で動作
+  if (url.startsWith("file://") || url.startsWith("http://localhost")) {
+    return location.pathname.match(/\.(md|markdown)$/i) !== null;
+  }
+
+  // リモートURL: Content-Typeチェック
+  const contentType = document.contentType || "";
+  const hasMarkdownContentType = contentType.includes("text/markdown") ||
+    contentType.includes("text/plain");
+
+  // URLの拡張子チェック
+  const hasMarkdownExtension = /\.(md|markdown)$/i.test(url);
+
+  // どちらかに該当すればMarkdownとして扱う
+  return hasMarkdownContentType || hasMarkdownExtension;
 };
 
 /**

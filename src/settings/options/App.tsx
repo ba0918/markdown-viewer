@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { sendMessage } from "../../messaging/client.ts";
 import { ThemeSelector } from "./components/ThemeSelector.tsx";
 import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
+import { RemoteUrlSettings } from "./components/RemoteUrlSettings.tsx";
 import type { AppState } from "../../shared/types/state.ts";
 import type { Theme } from "../../shared/types/theme.ts";
 
@@ -153,6 +154,10 @@ export const App = () => {
             autoReload={settings.hotReload.autoReload}
             onChange={handleHotReloadChange}
           />
+        </section>
+
+        <section class="section">
+          <RemoteUrlSettings />
         </section>
       </main>
 

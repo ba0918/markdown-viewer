@@ -45,11 +45,16 @@
 
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
 
   "host_permissions": [
     "file:///*"
+  ],
+
+  "optional_host_permissions": [
+    "https://*/*"
   ],
 
   "content_security_policy": {
@@ -62,6 +67,10 @@
       "content/styles/fonts/files/*.woff2",
       "content/styles/fonts/files/*.woff"
     ],
-    "matches": ["file://*/*", "http://localhost:*/*"]
+    "matches": [
+      "file://*/*",
+      "http://localhost:*/*",
+      "https://*/*"
+    ]
   }]
 }

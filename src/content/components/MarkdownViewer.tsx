@@ -83,10 +83,15 @@ export const MarkdownViewer = (
     });
   }, []);
 
+  // ToCの表示状態を判定
+  // - 見出しがない場合は強制的に非表示
+  // - 見出しがある場合はユーザー設定に従う
+  const isTocVisible = tocItems.length > 0 && tocState.visible;
+
   // ToCの状態に合わせて動的に margin-left を計算
   // - ToCが表示されている場合: ToCの幅 + パディング
   // - ToCが非表示の場合: 最小サイドバー幅（40px）
-  const marginLeft = tocState.visible ? tocState.width : 40;
+  const marginLeft = isTocVisible ? tocState.width : 40;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -210,7 +215,8 @@ export const MarkdownViewer = (
         currentMode={viewMode}
         onModeChange={setViewMode}
         style={{
-          left: `${marginLeft - 20}px`, // ToCの幅（marginLeft - gap 20px）
+          // ToCが表示されている場合のみ left を調整
+          left: isTocVisible ? `${marginLeft - 20}px` : "0",
         }}
         themeId={themeId.value}
       >

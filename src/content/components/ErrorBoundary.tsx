@@ -15,13 +15,13 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
-  static getDerivedStateFromError(error: Error): State {
+  static override getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  componentDidCatch(error: Error, errorInfo: unknown) {
+  override componentDidCatch(error: Error, errorInfo: unknown) {
     console.error("ErrorBoundary caught:", error, errorInfo);
   }
 

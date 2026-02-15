@@ -58,6 +58,9 @@ Planning
 manifest.json                    # (変更) optional_host_permissions, scripting権限追加
 
 src/
+  content/
+    content.ts                   # (変更) リモートURL対応: Content-Type判定追加
+
   settings/
     options/
       components/
@@ -134,16 +137,17 @@ tests/
 
 ## 📊 Progress
 
-| Step                     | Status |
-| ------------------------ | ------ |
-| manifest.json更新        | ⚪     |
-| RemoteUrlSettings UI実装 | ⚪     |
-| プリセット定義           | ⚪     |
-| 権限管理ロジック         | ⚪     |
-| content script動的登録   | ⚪     |
-| スタイリング             | ⚪     |
-| Tests (E2E)              | ⚪     |
-| Commit                   | ⚪     |
+| Step                           | Status |
+| ------------------------------ | ------ |
+| Content Script判定ロジック追加 | ⚪     |
+| manifest.json更新              | ⚪     |
+| RemoteUrlSettings UI実装       | ⚪     |
+| プリセット定義                 | ⚪     |
+| 権限管理ロジック               | ⚪     |
+| content script動的登録         | ⚪     |
+| スタイリング                   | ⚪     |
+| Tests (E2E)                    | ⚪     |
+| Commit                         | ⚪     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -172,8 +176,7 @@ tests/
   "optional_host_permissions": [
     "https://raw.githubusercontent.com/*",
     "https://gist.githubusercontent.com/*",
-    "https://gitlab.com/*",
-    "https://*/*"
+    "https://gitlab.com/*"
   ],
 
   "content_scripts": [{
@@ -193,7 +196,9 @@ tests/
 
 - `scripting` 権限追加（content script動的登録に必要）
 - `optional_host_permissions` 追加（ユーザーが明示的に許可）
-- `https://*/*` は最後のフォールバック（カスタムドメイン用）
+- ⚠️ `https://*/*` は削除（セキュリティリスク大、Chrome Web
+  Store審査で却下される可能性）
+- カスタムドメイン機能は将来的に動的に追加する形で実装予定
 
 ### 2. settings/options/components/RemoteUrlSettings.tsx
 
@@ -253,40 +258,57 @@ export const RemoteUrlSettings = () => {
   }, []);
 
   const requestPermission = async (preset: PermissionPreset) => {
-    const granted = await chrome.permissions.request({
-      origins: preset.origins,
-    });
+    try {
+      const granted = await chrome.permissions.request({
+        origins: preset.origins,
+      });
 
-    if (granted) {
-      // content scriptを動的に登録
-      await chrome.scripting.registerContentScripts([{
-        id: `remote-${preset.id}`,
-        matches: preset.origins.map((origin) => origin.replace(/\*$/, "*.md")),
-        js: ["content.js"],
-        runAt: "document_start",
-      }]);
+      if (granted) {
+        // content scriptを動的に登録
+        // 注: リモートURLは拡張子なしの場合もあるため、originsをそのまま使用
+        // Content Script側でContent-Type/URL拡張子を判定して早期リターン
+        await chrome.scripting.registerContentScripts([{
+          id: `remote-${preset.id}`,
+          matches: preset.origins,
+          js: ["content.js"],
+          runAt: "document_start",
+        }]);
 
-      setGrantedPermissions(new Set([...grantedPermissions, preset.id]));
+        setGrantedPermissions(new Set([...grantedPermissions, preset.id]));
+      }
+    } catch (error) {
+      console.error(`Failed to grant permission for ${preset.id}:`, error);
+      // TODO: トースト通知でユーザーにエラーを表示
+      // showToast(`Failed to enable ${preset.name}`, 'error');
     }
   };
 
   const revokePermission = async (preset: PermissionPreset) => {
-    await chrome.permissions.remove({
-      origins: preset.origins,
-    });
-
-    // content scriptを解除
     try {
-      await chrome.scripting.unregisterContentScripts({
-        ids: [`remote-${preset.id}`],
+      const removed = await chrome.permissions.remove({
+        origins: preset.origins,
       });
-    } catch (e) {
-      // スクリプトが登録されてない場合は無視
-    }
 
-    const newPermissions = new Set(grantedPermissions);
-    newPermissions.delete(preset.id);
-    setGrantedPermissions(newPermissions);
+      if (removed) {
+        // content scriptを解除
+        try {
+          await chrome.scripting.unregisterContentScripts({
+            ids: [`remote-${preset.id}`],
+          });
+        } catch (e) {
+          // スクリプトが登録されてない場合は無視
+          console.warn(`Content script not registered for ${preset.id}:`, e);
+        }
+
+        const newPermissions = new Set(grantedPermissions);
+        newPermissions.delete(preset.id);
+        setGrantedPermissions(newPermissions);
+      }
+    } catch (error) {
+      console.error(`Failed to revoke permission for ${preset.id}:`, error);
+      // TODO: トースト通知でユーザーにエラーを表示
+      // showToast(`Failed to disable ${preset.name}`, 'error');
+    }
   };
 
   return (
@@ -403,7 +425,58 @@ export const App = () => {
 };
 ```
 
-### 4. styles/components/remote-url-settings/base.css
+### 4. content/content.ts（変更部分）
+
+リモートURL対応のため、Content Script先頭に判定ロジックを追加:
+
+```typescript
+// content.ts の先頭に追加
+
+/**
+ * リモートURLでMarkdownを判定
+ * - Content-Type が text/markdown または text/plain
+ * - URL拡張子が .md または .markdown
+ * どちらかに該当しない場合は早期リターン
+ */
+function isMarkdownDocument(): boolean {
+  const url = window.location.href;
+
+  // ローカルファイルとlocalhostは既存の拡張子判定で動作
+  if (url.startsWith("file://") || url.startsWith("http://localhost")) {
+    return true;
+  }
+
+  // リモートURL: Content-Typeチェック
+  const contentType = document.contentType || "";
+  const hasMarkdownContentType = contentType.includes("text/markdown") ||
+    contentType.includes("text/plain");
+
+  // URLの拡張子チェック
+  const hasMarkdownExtension = /\.(md|markdown)$/i.test(url);
+
+  return hasMarkdownContentType || hasMarkdownExtension;
+}
+
+// Content Script のメイン処理前に判定
+if (!isMarkdownDocument()) {
+  // Markdownでない場合は何もしない
+  console.debug("[Markdown Viewer] Not a Markdown document, skipping");
+  // ここで処理終了（何もexportしない、イベントリスナーも登録しない）
+} else {
+  // 既存のMarkdown描画処理
+  // ...
+}
+```
+
+**重要なポイント**:
+
+- `document.contentType` は読み込み完了後に取得可能
+- `runAt: "document_start"` でも`document.contentType`は取得可能
+- Content-Typeが`text/plain`も含める理由:
+  GitHubのrawファイルは`text/plain`で配信される場合がある
+- 拡張子判定も併用することで、Content-Typeが不正確な場合もカバー
+
+### 5. styles/components/remote-url-settings/base.css
 
 ```css
 .remote-url-settings {
@@ -606,22 +679,26 @@ test.describe("Remote URL Settings", () => {
 
 ## 🎯 Implementation Strategy
 
-### Phase 1: Manifest & Types
+### Phase 1: Content Script修正（リモートURL対応）
 
-1. `manifest.json` - optional_host_permissions, scripting権限追加
+1. `src/content/content.ts` - Content-Type/URL拡張子判定ロジック追加
 
-### Phase 2: UI層
+### Phase 2: Manifest & Types
 
-2. `settings/options/components/RemoteUrlSettings.tsx` - 設定UIコンポーネント
-3. `settings/options/App.tsx` - RemoteUrlSettings統合
+2. `manifest.json` - optional_host_permissions, scripting権限追加
 
-### Phase 3: Styling
+### Phase 3: UI層
 
-4. `src/styles/components/remote-url-settings/base.css` - スタイル実装
+3. `settings/options/components/RemoteUrlSettings.tsx` - 設定UIコンポーネント
+4. `settings/options/App.tsx` - RemoteUrlSettings統合
 
-### Phase 4: E2Eテスト
+### Phase 4: Styling
 
-5. `tests/e2e/remote-url.spec.ts` - E2Eテスト実装
+5. `src/styles/components/remote-url-settings/base.css` - スタイル実装
+
+### Phase 5: E2Eテスト
+
+6. `tests/e2e/remote-url.spec.ts` - E2Eテスト実装
 
 ---
 
@@ -633,6 +710,68 @@ test.describe("Remote URL Settings", () => {
 - **プリセット**: GitHub/GitLabを標準対応、将来的に追加可能
 - **Chrome Web Store審査**: optional
   permissionsは高評価、all_urlsはreject可能性大
+- **リモートURL判定**:
+  - Content Scriptは`preset.origins`全体にマッチ（拡張子フィルタなし）
+  - Content Script内でContent-Type（`text/markdown`,
+    `text/plain`）と拡張子（`.md`, `.markdown`）を判定
+  - どちらにも該当しない場合は早期リターン（何もしない）
+  - GitHubのrawファイルは`text/plain`で配信されることが多いため、Content-Type判定には`text/plain`も含める
+
+---
+
+## 🔍 Design Decisions & Rationale
+
+### ❌ 却下された設計案
+
+#### 1. Content Script matchesで拡張子フィルタ
+
+**提案**: `matches: ["https://raw.githubusercontent.com/**/*.md"]`
+
+**問題点**:
+
+- リモートURLは拡張子がない場合が多い（例:
+  `https://raw.githubusercontent.com/user/repo/main/README`）
+- API経由の場合も拡張子がない
+- 拡張子でフィルタすると大量のMarkdownファイルを見逃す
+
+**却下理由**: リモートURLの実態に合わない
+
+#### 2. `https://*/*` をmanifest.jsonに追加
+
+**提案**:
+カスタムドメイン対応のため`optional_host_permissions`に`https://*/*`を追加
+
+**問題点**:
+
+- 全HTTPSサイトにアクセス可能になる（`all_urls`と同等）
+- Chrome Web Store審査で却下される可能性が非常に高い
+- セキュリティファーストの原則に反する
+
+**却下理由**: セキュリティリスクが大きすぎる
+
+### ✅ 採用された設計案
+
+#### Content-Type + URL拡張子による判定
+
+**理由**:
+
+1. **柔軟性**: 拡張子なしのMarkdownファイルに対応
+2. **正確性**: Content-Typeで正しく判定できる
+3. **パフォーマンス**: 早期リターンで不要な処理を回避
+4. **セキュリティ**: manifest.jsonは最小限の権限のみ
+
+**実装**:
+
+- Content Scriptは`preset.origins`全体にマッチ
+- Content Script内でContent-Type（`text/markdown`, `text/plain`）判定
+- URL拡張子（`.md`, `.markdown`）も併用
+- どちらにも該当しない場合は早期リターン
+
+**トレードオフ**:
+
+- Content Scriptが不要なページでも一瞬読み込まれる
+- ただし早期リターンで処理時間は無視できるレベル
+- メリット（柔軟性・正確性）がデメリットを大きく上回る
 
 ---
 
@@ -641,6 +780,7 @@ test.describe("Remote URL Settings", () => {
 - [Chrome Permissions API](https://developer.chrome.com/docs/extensions/reference/api/permissions)
 - [Optional Permissions Best Practices](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
 - [Content Scripts Dynamic Registration](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-registerContentScripts)
+- [Chrome Scripting API](https://developer.chrome.com/docs/extensions/reference/api/scripting)
 
 ---
 

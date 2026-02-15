@@ -1,0 +1,189 @@
+.remote-url-settings {
+  padding: 2rem;
+}
+
+.remote-url-settings .description {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Add Origin Form */
+.add-origin-form {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.origin-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: "Courier New", monospace;
+  background: white;
+}
+
+.origin-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.origin-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-add {
+  background: #10b981;
+  color: white;
+}
+
+.btn-add:hover:not(:disabled) {
+  background: #059669;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.help-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.help-text code {
+  background: #f3f4f6;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+/* Origins List */
+.origins-list {
+  margin-bottom: 2rem;
+}
+
+.origins-list h3 {
+  font-size: 1.125rem;
+  margin: 0 0 1rem 0;
+  color: #374151;
+}
+
+.origins-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.origin-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.origin-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.origin-info code {
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  display: inline-block;
+}
+
+.origin-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.btn-remove {
+  background: #ef4444;
+  color: white;
+  flex-shrink: 0;
+}
+
+.btn-remove:hover {
+  background: #dc2626;
+}
+
+/* Info Box */
+.info-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.info-box h4 {
+  margin: 0 0 1rem 0;
+  color: #1e40af;
+  font-size: 1rem;
+}
+
+.info-box ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #1e3a8a;
+}
+
+.info-box li {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.info-box code {
+  background: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
