@@ -56,8 +56,14 @@ export async function expectThemeApplied(
   page: Page,
   themeName: string,
 ): Promise<void> {
-  const linkElement = page.locator("link[data-markdown-theme]");
-  await expect(linkElement).toHaveAttribute("data-markdown-theme", themeName);
+  // 全テーマのlink要素が存在し、有効なテーマだけdisabled属性がない仕組み
+  // disabledでない（=有効な）link要素を探す
+  const linkElement = page.locator(
+    `link[data-markdown-theme="${themeName}"]:not([disabled])`,
+  );
+  // link要素はhead内にあるためtoBeVisible()は使えない
+  // 代わりに要素数が1であることを確認
+  await expect(linkElement).toHaveCount(1);
   await expect(linkElement).toHaveAttribute(
     "href",
     new RegExp(`${themeName}\\.css$`),

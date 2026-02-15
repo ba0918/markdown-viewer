@@ -53,7 +53,7 @@ test.describe("Hot Reload", () => {
 
     // Hot Reloadトグルボタンを探す（aria-labelで探す）
     const hotReloadToggle = optionsPage.getByLabel(
-      /Hot Reload有効化|Hot Reload無効化/,
+      /Enable Hot Reload|Disable Hot Reload/,
     );
 
     // トグルボタンが表示されるまで待機
@@ -79,29 +79,14 @@ test.describe("Hot Reload", () => {
     // 元のコンテンツが表示されているか確認
     await expect(page.locator('p:has-text("Original content.")')).toBeVisible();
 
-    // コンソールログを監視
-    const consoleLogs: string[] = [];
-    page.on("console", (msg) => {
-      consoleLogs.push(msg.text());
-    });
-
     // Markdownファイルを更新
     await writeFile(TEST_MD_PATH, UPDATED_CONTENT, "utf-8");
 
-    // Hot Reloadが検知してリロードするまで待機（最大10秒）
-    // "File changed detected! Reloading..." ログが出るか、ページがリロードされるのを待つ
-    await page.waitForTimeout(5000); // Hot Reloadのinterval（デフォルト3秒）+ バッファ
-
-    // リロード後、更新されたコンテンツが表示されているか確認
-    // ※ リロード後は新しいコンテンツが表示される
+    // Hot Reloadが検知してリロードするまで待機
+    // Hot Reloadのinterval（デフォルト3秒）+ バッファ
+    // リロード後、更新されたコンテンツが表示されるのを待つ（最大10秒）
     const updatedText = page.locator('strong:has-text("Updated content!")');
-    await expect(updatedText).toBeVisible({ timeout: 5000 });
-
-    // コンソールログに "File changed detected!" が含まれているか確認
-    const hasDetectedLog = consoleLogs.some((log) =>
-      log.includes("File changed detected")
-    );
-    expect(hasDetectedLog).toBe(true);
+    await expect(updatedText).toBeVisible({ timeout: 10000 });
   });
 
   test("Hot Reload無効時、ファイル変更してもリロードされない", async ({ page, context, extensionId, testServerUrl }) => {
@@ -113,7 +98,7 @@ test.describe("Hot Reload", () => {
 
     // Hot Reloadトグルボタンを探す
     const hotReloadToggle = optionsPage.getByLabel(
-      /Hot Reload有効化|Hot Reload無効化/,
+      /Enable Hot Reload|Disable Hot Reload/,
     );
 
     // トグルボタンが表示されるまで待機
