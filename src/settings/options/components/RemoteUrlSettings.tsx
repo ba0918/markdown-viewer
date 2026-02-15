@@ -1,4 +1,4 @@
-import { h as _h } from "preact";
+import { Fragment as _Fragment, h as _h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 interface CustomOrigin {
@@ -86,7 +86,13 @@ export const RemoteUrlSettings = () => {
       }
 
       // Content Scriptを動的に登録
-      const scriptId = `custom-origin-${Date.now()}`;
+      // IDはドメインをBase64エンコードして一意性を確保（URLセーフ）
+      const scriptId = `custom-origin-${
+        btoa(trimmed).replace(
+          /[+/=]/g,
+          (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
+        )
+      }`;
       await chrome.scripting.registerContentScripts([{
         id: scriptId,
         matches: [trimmed],
@@ -149,67 +155,111 @@ export const RemoteUrlSettings = () => {
 
   return (
     <div class="remote-url-settings">
-      <h2>🌐 Remote URL Support (Advanced)</h2>
-      <p class="description">
-        Add custom domains to enable Markdown viewing from remote URLs.
-        <br />
-        <strong>Privacy First:</strong>{" "}
-        Only domains you explicitly add will have access.
-      </p>
+      <div class="settings-header">
+        <div class="header-content">
+          <h3 class="settings-title">Remote URL Support</h3>
+          <span class="settings-badge">Advanced</span>
+        </div>
+        <p class="settings-description">
+          Enable Markdown viewing from remote URLs by adding custom domains.
+          <strong class="privacy-emphasis">Privacy First:</strong>{" "}
+          Only domains you explicitly authorize will have access.
+        </p>
+      </div>
 
-      <div class="add-origin-form">
-        <div class="input-group">
-          <input
-            type="text"
-            class="origin-input"
-            placeholder="https://example.com/*"
-            value={inputValue}
-            onInput={(e) => setInputValue((e.target as HTMLInputElement).value)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                addOrigin();
-              }
-            }}
-            disabled={isLoading}
-          />
+      <div class="add-origin-section">
+        <label class="input-label">Add Custom Domain</label>
+        <div class="input-container">
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true"></span>
+            <input
+              type="text"
+              class={`origin-input ${error ? "has-error" : ""}`}
+              placeholder="https://example.com/*"
+              value={inputValue}
+              onInput={(e: Event) =>
+                setInputValue((e.target as HTMLInputElement).value)}
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "Enter") {
+                  addOrigin();
+                }
+              }}
+              disabled={isLoading}
+              aria-label="Custom domain URL"
+              aria-invalid={error ? "true" : "false"}
+            />
+          </div>
           <button
             type="button"
-            class="btn btn-add"
+            class="btn-primary"
             onClick={addOrigin}
             disabled={isLoading || !inputValue.trim()}
+            aria-label="Add domain"
           >
-            {isLoading ? "Adding..." : "➕ Add Domain"}
+            {isLoading
+              ? (
+                <>
+                  <span class="btn-spinner"></span>
+                  Adding...
+                </>
+              )
+              : (
+                "Add Domain"
+              )}
           </button>
         </div>
 
-        {error && <div class="error-message">{error}</div>}
+        {error && (
+          <div class="validation-error" role="alert">
+            <span class="error-icon" aria-hidden="true"></span>
+            {error}
+          </div>
+        )}
 
-        <div class="help-text">
-          <strong>Format:</strong> <code>https://example.com/*</code>
-          <br />
-          Example: <code>https://raw.githubusercontent.com/*</code>
+        <div class="format-hint">
+          <div class="hint-row">
+            <span class="hint-label">Format:</span>
+            <code class="hint-code">https://example.com/*</code>
+          </div>
+          <div class="hint-row">
+            <span class="hint-label">Example:</span>
+            <code class="hint-code">https://raw.githubusercontent.com/*</code>
+          </div>
         </div>
       </div>
 
       {customOrigins.length > 0 && (
-        <div class="origins-list">
-          <h3>Added Domains ({customOrigins.length})</h3>
-          <ul>
-            {customOrigins.map((item) => (
-              <li key={item.origin} class="origin-item">
-                <div class="origin-info">
-                  <code>{item.origin}</code>
-                  <span class="origin-date">
-                    Added: {new Date(item.addedAt).toLocaleDateString()}
-                  </span>
+        <div class="origins-section">
+          <div class="section-header">
+            <h4 class="section-title">Authorized Domains</h4>
+            <span class="domain-count">{customOrigins.length}</span>
+          </div>
+          <ul class="origins-list" role="list">
+            {customOrigins.map((item, index) => (
+              <li
+                key={item.origin}
+                class="origin-item"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div class="origin-content">
+                  <div class="origin-url-wrapper">
+                    <span class="origin-icon" aria-hidden="true"></span>
+                    <code class="origin-url">{item.origin}</code>
+                  </div>
+                  <time
+                    class="origin-timestamp"
+                    dateTime={new Date(item.addedAt).toISOString()}
+                  >
+                    Added {new Date(item.addedAt).toLocaleDateString()}
+                  </time>
                 </div>
                 <button
                   type="button"
-                  class="btn btn-remove"
-                  onClick={() =>
-                    removeOrigin(item.origin)}
+                  class="btn-remove"
+                  onClick={() => removeOrigin(item.origin)}
+                  aria-label={`Remove ${item.origin}`}
                 >
-                  ❌ Remove
+                  Remove
                 </button>
               </li>
             ))}
@@ -217,20 +267,37 @@ export const RemoteUrlSettings = () => {
         </div>
       )}
 
-      <div class="info-box">
-        <h4>🔒 Security & Privacy</h4>
-        <ul>
-          <li>
-            ✅ <strong>HTTPS only</strong> - HTTP is not allowed for security
+      <div class="security-notice">
+        <div class="notice-header">
+          <span class="security-icon" aria-hidden="true"></span>
+          <h4 class="notice-title">Security & Privacy</h4>
+        </div>
+        <ul class="security-list" role="list">
+          <li class="security-item security-highlight">
+            <span class="item-icon icon-lock" aria-hidden="true"></span>
+            <span>
+              <strong>HTTPS Only:</strong>{" "}
+              Secure connections required for all domains
+            </span>
           </li>
-          <li>✅ You can remove domains anytime</li>
-          <li>✅ No tracking, no data collection</li>
-          <li>
-            ✅ Domains are stored locally in Chrome Sync Storage
+          <li class="security-item">
+            <span class="item-icon icon-check" aria-hidden="true"></span>
+            <span>Remove domains anytime without restrictions</span>
           </li>
-          <li>
-            ⚠️ <strong>Only add domains you trust</strong>{" "}
-            - this extension will run on those sites
+          <li class="security-item">
+            <span class="item-icon icon-check" aria-hidden="true"></span>
+            <span>Zero tracking, zero data collection</span>
+          </li>
+          <li class="security-item">
+            <span class="item-icon icon-check" aria-hidden="true"></span>
+            <span>Domains stored locally via Chrome Sync Storage</span>
+          </li>
+          <li class="security-item security-warning">
+            <span class="item-icon icon-warning" aria-hidden="true"></span>
+            <span>
+              <strong>Trust Carefully:</strong>{" "}
+              This extension will execute on authorized domains
+            </span>
           </li>
         </ul>
       </div>
