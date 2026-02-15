@@ -15,43 +15,78 @@ practices.
 ### What We Access
 
 - **Local Markdown Files** - Only files you explicitly open in Chrome
-- **Browser Storage** - Your theme and settings (stored locally on your device
-  only)
+- **Remote Markdown Files** - Only from domains you explicitly authorize in
+  Settings
+- **Browser Storage** - Your theme, settings, and authorized domains (stored
+  locally on your device only)
 
 ### What We Do NOT Access
 
 - ❌ Your browsing history
 - ❌ Personal information
 - ❌ Files you haven't opened
-- ❌ Network activity
+- ❌ Websites you haven't authorized
 - ❌ Location data
 
 ## Permissions Explained
 
 This extension requests the following permissions:
 
-### `storage`
+### Required Permissions
 
-**Purpose:** Save your theme preference and Hot Reload settings **Data
-Location:** Stored locally on your device via `chrome.storage.sync` **Data
-Shared:** None. Settings may sync across your Chrome browsers if you're signed
-in to Chrome, but we never access or transmit this data.
+#### `storage`
 
-### `activeTab`
+**Purpose:** Save your theme preference, Hot Reload settings, and authorized
+domains **Data Location:** Stored locally on your device via
+`chrome.storage.sync` **Data Shared:** None. Settings may sync across your
+Chrome browsers if you're signed in to Chrome, but we never access or transmit
+this data.
+
+#### `activeTab`
 
 **Purpose:** Render Markdown content in the current tab **Scope:** Only
 activates when you open a `.md` or `.markdown` file **Data Accessed:** The
 Markdown file content you opened
 
-### `file:///*`
+#### `scripting`
+
+**Purpose:** Dynamically register content scripts for custom domains **Scope:**
+Only used when you add custom domains in Settings **Data Accessed:** None beyond
+what's needed to register scripts
+
+#### `file:///*`
 
 **Purpose:** Access local Markdown files **Scope:** Only files you explicitly
 open in Chrome **Data Accessed:** File content for rendering only
 
-## No Network Requests
+### Optional Permissions
 
-This extension **does not make any network requests**. All processing happens
-locally on your device.
+#### `https://*/*` (Optional Host Permissions)
+
+**Purpose:** Access remote Markdown files from custom domains **How it works:**
+
+- Disabled by default
+- Only activates when you explicitly add a domain in Settings (Options page)
+- You choose which domains to trust
+- You can remove domains anytime **Privacy Guarantee:** We only access domains
+  you explicitly authorize. No data is collected or transmitted.
+
+## Network Requests
+
+### Default Behavior (No Remote Domains)
+
+This extension **does not make any network requests by default**. All processing
+happens locally on your device.
+
+### When You Add Custom Domains (Optional)
+
+If you choose to add custom domains in Settings:
+
+- The extension will fetch Markdown files **only** from domains you explicitly
+  authorize
+- No data is sent to any server
+- No tracking or analytics
+- You control which domains to trust and can remove them anytime
 
 ## No Analytics or Tracking
 

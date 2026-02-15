@@ -13,9 +13,12 @@
 
 ## 特徴
 
-- 🔒 **最小権限** - storage + activeTabのみ
+- 🔒 **最小権限** - storage + activeTab + scripting
+  (デフォルトはファイルアクセスのみ)
 - 🔥 **Hot Reload** - ファイル変更を自動検出
 - 🎨 **6つのテーマ** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
+- 🌐 **リモートURL対応 (オプション)** -
+  カスタムドメインを追加してリモートMarkdownファイルに対応
 - **GFM対応** - シンタックスハイライト、Mermaid、数式、目次
 
 ## スクリーンショット
@@ -61,13 +64,18 @@ deno task build  # Deno 2.x必須
 
 - ✅ ローカルMarkdownファイルを読む
 - ✅ 設定をローカル保存
+- ✅ リモートURLへのアクセス (明示的に許可したドメインのみ)
 
 ### やらないこと
 
-- ❌ ネットワークリクエスト
 - ❌ データ収集・トラッキング
+- ❌ 許可していないドメインへのネットワークリクエスト
+- ❌ ユーザーの許可なしにWebサイトへアクセス
 
-**権限:** `storage`, `activeTab`, `file:///*` のみ
+**権限:**
+
+- 必須: `storage`, `activeTab`, `scripting`, `file:///*`
+- オプション: `https://*/*` (設定でカスタムドメインを追加した場合のみ)
 
 ## FAQ
 
