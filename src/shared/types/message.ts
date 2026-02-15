@@ -16,7 +16,7 @@ export type Message =
   | { type: "GET_SETTINGS"; payload: Record<string, never> }
   | { type: "UPDATE_SETTINGS"; payload: Partial<AppState> }
   | {
-    type: "EXPORT_HTML";
+    type: "GENERATE_EXPORT_HTML";
     payload: {
       html: string;
       themeId: Theme;

@@ -1,7 +1,7 @@
 # HTML Export Feature
 
-**Cycle ID:** `20260215152537` **Started:** 2026-02-15 15:25:37 **Status:** 🟡
-Planning
+**Cycle ID:** `20260215152537` **Started:** 2026-02-15 15:25:37 **Completed:**
+2026-02-15 17:30:00 **Status:** 🟢 Completed
 
 ---
 
@@ -141,16 +141,48 @@ tests/
 
 | Step                        | Status |
 | --------------------------- | ------ |
-| domain/export実装           | ⚪     |
-| services/export-service実装 | ⚪     |
-| messaging層統合             | ⚪     |
-| ExportButton UI実装         | ⚪     |
-| スタイリング                | ⚪     |
-| Tests (Unit)                | ⚪     |
-| Tests (E2E)                 | ⚪     |
-| Commit                      | ⚪     |
+| domain/export実装           | 🟢     |
+| services/export-service実装 | 🟢     |
+| messaging層統合             | 🟢     |
+| ExportButton UI実装         | 🟢     |
+| スタイリング                | 🟢     |
+| Tests (Unit)                | 🟢     |
+| Tests (E2E)                 | 🟢     |
+| Commit                      | 🟢     |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
+
+## ✅ Completed Summary
+
+**実装完了日**: 2026-02-15 17:30:00
+
+**最終コミット**: `[9a52c4c]` feat: HTML
+export機能を拡張可能なメニューアーキテクチャで実装
+
+**実装内容**:
+
+- ✅ Domain層: `exportAsHTML()`, `escapeHtml()` (スタンドアロンHTML生成)
+- ✅ Services層: `export-service.ts` (CSSフェッチ、Data
+  URL変換、chrome.downloads API)
+- ✅ Messaging層: `EXPORT_HTML` メッセージタイプ
+- ✅ UI層: `DocumentHeaderMenu` (汎用コンテナ) + `ExportMenuItem` (具体的項目)
+- ✅ CSS: "Crystalline Precision" glassmorphismデザイン、テーマ統合
+- ✅ Build: CSS pipeline統合 (`scripts/build.ts` 修正)
+- ✅ Tests: Unit 219件通過、E2E 5件通過
+
+**デザインコンセプト変更**:
+
+- 当初: `ExportButton` → 最終: `DocumentHeaderMenu` (拡張可能な汎用メニュー)
+- 理由: Export専用ではなく、将来的にPDF Export、Copy
+  HTML等の追加機能に対応可能な設計
+
+**技術的ハイライト**:
+
+- Chrome拡張のManifest V3で `chrome.downloads.download()` API使用
+- Data URL encoding with TextEncoder for UTF-8 support
+- CSS @layer priority issue解決（separate `<style>` tags）
+- frontend-design スキルによる洗練されたUI実装
+- Build script hardcoded CSS imports 同期問題の修正
 
 ---
 

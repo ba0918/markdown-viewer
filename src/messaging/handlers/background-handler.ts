@@ -85,10 +85,12 @@ export const handleBackgroundMessage = async (
         return { success: true, data: updated };
       }
 
-      case "EXPORT_HTML": {
-        // ✅ HTMLエクスポート（serviceに委譲）
-        await exportService.exportAsHTMLFile(message.payload);
-        return { success: true, data: null };
+      case "GENERATE_EXPORT_HTML": {
+        // ✅ エクスポート用HTML生成（serviceに委譲）
+        const exportedHTML = await exportService.generateExportHTML(
+          message.payload,
+        );
+        return { success: true, data: exportedHTML };
       }
 
       default:
