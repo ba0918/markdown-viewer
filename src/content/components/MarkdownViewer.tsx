@@ -21,8 +21,9 @@ import {
   type ViewMode,
 } from "../../shared/types/view-mode.ts";
 import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
-import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
-import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
+// NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
+// import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
+// import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
 import type { Theme } from "../../shared/types/theme.ts";
 
 /**
@@ -40,11 +41,11 @@ interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<Theme>;
   initialTocState?: TocState; // ToC初期状態（CLS削減用）
-  fileUrl: string; // ファイルURL (エクスポート用 + 画像Base64変換の基準URL)
+  fileUrl: string; // ファイルURL (エクスポート用 + 画像Base64変換の基準URL) ※現在未使用
 }
 
 export const MarkdownViewer = (
-  { result, themeId, initialTocState, fileUrl }: Props,
+  { result, themeId, initialTocState, fileUrl: _fileUrl }: Props,
 ) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
@@ -93,23 +94,18 @@ export const MarkdownViewer = (
   // - ToCが非表示の場合: 最小サイドバー幅（40px）
   const marginLeft = isTocVisible ? tocState.width : 40;
 
+  // NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
   // Export用: DOM上のレンダリング済みHTMLを取得
   // Mermaid SVG・MathJax SVGが含まれた状態のHTMLを返す
   // コピーボタン等のUI要素はクリーンアップして除外する
-  const getRenderedHTML = useCallback((): string => {
-    if (!containerRef.current) return result.html;
-
-    // DOMをクローンしてUI要素をクリーンアップ
-    const clone = containerRef.current.cloneNode(true) as HTMLElement;
-
-    // コピーボタンのコンテナを除去（code-block-wrapper内のbuttonContainer div）
-    clone.querySelectorAll(".code-block-copy-button").forEach((btn) => {
-      // ボタンのコンテナ（parentElement）ごと削除
-      btn.closest("div:not(.code-block-wrapper)")?.remove();
-    });
-
-    return clone.innerHTML;
-  }, [result.html]);
+  // const getRenderedHTML = useCallback((): string => {
+  //   if (!containerRef.current) return result.html;
+  //   const clone = containerRef.current.cloneNode(true) as HTMLElement;
+  //   clone.querySelectorAll(".code-block-copy-button").forEach((btn) => {
+  //     btn.closest("div:not(.code-block-wrapper)")?.remove();
+  //   });
+  //   return clone.innerHTML;
+  // }, [result.html]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -256,6 +252,8 @@ export const MarkdownViewer = (
         }}
         themeId={themeId.value}
       >
+        {
+          /* NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
         <DocumentHeaderMenu>
           <ExportMenuItem
             getRenderedHTML={getRenderedHTML}
@@ -263,6 +261,8 @@ export const MarkdownViewer = (
             fileUrl={fileUrl}
           />
         </DocumentHeaderMenu>
+        */
+        }
       </DocumentHeader>
       <TableOfContents
         items={tocItems}

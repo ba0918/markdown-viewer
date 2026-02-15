@@ -27,7 +27,8 @@ test.describe("Toast Notification", () => {
     await expect(toastContainer).toBeAttached();
   });
 
-  test("should show error toast when HTML export fails", async ({ page, testServerUrl, context }) => {
+  // NOTE: Export HTML UIは一時的に非表示（将来の復活用にコードは保持）
+  test.skip("should show error toast when HTML export fails", async ({ page, testServerUrl, context }) => {
     // Console ログを収集
     page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
 

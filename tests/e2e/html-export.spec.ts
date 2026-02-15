@@ -8,10 +8,14 @@ import {
  * HTML Export 機能のE2Eテスト
  *
  * 責務: エクスポートメニューUI、ダウンロード機能、出力HTML品質の検証
+ *
+ * NOTE: Export HTML機能は一時的にUIから非表示。
+ * メニューUI操作を伴うテストはスキップ、DOM検証テストは継続実行。
  */
 
 test.describe("HTML Export", () => {
-  test("should display document header menu button in DocumentHeader", async ({ page, testServerUrl }) => {
+  // NOTE: Export HTML UIは一時的に非表示（将来の復活用にコードは保持）
+  test.skip("should display document header menu button in DocumentHeader", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
 
@@ -21,7 +25,7 @@ test.describe("HTML Export", () => {
     await expect(menuButton).toHaveText("⋮");
   });
 
-  test("should open dropdown menu when menu button is clicked", async ({ page, testServerUrl }) => {
+  test.skip("should open dropdown menu when menu button is clicked", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
 
@@ -43,7 +47,7 @@ test.describe("HTML Export", () => {
     await expect(exportHtmlItem).toBeVisible();
   });
 
-  test("should trigger export when Export HTML is clicked", async ({ page, testServerUrl }) => {
+  test.skip("should trigger export when Export HTML is clicked", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
 
@@ -93,7 +97,7 @@ test.describe("HTML Export", () => {
     // このテストは手動確認で検証（エクスポート→ブラウザで開く→表示確認）
   });
 
-  test("should close dropdown menu after export", async ({ page, testServerUrl }) => {
+  test.skip("should close dropdown menu after export", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
 
@@ -114,7 +118,7 @@ test.describe("HTML Export", () => {
     await expect(dropdown).not.toBeVisible();
   });
 
-  test("should have proper ARIA attributes for accessibility", async ({ page, testServerUrl }) => {
+  test.skip("should have proper ARIA attributes for accessibility", async ({ page, testServerUrl }) => {
     await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/test.md`);
     await expectMarkdownRendered(page);
 
@@ -207,7 +211,7 @@ test.describe("HTML Export", () => {
     expect(cleanedHTML).toContain("<code");
   });
 
-  test("should trigger export without errors on Mermaid page", async ({ page, testServerUrl }) => {
+  test.skip("should trigger export without errors on Mermaid page", async ({ page, testServerUrl }) => {
     await openMarkdownFile(
       page,
       `${testServerUrl}/tests/e2e/fixtures/mermaid-test.md`,
@@ -242,7 +246,7 @@ test.describe("HTML Export", () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test("should trigger export without errors on MathJax page", async ({ page, testServerUrl }) => {
+  test.skip("should trigger export without errors on MathJax page", async ({ page, testServerUrl }) => {
     await openMarkdownFile(
       page,
       `${testServerUrl}/tests/e2e/fixtures/math-test.md`,

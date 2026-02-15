@@ -16,7 +16,6 @@
 - 🔒 **最小権限** - 必要最小限の権限のみ (デフォルトはファイルアクセスのみ)
 - 🔥 **Hot Reload** - ファイル変更を自動検出
 - 🎨 **6つのテーマ** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
-- 📥 **HTMLエクスポート** - テーマCSS付きのスタンドアロンHTMLとしてダウンロード
 - 🌐 **リモートURL対応 (オプション)** -
   カスタムドメインを追加してリモートMarkdownファイルに対応
 - **GFM対応** - シンタックスハイライト、Mermaid、数式、目次
@@ -56,7 +55,6 @@ deno task build  # Deno 2.x必須
 
 - ✅ ローカルMarkdownファイルを読む
 - ✅ 設定をローカル保存
-- ✅ レンダリング済みMarkdownをHTMLとしてエクスポート
 - ✅ リモートURLへのアクセス (明示的に許可したドメインのみ)
 
 ### やらないこと
@@ -67,7 +65,7 @@ deno task build  # Deno 2.x必須
 
 **権限:**
 
-- 必須: `storage`, `activeTab`, `scripting`, `downloads`, `file:///*`
+- 必須: `storage`, `activeTab`, `scripting`, `file:///*`
 - オプション: `https://*/*` (設定でカスタムドメインを追加した場合のみ)
 
 ## FAQ

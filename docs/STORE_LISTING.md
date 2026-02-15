@@ -3,10 +3,10 @@
 ## Short Description (132 characters max)
 
 ```
-Simple, secure Markdown viewer. XSS-protected, 6 themes, Hot Reload, HTML export, remote URL support. Open source. Just works.
+Simple, secure Markdown viewer. XSS-protected, 6 themes, Hot Reload, remote URL support. Open source. Just works.
 ```
 
-**Character count:** 128/132
+**Character count:** 114/132
 
 ---
 
@@ -23,7 +23,6 @@ FEATURES
 
 * 6 Clean Themes - Light, Dark, GitHub, Minimal, Solarized Light, Solarized Dark
 * Hot Reload - Auto-detect file changes (1s~ configurable)
-* HTML Export - Download rendered Markdown as standalone HTML with theme styles
 * GFM Support - Syntax highlight, Mermaid diagrams, Math equations (MathJax), Table of Contents
 * Remote URL Support (Optional) - Add custom domains to render remote Markdown files
 * View Raw Toggle - Switch between rendered and raw Markdown
@@ -37,7 +36,6 @@ This extension is designed with security as the top priority.
 What it does:
 + Read local Markdown files you open
 + Store your settings locally
-+ Export rendered Markdown as HTML
 + Access remote URLs (only domains you explicitly authorize)
 
 What it doesn't:
@@ -53,7 +51,6 @@ Permissions:
 - storage: Save your theme and settings
 - activeTab: Render Markdown in the current tab
 - scripting: Register content scripts for custom domains
-- downloads: Export HTML files to your computer
 - file:///: Access local .md files you open
 
 Optional permissions:
@@ -71,8 +68,6 @@ USAGE
 
 Settings: Click toolbar icon to change theme, configure Hot Reload, or add remote domains.
 
-Export: Click the document header menu > "Export HTML" to download as standalone HTML.
-
 FAQ
 
 Q: Does it work with WSL2 files?
@@ -80,12 +75,6 @@ A: Rendering works fine. Hot Reload doesn't work due to Chrome extension restric
 
 Q: Remote Markdown files (GitHub Raw, Gist, etc.)?
 A: Supported! Go to Settings > Remote URL and add your trusted domains. The extension only accesses domains you explicitly authorize.
-
-Q: Does Export HTML include images?
-A: Currently, images are linked as-is. Local/relative image paths may not work in the exported file. Full image embedding is planned for a future update.
-
-Q: Why does it need the "downloads" permission?
-A: To export rendered Markdown as HTML files. Chrome extensions cannot trigger file downloads from content scripts without this permission.
 
 Built by a developer tired of trusting strangers with file system access.
 ```
@@ -152,7 +141,6 @@ Features:
 - Hot Reload with configurable interval (1s~)
 - 6 themes (Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark)
 - GFM support (syntax highlight, Mermaid diagrams, MathJax, Table of Contents)
-- HTML Export with theme styles (supports non-ASCII filenames)
 - Remote URL support (opt-in, custom domains only)
 - View Raw toggle (rendered / raw Markdown)
 - Frontmatter (YAML) parsing
@@ -166,7 +154,7 @@ Features:
 ## Tags/Keywords (for search optimization)
 
 ```
-markdown, viewer, markdown viewer, local files, hot reload, GFM, security, privacy, open source, developer tools, html export, mermaid, mathjax, syntax highlight
+markdown, viewer, markdown viewer, local files, hot reload, GFM, security, privacy, open source, developer tools, mermaid, mathjax, syntax highlight
 ```
 
 ---
@@ -182,7 +170,7 @@ screenshots**.
 2. **Dark Theme** - Same content with Dark theme
 3. **GitHub Theme + ToC** - Table of Contents sidebar with GitHub theme
 4. **Complex content** - Mermaid diagram + Code block + Math equation
-5. **Settings / Export** - Settings panel or Export HTML in action
+5. **Settings** - Settings panel
 
 Screenshot specs:
 
@@ -223,22 +211,19 @@ Be prepared to justify these permissions:
    tab"
 3. **`scripting`** - "Used to dynamically register content scripts when users
    add custom remote domains in Settings"
-4. **`downloads`** - "Used to export rendered Markdown as standalone HTML files.
-   Required because Content Scripts cannot trigger file downloads via
-   chrome.downloads API without this permission"
-5. **`file:///*`** - "Used to access local .md files that the user explicitly
+4. **`file:///*`** - "Used to access local .md files that the user explicitly
    opens in Chrome"
 
 ### Optional Permissions
 
-6. **`https://*/*`** (optional_host_permissions) - "Only requested when the user
+5. **`https://*/*`** (optional_host_permissions) - "Only requested when the user
    explicitly adds a custom domain in Settings. Never activated without user
    consent. Users can remove domains at any time."
 
 ### Single Purpose Description
 
 "This extension renders Markdown files with syntax highlighting, theme support,
-HTML export, and Hot Reload functionality."
+and Hot Reload functionality."
 
 ### Privacy Practices
 
