@@ -54,6 +54,13 @@ Markdown file content you opened
 Only used when you add custom domains in Settings **Data Accessed:** None beyond
 what's needed to register scripts
 
+#### `downloads`
+
+**Purpose:** Export rendered Markdown as standalone HTML files **Scope:** Only
+activates when you click "Export HTML" in the document menu **Data Accessed:**
+None. The extension generates an HTML file from the already-rendered content and
+triggers a download to your computer.
+
 #### `file:///*`
 
 **Purpose:** Access local Markdown files **Scope:** Only files you explicitly
@@ -118,8 +125,8 @@ For questions about this privacy policy:
 ## Summary
 
 - ✅ Zero data collection
-- ✅ Zero network requests
 - ✅ Zero tracking
+- ✅ No network requests by default (remote domains require explicit opt-in)
 - ✅ All processing is local
 - ✅ Open source and auditable
 

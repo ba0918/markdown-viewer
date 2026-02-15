@@ -13,13 +13,15 @@
 
 ## 特徴
 
-- 🔒 **最小権限** - storage + activeTab + scripting
-  (デフォルトはファイルアクセスのみ)
+- 🔒 **最小権限** - 必要最小限の権限のみ (デフォルトはファイルアクセスのみ)
 - 🔥 **Hot Reload** - ファイル変更を自動検出
 - 🎨 **6つのテーマ** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
+- 📥 **HTMLエクスポート** - テーマCSS付きのスタンドアロンHTMLとしてダウンロード
 - 🌐 **リモートURL対応 (オプション)** -
   カスタムドメインを追加してリモートMarkdownファイルに対応
 - **GFM対応** - シンタックスハイライト、Mermaid、数式、目次
+- **View Raw切替** - レンダリング/生Markdownの表示切替
+- **Frontmatter対応** - YAMLフロントマター解析
 
 ## スクリーンショット
 
@@ -64,6 +66,7 @@ deno task build  # Deno 2.x必須
 
 - ✅ ローカルMarkdownファイルを読む
 - ✅ 設定をローカル保存
+- ✅ レンダリング済みMarkdownをHTMLとしてエクスポート
 - ✅ リモートURLへのアクセス (明示的に許可したドメインのみ)
 
 ### やらないこと
@@ -74,7 +77,7 @@ deno task build  # Deno 2.x必須
 
 **権限:**
 
-- 必須: `storage`, `activeTab`, `scripting`, `file:///*`
+- 必須: `storage`, `activeTab`, `scripting`, `downloads`, `file:///*`
 - オプション: `https://*/*` (設定でカスタムドメインを追加した場合のみ)
 
 ## FAQ

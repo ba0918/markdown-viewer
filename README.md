@@ -13,13 +13,15 @@ Built to avoid extension malware risks with minimal permissions.
 
 ## Features
 
-- 🔒 **Minimal permissions** - storage + activeTab + scripting (file access only
-  by default)
+- 🔒 **Minimal permissions** - Only what's needed (file access only by default)
 - 🔥 **Hot Reload** - Auto-detect file changes
 - 🎨 **6 themes** - Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark
+- 📥 **HTML Export** - Download as standalone HTML with theme styles
 - 🌐 **Remote URL Support (Optional)** - Add custom domains for remote Markdown
   files
 - **GFM support** - Syntax highlight, Mermaid, Math, ToC
+- **View Raw toggle** - Switch between rendered and raw Markdown
+- **Frontmatter support** - YAML frontmatter parsing
 
 ## Screenshots
 
@@ -64,6 +66,7 @@ deno task build  # Requires Deno 2.x
 
 - ✅ Read local Markdown files
 - ✅ Store settings locally
+- ✅ Export rendered Markdown as HTML
 - ✅ Access remote URLs (only domains you explicitly authorize)
 
 ### What it doesn't
@@ -74,7 +77,7 @@ deno task build  # Requires Deno 2.x
 
 **Permissions:**
 
-- Required: `storage`, `activeTab`, `scripting`, `file:///*`
+- Required: `storage`, `activeTab`, `scripting`, `downloads`, `file:///*`
 - Optional: `https://*/*` (only when you add custom domains in Settings)
 
 ## FAQ

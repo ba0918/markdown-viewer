@@ -3,10 +3,10 @@
 ## Short Description (132 characters max)
 
 ```
-Simple, secure local Markdown viewer. XSS-protected, Hot Reload, zero-config. Just works.
+Simple, secure Markdown viewer. XSS-protected, 6 themes, Hot Reload, HTML export, remote URL support. Open source. Just works.
 ```
 
-**Character count:** 96/132
+**Character count:** 128/132
 
 ---
 
@@ -17,28 +17,47 @@ A no-nonsense Markdown viewer built for developers who value security and simpli
 
 WHY THIS EXISTS
 
-Browser extensions can be sold, hacked, or suddenly request scary permissions. This viewer was built to avoid extension malware risks with minimal permissions.
+Browser extensions can be sold, hacked, or suddenly request scary permissions. This viewer was built to avoid extension malware risks with minimal, justified permissions.
 
 FEATURES
 
-• Minimal Permissions - storage + activeTab only
-• Hot Reload - Auto-detect file changes (1s~ configurable)
-• 6 Clean Themes - Light, Dark, GitHub, Minimal, Solarized Light, Solarized Dark
-• GFM Support - Syntax highlight, Mermaid diagrams, Math equations, Table of Contents
-• Zero Config - Install and it just works
+* 6 Clean Themes - Light, Dark, GitHub, Minimal, Solarized Light, Solarized Dark
+* Hot Reload - Auto-detect file changes (1s~ configurable)
+* HTML Export - Download rendered Markdown as standalone HTML with theme styles
+* GFM Support - Syntax highlight, Mermaid diagrams, Math equations (MathJax), Table of Contents
+* Remote URL Support (Optional) - Add custom domains to render remote Markdown files
+* View Raw Toggle - Switch between rendered and raw Markdown
+* Frontmatter Support - YAML frontmatter parsing
+* Zero Config - Install and it just works
 
 SECURITY & PRIVACY
 
+This extension is designed with security as the top priority.
+
 What it does:
-✓ Read local Markdown files
-✓ Store settings locally
++ Read local Markdown files you open
++ Store your settings locally
++ Export rendered Markdown as HTML
++ Access remote URLs (only domains you explicitly authorize)
 
 What it doesn't:
-✗ Network requests
-✗ Data collection or tracking
-✗ Access to all websites
+- Collect or track any data
+- Access websites without your permission
+- Make network requests without your consent
+- Use remote code execution
 
-Permissions: storage, activeTab, file:/// only
+All HTML rendering is sanitized with js-xss library to prevent XSS attacks.
+Content Security Policy (CSP) is configured to block inline scripts.
+
+Permissions:
+- storage: Save your theme and settings
+- activeTab: Render Markdown in the current tab
+- scripting: Register content scripts for custom domains
+- downloads: Export HTML files to your computer
+- file:///: Access local .md files you open
+
+Optional permissions:
+- https://*/: Only requested when you add custom domains in Settings
 
 No scary permissions like <all_urls> or webRequest.
 
@@ -50,15 +69,23 @@ USAGE
 1. Open .md file in Chrome
 2. Done
 
-Settings: Click toolbar icon to change theme or configure Hot Reload.
+Settings: Click toolbar icon to change theme, configure Hot Reload, or add remote domains.
+
+Export: Click the document header menu > "Export HTML" to download as standalone HTML.
 
 FAQ
 
 Q: Does it work with WSL2 files?
 A: Rendering works fine. Hot Reload doesn't work due to Chrome extension restrictions.
 
-Q: Remote files (GitHub Raw)?
-A: Not supported. Local only = minimal attack surface.
+Q: Remote Markdown files (GitHub Raw, Gist, etc.)?
+A: Supported! Go to Settings > Remote URL and add your trusted domains. The extension only accesses domains you explicitly authorize.
+
+Q: Does Export HTML include images?
+A: Currently, images are linked as-is. Local/relative image paths may not work in the exported file. Full image embedding is planned for a future update.
+
+Q: Why does it need the "downloads" permission?
+A: To export rendered Markdown as HTML files. Chrome extensions cannot trigger file downloads from content scripts without this permission.
 
 Built by a developer tired of trusting strangers with file system access.
 ```
@@ -67,7 +94,7 @@ Built by a developer tired of trusting strangers with file system access.
 
 ## Category
 
-**Productivity**
+**Developer Tools**
 
 ---
 
@@ -79,7 +106,7 @@ Built by a developer tired of trusting strangers with file system access.
 
 ## Additional Languages
 
-- Japanese (日本語)
+- Japanese (planned)
 
 ---
 
@@ -121,11 +148,15 @@ https://github.com/ba0918/markdown-viewer
 Initial release
 
 Features:
-- Secure Markdown rendering (DOMPurify XSS protection)
+- Secure Markdown rendering (XSS protection via js-xss + CSP)
 - Hot Reload with configurable interval (1s~)
 - 6 themes (Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark)
-- GFM support (syntax highlight, Mermaid, Math, ToC)
-- Minimal permissions (storage + activeTab only)
+- GFM support (syntax highlight, Mermaid diagrams, MathJax, Table of Contents)
+- HTML Export with theme styles (supports non-ASCII filenames)
+- Remote URL support (opt-in, custom domains only)
+- View Raw toggle (rendered / raw Markdown)
+- Frontmatter (YAML) parsing
+- Minimal permissions with full justification
 - Zero data collection
 - 100% open source
 ```
@@ -135,7 +166,7 @@ Features:
 ## Tags/Keywords (for search optimization)
 
 ```
-markdown, viewer, markdown viewer, local files, hot reload, GFM, security, privacy, open source, developer tools
+markdown, viewer, markdown viewer, local files, hot reload, GFM, security, privacy, open source, developer tools, html export, mermaid, mathjax, syntax highlight
 ```
 
 ---
@@ -147,11 +178,11 @@ screenshots**.
 
 ### Recommended Screenshots:
 
-1. **Basic Markdown rendering** - Show a rendered .md file with theme
-2. **Theme comparison** - Light vs Dark theme side-by-side
-3. **Hot Reload demo** - Show file change detection
-4. **Settings panel** - Theme selector + Hot Reload settings
-5. **Complex content** - Mermaid diagram + Code block + Math
+1. **Light Theme** - Clean Markdown rendering with Light theme
+2. **Dark Theme** - Same content with Dark theme
+3. **GitHub Theme + ToC** - Table of Contents sidebar with GitHub theme
+4. **Complex content** - Mermaid diagram + Code block + Math equation
+5. **Settings / Export** - Settings panel or Export HTML in action
 
 Screenshot specs:
 
@@ -161,9 +192,9 @@ Screenshot specs:
 
 ---
 
-## Promo Tile (Small - Optional but Recommended)
+## Promo Tile (Small - Required)
 
-Size: 440x280 pixels Shows up in Chrome Web Store search results
+Size: 440x280 pixels. Shows up in Chrome Web Store search results.
 
 Suggested design:
 
@@ -186,24 +217,36 @@ Size: 920x680 pixels
 
 Be prepared to justify these permissions:
 
-1. **`storage`** - "Used to save user's theme preference and Hot Reload settings
-   locally"
+1. **`storage`** - "Used to save user's theme preference, Hot Reload settings,
+   and authorized remote domains locally"
 2. **`activeTab`** - "Used to render Markdown content in the currently opened
    tab"
-3. **`file:///*`** - "Used to access local .md files that the user explicitly
+3. **`scripting`** - "Used to dynamically register content scripts when users
+   add custom remote domains in Settings"
+4. **`downloads`** - "Used to export rendered Markdown as standalone HTML files.
+   Required because Content Scripts cannot trigger file downloads via
+   chrome.downloads API without this permission"
+5. **`file:///*`** - "Used to access local .md files that the user explicitly
    opens in Chrome"
+
+### Optional Permissions
+
+6. **`https://*/*`** (optional_host_permissions) - "Only requested when the user
+   explicitly adds a custom domain in Settings. Never activated without user
+   consent. Users can remove domains at any time."
 
 ### Single Purpose Description
 
-"This extension renders local Markdown files with syntax highlighting, theme
-support, and Hot Reload functionality."
+"This extension renders Markdown files with syntax highlighting, theme support,
+HTML export, and Hot Reload functionality."
 
 ### Privacy Practices
 
 - **Does NOT collect user data**
 - **Does NOT use remote code**
-- **Does NOT make network requests**
-- All processing is local
+- **Does NOT make unauthorized network requests**
+- Network requests only to domains the user explicitly authorizes
+- All processing is local by default
 - Open source: https://github.com/ba0918/markdown-viewer
 
 ### Deceptive Installation Tactics
