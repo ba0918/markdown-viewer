@@ -2,7 +2,7 @@
  * ExportMenuItemコンポーネント
  *
  * 責務: HTML Export メニュー項目
- * - DOM上のレンダリング済みHTMLを取得（Mermaid SVG・MathJax SVG・Base64画像含む）
+ * - DOM上のレンダリング済みHTMLを取得（Mermaid SVG・MathJax SVG含む）
  * - Background Script: HTML生成 + chrome.downloads APIでダウンロード実行
  * - Content Script: メッセージ送信のみ
  *
@@ -22,8 +22,8 @@ import type { Theme } from "../../../shared/types/theme.ts";
 import { showToast } from "../../shared/Toast/index.ts";
 
 interface Props {
-  /** DOM上のレンダリング済みHTMLを取得する関数（Mermaid SVG・MathJax SVG・Base64画像含む） */
-  getRenderedHTML: () => Promise<string>;
+  /** DOM上のレンダリング済みHTMLを取得する関数（Mermaid SVG・MathJax SVG含む） */
+  getRenderedHTML: () => string;
   /** テーマID Signal */
   themeId: Signal<Theme>;
   /** ファイルURL (file://..., http://localhost:..., https://...) */
@@ -58,8 +58,8 @@ export const ExportMenuItem = ({
       const title = filename.replace(/\.(md|markdown)$/, "");
 
       // DOM上のレンダリング済みHTMLを取得
-      // （Mermaid SVG・MathJax SVG・ローカル画像Base64が含まれた状態）
-      const html = await getRenderedHTML();
+      // （Mermaid SVG・MathJax SVGが含まれた状態）
+      const html = getRenderedHTML();
 
       // Background ScriptでHTML生成 + chrome.downloads APIでダウンロード
       await sendMessage({

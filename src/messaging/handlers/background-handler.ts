@@ -142,50 +142,6 @@ export const handleBackgroundMessage = async (
         return { success: true, data: exportedHTML };
       }
 
-      case "FETCH_LOCAL_IMAGE": {
-        // ✅ Background Scriptでローカル画像をfetchしてBase64 Data URLに変換
-        // Content Scriptからはfile:// URLへのfetchがChromeセキュリティ制限でブロックされるため、
-        // Background Script（Service Worker）経由でfetchする
-        try {
-          const { imageUrl } = message.payload;
-
-          const response = await fetch(imageUrl);
-          if (!response.ok) {
-            return {
-              success: false,
-              error:
-                `Failed to fetch image: HTTP ${response.status} ${response.statusText}`,
-            };
-          }
-
-          // Content-Typeからmime typeを取得（フォールバック: image/png）
-          const contentType = response.headers.get("Content-Type") ||
-            "image/png";
-
-          // ArrayBuffer → Base64変換
-          const buffer = await response.arrayBuffer();
-          const bytes = new Uint8Array(buffer);
-          let binary = "";
-          for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          const base64 = btoa(binary);
-
-          return {
-            success: true,
-            data: `data:${contentType};base64,${base64}`,
-          };
-        } catch (error) {
-          const errorMsg = error instanceof Error
-            ? error.message
-            : "Unknown error";
-          return {
-            success: false,
-            error: `Failed to fetch image: ${errorMsg}`,
-          };
-        }
-      }
-
       case "EXPORT_AND_DOWNLOAD": {
         // ✅ HTML生成 + chrome.downloads APIでダウンロード実行
         // Content Script (Isolated World) の Blob URL はオリジンが null になり
