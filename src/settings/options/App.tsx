@@ -160,18 +160,6 @@ export const App = () => {
           <RemoteUrlSettings />
         </section>
       </main>
-
-      <footer class="footer">
-        <div class="links">
-          <a
-            href="https://github.com/ba0918/markdown-viewer"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
-        </div>
-      </footer>
     </div>
   );
 };
