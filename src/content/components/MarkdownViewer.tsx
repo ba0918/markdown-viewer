@@ -24,6 +24,7 @@ import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
 import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
 import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
 import type { Theme } from "../../shared/types/theme.ts";
+import { sendMessage } from "../../messaging/client.ts";
 
 /**
  * MarkdownViewerコンポーネント
@@ -96,8 +97,10 @@ export const MarkdownViewer = (
   // Export用: DOM上のレンダリング済みHTMLを取得
   // Mermaid SVG・MathJax SVGが含まれた状態のHTMLを返す
   // コピーボタン等のUI要素はクリーンアップして除外する
-  // ローカル画像はCanvas APIでBase64 Data URLに変換する
-  const getRenderedHTML = useCallback((): string => {
+  // ローカル画像はBase64 Data URLに変換する:
+  //   1. Canvas API（同期、高速）→ tainted canvasエラー時は
+  //   2. Background Script経由でfetch（非同期、フォールバック）
+  const getRenderedHTML = useCallback(async (): Promise<string> => {
     if (!containerRef.current) return result.html;
 
     // DOMをクローンしてUI要素をクリーンアップ
@@ -109,11 +112,12 @@ export const MarkdownViewer = (
       btn.closest("div:not(.code-block-wrapper)")?.remove();
     });
 
-    // ローカル画像をCanvas APIでBase64 Data URLに変換
-    // fetch()はContent Scriptからfile:// URLにアクセスできないため、
-    // ブラウザが既にロード済みの画像からCanvas経由でBase64を抽出する
+    // ローカル画像をBase64 Data URLに変換
     const originalImages = containerRef.current.querySelectorAll("img");
     const cloneImages = clone.querySelectorAll("img");
+
+    // Background Script経由でfetchする必要がある画像を収集
+    const bgFetchPromises: Promise<void>[] = [];
 
     for (let i = 0; i < originalImages.length; i++) {
       const originalImg = originalImages[i];
@@ -129,21 +133,51 @@ export const MarkdownViewer = (
       // 画像が未ロードの場合はスキップ
       if (originalImg.naturalWidth === 0) continue;
 
+      // 1. Canvas APIで変換を試行（同期、高速）
+      let canvasSuccess = false;
       try {
         const canvas = document.createElement("canvas");
         canvas.width = originalImg.naturalWidth;
         canvas.height = originalImg.naturalHeight;
         const ctx = canvas.getContext("2d");
-        if (!ctx) continue;
-
-        ctx.drawImage(originalImg, 0, 0);
-        // PNG形式でBase64に変換（tainted canvasの場合は例外が投げられる）
-        const dataUrl = canvas.toDataURL("image/png");
-        cloneImg.setAttribute("src", dataUrl);
+        if (ctx) {
+          ctx.drawImage(originalImg, 0, 0);
+          // tainted canvasの場合はここで例外が投げられる
+          const dataUrl = canvas.toDataURL("image/png");
+          cloneImg.setAttribute("src", dataUrl);
+          canvasSuccess = true;
+        }
       } catch {
-        // tainted canvas等のエラー時は元のsrcを保持（ベストエフォート）
-        console.warn(`Failed to convert image to Base64 via Canvas: ${src}`);
+        // Canvas変換失敗（tainted canvas）→ Background Scriptにフォールバック
       }
+
+      // 2. Canvas失敗時: Background Script経由でfetch（非同期）
+      if (!canvasSuccess) {
+        // 画像の絶対URLを取得（ブラウザが解決済みのsrcを使用）
+        const absoluteUrl = originalImg.src; // ブラウザが解決した絶対URL
+        const promise = (async () => {
+          try {
+            const response = await sendMessage({
+              type: "FETCH_LOCAL_IMAGE",
+              payload: { imageUrl: absoluteUrl },
+            });
+            if (typeof response === "string") {
+              cloneImg.setAttribute("src", response);
+            }
+          } catch {
+            // Background Scriptでも失敗（WSL2等）→ 元のsrcを保持
+            console.warn(
+              `Failed to convert image to Base64: ${src}`,
+            );
+          }
+        })();
+        bgFetchPromises.push(promise);
+      }
+    }
+
+    // Background Script経由の画像変換を全て待機
+    if (bgFetchPromises.length > 0) {
+      await Promise.all(bgFetchPromises);
     }
 
     return clone.innerHTML;

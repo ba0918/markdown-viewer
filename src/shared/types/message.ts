@@ -32,6 +32,13 @@ export type Message =
       filename: string;
       title?: string;
     };
+  }
+  | {
+    type: "FETCH_LOCAL_IMAGE";
+    payload: {
+      /** 画像の絶対URL (file:///...) */
+      imageUrl: string;
+    };
   };
 
 /**
