@@ -361,6 +361,84 @@ content → background → offscreen → messaging/handler → service → domai
 
 ---
 
+## ADR-007: レイヤールールの実用的例外
+
+### 日付
+
+2026-02-15
+
+### ステータス
+
+承認済み
+
+### コンテキスト
+
+ADR-004で定めたレイヤー依存関係ルールは厳格に運用されてきましたが、実装を進める中で以下のケースで厳格すぎるルールが開発効率を阻害することが判明しました。
+
+### 許容される例外
+
+#### 1. 軽量なdomain関数のmessaging直接呼び出し
+
+```typescript
+// ✅ OK: 軽量なルックアップ関数は直接呼び出し可
+const theme = loadTheme(message.payload.themeId);
+```
+
+**理由**: `loadTheme()`
+は純粋なマッピング関数であり、services層を経由させるとボイラープレートが増えるだけで利点がない。
+
+#### 2. DOM操作系domainのcontent直接呼び出し
+
+```typescript
+// ✅ OK: ブラウザ専用APIはcontent層から直接呼び出し可
+renderMath(containerRef.current);
+const svg = await renderMermaid(code, theme);
+```
+
+**理由**:
+MathJax/Mermaidはブラウザ環境でのみ動作し、DOM要素を直接操作する。messaging経由は技術的に不可能（DOM参照をシリアライズできない）。
+
+#### 3. UIローカル状態のchrome.storage直接
+
+```typescript
+// ✅ OK: UIコンポーネント内の状態永続化は直接chrome.storage使用可
+chrome.storage.sync.set({ tocState: newState });
+```
+
+**理由**:
+ToC幅やトグル状態はUIローカルの表示状態であり、ビジネスロジックではない。StateManager経由は過剰。
+
+#### 4. chrome.runtime.getURL()
+
+```typescript
+// ✅ OK: 全層で許可
+const cssUrl = chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
+```
+
+**理由**: 静的リソースパス取得は副作用のないユーティリティ関数と同等。
+
+### 判断基準
+
+例外を適用するかの判断基準:
+
+1. **副作用がない or 最小限か**: 純粋関数やルックアップはOK
+2. **技術的に他の方法が不可能か**: DOM参照のシリアライズ不可等
+3. **ビジネスロジックではないか**: UI表示状態の永続化はOK
+4. **services層を経由する利点があるか**:
+   ボイラープレートが増えるだけならスキップ
+
+### 影響
+
+- CLAUDE.md に「許容される例外」セクションを追加
+- コードレビュー時に上記基準で判断
+
+### 注意
+
+例外は **最小限**
+に留めること。判断に迷う場合は、原則に従ってservices/messaging経由にする。
+
+---
+
 ## 将来的な検討事項
 
 ### usecase層の導入

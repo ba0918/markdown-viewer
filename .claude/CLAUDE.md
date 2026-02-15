@@ -134,6 +134,18 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 
 **原則**: DRY徹底（2回目→shared/移動）、TDD必須（RED→GREEN→REFACTOR）
 
+### 許容される例外（ADR-007参照）
+
+以下のケースはレイヤールールの例外として許容される：
+
+- **軽量なdomain関数のmessaging直接呼び出し**: `loadTheme()`
+  等のルックアップ関数
+- **DOM操作系domainのcontent直接呼び出し**: `renderMath()`, `renderMermaid()`
+  等（ブラウザ専用API）
+- **UIローカル状態のchrome.storage直接**:
+  ToC状態永続化等（UIコンポーネント内の状態管理）
+- **chrome.runtime.getURL()**: 静的リソースパス取得（全層で許可）
+
 ## レイヤー責務（詳細→`docs/DIRECTORY_STRUCTURE.md`）
 
 | Layer                            | 責務                      | 禁止                                  | 依存              |
