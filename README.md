@@ -25,17 +25,7 @@ Built to avoid extension malware risks with minimal permissions.
 
 ## Screenshots
 
-### Light Theme
-
-![Light Theme](docs/images/screenshot-light.png)
-
-### Dark Theme
-
-![Dark Theme](docs/images/screenshot-dark.png)
-
-### GitHub Theme with ToC
-
-![GitHub Theme](docs/images/screenshot-github-toc.png)
+![Demo](docs/images/demo.png)
 
 ## Install
 

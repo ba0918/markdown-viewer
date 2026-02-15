@@ -25,17 +25,7 @@
 
 ## スクリーンショット
 
-### Lightテーマ
-
-![Light Theme](docs/images/screenshot-light.png)
-
-### Darkテーマ
-
-![Dark Theme](docs/images/screenshot-dark.png)
-
-### GitHubテーマ + 目次
-
-![GitHub Theme](docs/images/screenshot-github-toc.png)
+![Demo](docs/images/demo.png)
 
 ## インストール
 
