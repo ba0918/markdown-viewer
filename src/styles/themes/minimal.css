@@ -1,93 +1,94 @@
 /**
- * Minimal Theme Variables
- * 全コンポーネント共通のテーマ変数
+ * Minimal Theme - Zen Elegant
+ * コンセプト: アイボリー/ベージュベース + 控えめアンバーアクセント、禅の美学
+ * 差別化ポイント: 最も落ち着いた雰囲気、長時間読書に最適
  */
 
 .markdown-viewer-theme-minimal {
-  /* Background & Surface - Ultra Clean */
-  --toc-bg: #fafafa;
-  --toc-header-bg: #f5f5f5;
-  --toc-header-bg-end: #fafafa;
-  --toc-border: #e0e0e0;
-  --toc-border-inner: rgba(0, 0, 0, 0.015);
-  --toc-shadow-1: rgba(0, 0, 0, 0.03);
-  --toc-shadow-2: rgba(0, 0, 0, 0.05);
+  /* Background & Surface - Rich Beige/Cream */
+  --toc-bg: #f5f3ef;
+  --toc-header-bg: #eae6df;
+  --toc-header-bg-end: #f5f3ef;
+  --toc-border: #ddd6ca;
+  --toc-border-inner: rgba(184, 134, 11, 0.05);
+  --toc-shadow-1: rgba(101, 84, 50, 0.06);
+  --toc-shadow-2: rgba(101, 84, 50, 0.08);
 
-  /* Typography - Material Design Inspired */
-  --toc-title: #212121;
-  --toc-title-shadow: rgba(255, 255, 255, 0.9);
-  --toc-link: #616161;
-  --toc-link-hover: #212121;
-  --toc-link-hover-bg: rgba(0, 0, 0, 0.04);
-  --toc-link-hover-border: #e0e0e0;
+  /* Typography - Rich Brown */
+  --toc-title: #2d2416;
+  --toc-title-shadow: rgba(184, 134, 11, 0.06);
+  --toc-link: #5c4f3e;
+  --toc-link-hover: #2d2416;
+  --toc-link-hover-bg: rgba(184, 134, 11, 0.06);
+  --toc-link-hover-border: #b8860b;
 
-  /* Active State - Material Blue */
-  --toc-link-active: #1976d2;
-  --toc-link-active-bg: rgba(25, 118, 210, 0.1);
-  --toc-link-active-border: #1976d2;
-  --toc-link-active-ring: rgba(25, 118, 210, 0.12);
-  --toc-link-active-glow: rgba(25, 118, 210, 0.06);
+  /* Active State - Golden Amber */
+  --toc-link-active: #b8860b;
+  --toc-link-active-bg: rgba(184, 134, 11, 0.12);
+  --toc-link-active-border: #b8860b;
+  --toc-link-active-ring: rgba(184, 134, 11, 0.18);
+  --toc-link-active-glow: rgba(184, 134, 11, 0.12);
 
-  /* Icons & Buttons */
-  --toc-icon: #757575;
-  --toc-icon-hover: #212121;
-  --toc-btn-hover-bg: rgba(0, 0, 0, 0.06);
-  --toc-btn-hover-glow: rgba(0, 0, 0, 0.04);
-  --toc-collapse-icon: #9e9e9e;
-  --toc-collapse-icon-hover: #616161;
+  /* Icons & Buttons - Muted Gold */
+  --toc-icon: #8c7a68;
+  --toc-icon-hover: #b8860b;
+  --toc-btn-hover-bg: rgba(184, 134, 11, 0.08);
+  --toc-btn-hover-glow: rgba(184, 134, 11, 0.1);
+  --toc-collapse-icon: #a89985;
+  --toc-collapse-icon-hover: #b8860b;
 
-  /* Scrollbar */
-  --toc-scrollbar: rgba(0, 0, 0, 0.12);
-  --toc-scrollbar-hover: rgba(0, 0, 0, 0.2);
-  --toc-scrollbar-active: rgba(0, 0, 0, 0.28);
+  /* Scrollbar - Subtle Amber */
+  --toc-scrollbar: rgba(184, 134, 11, 0.12);
+  --toc-scrollbar-hover: rgba(184, 134, 11, 0.25);
+  --toc-scrollbar-active: rgba(184, 134, 11, 0.4);
 
   /* Resize Handle */
-  --toc-resize-handle: #1976d2;
-  --toc-resize-handle-ring: rgba(25, 118, 210, 0.2);
-  --toc-resize-handle-glow: rgba(25, 118, 210, 0.4);
-  --toc-resize-handle-glow-far: rgba(25, 118, 210, 0.2);
+  --toc-resize-handle: #b8860b;
+  --toc-resize-handle-ring: rgba(184, 134, 11, 0.2);
+  --toc-resize-handle-glow: rgba(184, 134, 11, 0.45);
+  --toc-resize-handle-glow-far: rgba(184, 134, 11, 0.25);
 
   /* Level Lines */
-  --toc-level-line: rgba(0, 0, 0, 0.08);
+  --toc-level-line: rgba(184, 134, 11, 0.08);
 
   /* DocumentHeader */
-  --document-header-bg: rgba(250, 250, 250, 0.92);
-  --document-header-border: rgba(0, 0, 0, 0.08);
-  --document-header-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --document-header-tab-color: #6b7280;
-  --document-header-tab-hover-color: #111827;
-  --document-header-tab-hover-bg: rgba(0, 0, 0, 0.04);
-  --document-header-tab-active-color: #111827;
+  --document-header-bg: rgba(250, 249, 247, 0.95);
+  --document-header-border: rgba(184, 134, 11, 0.1);
+  --document-header-shadow: 0 2px 12px rgba(101, 84, 50, 0.08);
+  --document-header-tab-color: #6b5d4f;
+  --document-header-tab-hover-color: #b8860b;
+  --document-header-tab-hover-bg: rgba(184, 134, 11, 0.06);
+  --document-header-tab-active-color: #b8860b;
 
-  /* RawTextView (same as light) */
-  --raw-text-copy-button-bg: rgba(255, 255, 255, 0.9);
-  --raw-text-copy-button-border: rgba(0, 0, 0, 0.1);
-  --raw-text-copy-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --raw-text-copy-button-color: #6b7280;
-  --raw-text-copy-button-hover-bg: rgba(255, 255, 255, 1);
-  --raw-text-copy-button-hover-border: rgba(0, 0, 0, 0.2);
-  --raw-text-copy-button-hover-color: #111827;
-  --raw-text-copy-button-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  /* RawTextView */
+  --raw-text-copy-button-bg: rgba(250, 249, 247, 0.95);
+  --raw-text-copy-button-border: rgba(184, 134, 11, 0.2);
+  --raw-text-copy-button-shadow: 0 2px 6px rgba(101, 84, 50, 0.1);
+  --raw-text-copy-button-color: #6b5d4f;
+  --raw-text-copy-button-hover-bg: #b8860b;
+  --raw-text-copy-button-hover-border: #b8860b;
+  --raw-text-copy-button-hover-color: #ffffff;
+  --raw-text-copy-button-hover-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
 
   /* Markdown Viewer */
-  --markdown-viewer-layout-bg: #fafafa;
+  --markdown-viewer-layout-bg: #f5f3ef;
   --markdown-viewer-bg: transparent;
-  --markdown-viewer-color: #212121;
-  --markdown-heading-border: #e0e0e0;
-  --markdown-h6-color: #616161;
-  --markdown-link-color: #1976d2;
-  --markdown-code-bg: #f5f5f5;
-  --markdown-pre-bg: #f5f5f5;
-  --markdown-pre-hover-shadow: rgba(0, 0, 0, 0.05);
-  --markdown-blockquote-color: #616161;
-  --markdown-blockquote-border: #e0e0e0;
-  --markdown-table-border: #e0e0e0;
-  --markdown-table-header-bg: #f5f5f5;
-  --markdown-table-row-bg: #fafafa;
-  --markdown-table-row-border: #e0e0e0;
-  --markdown-table-row-alt-bg: #f5f5f5;
-  --markdown-hr-bg: #e0e0e0;
-  --markdown-strikethrough-color: #9e9e9e;
+  --markdown-viewer-color: #2d2416;
+  --markdown-heading-border: #e6e1d8;
+  --markdown-h6-color: #6b5d4f;
+  --markdown-link-color: #b8860b;
+  --markdown-code-bg: #edeae4;
+  --markdown-pre-bg: #edeae4;
+  --markdown-pre-hover-shadow: rgba(184, 134, 11, 0.08);
+  --markdown-blockquote-color: #6b5d4f;
+  --markdown-blockquote-border: #b8860b;
+  --markdown-table-border: #e6e1d8;
+  --markdown-table-header-bg: #edeae4;
+  --markdown-table-row-bg: #faf9f7;
+  --markdown-table-row-border: #e6e1d8;
+  --markdown-table-row-alt-bg: #f7f5f1;
+  --markdown-hr-bg: #e6e1d8;
+  --markdown-strikethrough-color: #a89985;
 
   /* Syntax Highlighting (Minimal - GitHub Light based) */
   --hljs-base: #212121;

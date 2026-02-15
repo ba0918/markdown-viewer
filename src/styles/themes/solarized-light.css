@@ -17,24 +17,24 @@
   --toc-title: #073642;
   --toc-title-shadow: rgba(253, 246, 227, 0.8);
   --toc-link: #657b83;
-  --toc-link-hover: #073642;
-  --toc-link-hover-bg: rgba(101, 123, 131, 0.12);
-  --toc-link-hover-border: #93a1a1;
+  --toc-link-hover: #dc6f3e;
+  --toc-link-hover-bg: rgba(220, 111, 62, 0.12);
+  --toc-link-hover-border: #dc6f3e;
 
-  /* Active State - Solarized Blue */
-  --toc-link-active: #268bd2;
-  --toc-link-active-bg: rgba(38, 139, 210, 0.15);
-  --toc-link-active-border: #268bd2;
-  --toc-link-active-ring: rgba(38, 139, 210, 0.18);
-  --toc-link-active-glow: rgba(38, 139, 210, 0.1);
+  /* Active State - Solarized Orange */
+  --toc-link-active: #cb4b16;
+  --toc-link-active-bg: rgba(203, 75, 22, 0.15);
+  --toc-link-active-border: #cb4b16;
+  --toc-link-active-ring: rgba(203, 75, 22, 0.18);
+  --toc-link-active-glow: rgba(203, 75, 22, 0.1);
 
   /* Icons & Buttons */
   --toc-icon: #839496;
-  --toc-icon-hover: #073642;
-  --toc-btn-hover-bg: rgba(101, 123, 131, 0.12);
-  --toc-btn-hover-glow: rgba(101, 123, 131, 0.08);
+  --toc-icon-hover: #cb4b16;
+  --toc-btn-hover-bg: rgba(203, 75, 22, 0.12);
+  --toc-btn-hover-glow: rgba(203, 75, 22, 0.08);
   --toc-collapse-icon: #93a1a1;
-  --toc-collapse-icon-hover: #657b83;
+  --toc-collapse-icon-hover: #cb4b16;
 
   /* Scrollbar */
   --toc-scrollbar: rgba(0, 43, 54, 0.15);
@@ -42,10 +42,10 @@
   --toc-scrollbar-active: rgba(0, 43, 54, 0.35);
 
   /* Resize Handle */
-  --toc-resize-handle: #268bd2;
-  --toc-resize-handle-ring: rgba(38, 139, 210, 0.25);
-  --toc-resize-handle-glow: rgba(38, 139, 210, 0.45);
-  --toc-resize-handle-glow-far: rgba(38, 139, 210, 0.25);
+  --toc-resize-handle: #cb4b16;
+  --toc-resize-handle-ring: rgba(203, 75, 22, 0.25);
+  --toc-resize-handle-glow: rgba(203, 75, 22, 0.45);
+  --toc-resize-handle-glow-far: rgba(203, 75, 22, 0.25);
 
   /* Level Lines */
   --toc-level-line: rgba(0, 0, 0, 0.1);
