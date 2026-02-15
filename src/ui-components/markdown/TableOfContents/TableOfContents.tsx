@@ -360,13 +360,13 @@ export const TableOfContents = ({
         ? (
           <>
             <div class="toc-header">
-              <h2 class="toc-title">目次</h2>
+              <h2 class="toc-title">Table of Contents</h2>
               <button
                 type="button"
                 class="toc-toggle-btn"
                 onClick={toggleVisibility}
                 aria-label="Hide ToC"
-                title="目次を隠す"
+                title="Hide Table of Contents"
               >
                 ×
               </button>
@@ -377,7 +377,7 @@ export const TableOfContents = ({
             <div
               class={`toc-resize-handle ${isResizing ? "resizing" : ""}`}
               onMouseDown={startResize}
-              title="ドラッグして幅を調整"
+              title="Drag to resize"
             />
           </>
         )
@@ -387,7 +387,7 @@ export const TableOfContents = ({
             class="toc-show-btn"
             onClick={toggleVisibility}
             aria-label="Show ToC"
-            title="目次を表示"
+            title="Show Table of Contents"
           >
             ☰
           </button>

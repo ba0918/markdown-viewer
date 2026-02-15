@@ -51,7 +51,7 @@ export const App = () => {
         payload: { themeId: theme },
       });
       setSettings({ ...settings!, theme });
-      setSaveMessage("テーマを保存しました ✓");
+      setSaveMessage("Theme saved ✓");
       setTimeout(() => setSaveMessage(null), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update theme");
@@ -87,7 +87,7 @@ export const App = () => {
         },
       });
 
-      setSaveMessage("設定を保存しました ✓");
+      setSaveMessage("Settings saved ✓");
       setTimeout(() => setSaveMessage(null), 2000);
     } catch (err) {
       setError(
@@ -101,7 +101,7 @@ export const App = () => {
   if (loading) {
     return (
       <div class="options">
-        <div class="loading">読み込み中...</div>
+        <div class="loading">Loading...</div>
       </div>
     );
   }
@@ -110,9 +110,9 @@ export const App = () => {
     return (
       <div class="options">
         <div class="error">
-          エラー: {error}
+          Error: {error}
           <button type="button" onClick={loadSettings} class="retry-btn">
-            再試行
+            Retry
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export const App = () => {
   if (!settings) {
     return (
       <div class="options">
-        <div class="error">設定を読み込めませんでした</div>
+        <div class="error">Failed to load settings</div>
       </div>
     );
   }
@@ -130,15 +130,15 @@ export const App = () => {
   return (
     <div class="options">
       <header class="header">
-        <h1 class="title">⚙️ Markdown Viewer 設定</h1>
-        <p class="subtitle">詳細な設定を行えます</p>
+        <h1 class="title">⚙️ Markdown Viewer Settings</h1>
+        <p class="subtitle">Configure your preferences</p>
       </header>
 
       <main class="content">
         {saveMessage && <div class="save-message">{saveMessage}</div>}
 
         <section class="section">
-          <h2 class="section-title">外観</h2>
+          <h2 class="section-title">Appearance</h2>
           <ThemeSelector
             current={settings.theme}
             onChange={handleThemeChange}
@@ -146,7 +146,7 @@ export const App = () => {
         </section>
 
         <section class="section">
-          <h2 class="section-title">開発者向け機能</h2>
+          <h2 class="section-title">Developer Tools</h2>
           <HotReloadSettings
             enabled={settings.hotReload.enabled}
             interval={settings.hotReload.interval}

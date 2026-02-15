@@ -56,7 +56,7 @@ export const App = () => {
   if (loading) {
     return (
       <div class="popup">
-        <div class="loading">読み込み中...</div>
+        <div class="loading">Loading...</div>
       </div>
     );
   }
@@ -65,9 +65,9 @@ export const App = () => {
     return (
       <div class="popup">
         <div class="error">
-          エラー: {error}
+          Error: {error}
           <button type="button" onClick={loadSettings} class="retry-btn">
-            再試行
+            Retry
           </button>
         </div>
       </div>
@@ -77,7 +77,7 @@ export const App = () => {
   if (!settings) {
     return (
       <div class="popup">
-        <div class="error">設定を読み込めませんでした</div>
+        <div class="error">Failed to load settings</div>
       </div>
     );
   }

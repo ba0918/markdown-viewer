@@ -23,44 +23,44 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
       id: "light",
       label: "Light",
       emoji: "☀️",
-      description: "シンプルな明るいテーマ",
+      description: "Simple light theme",
     },
     {
       id: "dark",
       label: "Dark",
       emoji: "🌙",
-      description: "シンプルな暗いテーマ",
+      description: "Simple dark theme",
     },
     {
       id: "github",
       label: "GitHub",
       emoji: "🐙",
-      description: "GitHub風のスタイル",
+      description: "GitHub-style theme",
     },
     {
       id: "minimal",
       label: "Minimal",
       emoji: "📝",
-      description: "ミニマルなデザイン",
+      description: "Minimalist design",
     },
     {
       id: "solarized-light",
       label: "Solarized Light",
       emoji: "🌅",
-      description: "Solarized明るいテーマ",
+      description: "Solarized light theme",
     },
     {
       id: "solarized-dark",
       label: "Solarized Dark",
       emoji: "🌃",
-      description: "Solarized暗いテーマ",
+      description: "Solarized dark theme",
     },
   ];
 
   return (
     <div class="theme-selector">
-      <label class="label">テーマを選択</label>
-      <p class="description">Markdownファイルの表示テーマを変更できます</p>
+      <label class="label">Select Theme</label>
+      <p class="description">Choose the display theme for Markdown files</p>
       <div class="theme-grid">
         {themes.map((theme) => (
           <button
@@ -74,7 +74,7 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
             <span class="theme-label">{theme.label}</span>
             <span class="theme-description">{theme.description}</span>
             {current === theme.id && (
-              <span class="theme-check" aria-label="選択中">
+              <span class="theme-check" aria-label="Selected">
                 ✓
               </span>
             )}

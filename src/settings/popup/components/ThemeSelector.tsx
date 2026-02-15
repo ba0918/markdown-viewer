@@ -24,7 +24,7 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
 
   return (
     <div class="theme-selector">
-      <label class="label">テーマ</label>
+      <label class="label">Theme</label>
       <div class="theme-options">
         {themes.map((theme) => (
           <button

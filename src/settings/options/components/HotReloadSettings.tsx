@@ -37,14 +37,14 @@ export const HotReloadSettings = ({
     const target = e.target as HTMLInputElement;
     const value = parseInt(target.value, 10);
 
-    // バリデーション
+    // Validation
     if (isNaN(value) || value === 0) {
-      setValidationError("チェック間隔は1以上の数値を入力してください");
+      setValidationError("Please enter a value of 1 or greater");
       return;
     }
 
     if (value < 1000) {
-      setValidationError("チェック間隔は最小1000ms（1秒）以上にしてください");
+      setValidationError("Minimum interval is 1000ms (1 second)");
       return;
     }
 
@@ -66,19 +66,21 @@ export const HotReloadSettings = ({
         <div class="setting-header">
           <label class="label">
             Hot Reload
-            <span class="badge">開発者向け</span>
+            <span class="badge">Developer</span>
           </label>
           <button
             class={`toggle-btn ${localEnabled ? "active" : ""}`}
             onClick={handleToggle}
             type="button"
-            aria-label={localEnabled ? "Hot Reload無効化" : "Hot Reload有効化"}
+            aria-label={localEnabled
+              ? "Disable Hot Reload"
+              : "Enable Hot Reload"}
           >
             <span class="toggle-slider"></span>
           </button>
         </div>
         <p class="description">
-          ファイルの変更を自動検知してMarkdownを再読み込みします
+          Automatically detect file changes and reload Markdown
         </p>
       </div>
 
@@ -86,7 +88,7 @@ export const HotReloadSettings = ({
         <div class="advanced-settings">
           <div class="setting-group">
             <label class="label">
-              チェック間隔
+              Check Interval
               <span class="value">{localInterval}ms</span>
             </label>
             <input
@@ -100,36 +102,36 @@ export const HotReloadSettings = ({
             />
             {validationError
               ? <p class="error-message">{validationError}</p>
-              : <p class="hint">最小: 1000ms（1秒）</p>}
+              : <p class="hint">Minimum: 1000ms (1 second)</p>}
           </div>
 
           <div class="setting-group">
             <div class="setting-header">
-              <label class="label">自動リロード</label>
+              <label class="label">Auto Reload</label>
               <button
                 class={`toggle-btn small ${localAutoReload ? "active" : ""}`}
                 onClick={handleAutoReloadToggle}
                 type="button"
                 aria-label={localAutoReload
-                  ? "自動リロード無効化"
-                  : "自動リロード有効化"}
+                  ? "Disable Auto Reload"
+                  : "Enable Auto Reload"}
               >
                 <span class="toggle-slider"></span>
               </button>
             </div>
             <p class="description">
-              ファイル変更を検知したら自動的にページをリロードします
+              Automatically reload page when file changes are detected
             </p>
           </div>
         </div>
       )}
 
       <div class="info-box">
-        <strong>⚠️ 注意</strong>
+        <strong>⚠️ Note</strong>
         <p>
-          Hot
-          Reload機能は開発時の利便性を向上させますが、バッテリーとパフォーマンスに影響を与える可能性があります。
-          通常の閲覧時は無効にすることをおすすめします。
+          Hot Reload improves development convenience but may impact battery
+          life and performance. It's recommended to disable it during normal
+          browsing.
         </p>
       </div>
     </div>
