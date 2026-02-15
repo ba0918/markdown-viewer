@@ -2,7 +2,7 @@
 
 Markdown Viewer Chrome拡張 - セキュリティファーストなローカルMarkdownビューア
 
-**スタック**: Deno 2.x, esbuild, Preact, marked, DOMPurify, Playwright(E2E)
+**スタック**: Deno 2.x, esbuild, Preact, marked, xss (js-xss), Playwright(E2E)
 **核心思想**:
 レイヤー分離絶対遵守、TDD必須、過去の失敗(messaging層ビジネスロジック)から学習
 
@@ -16,7 +16,7 @@ Markdown Viewer Chrome拡張 - セキュリティファーストなローカルM
 ### ライブラリ使用（CRITICAL）
 
 - ❌ AI記憶に頼る → ✅ Context7で最新公式ドキュメント必須確認
-- 対象全て: Preact, esbuild, marked, DOMPurify, Deno, Chrome API
+- 対象全て: Preact, esbuild, marked, xss (js-xss), Deno, Chrome API
 
 ### コミット管理（CRITICAL）
 
@@ -102,7 +102,7 @@ UI → messaging → services → domain → shared
 // ❌ NG: messaging層でビジネスロジック（過去に大失敗）
 export const handleBackgroundMessage = async (message: Message) => {
   const parsed = marked.parse(message.payload.markdown); // 死亡フラグ
-  const sanitized = DOMPurify.sanitize(parsed); // 死亡フラグ
+  const sanitized = xss(parsed); // 死亡フラグ
   return { success: true, data: sanitized };
 };
 // ✅ OK: serviceに委譲
@@ -147,10 +147,9 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 
 ## セキュリティ（最優先）
 
-**XSS防御**:
-全Markdown描画で`sanitizeHTML()`必須通過、DOMPurifyで`javascript:`/`onerror`等ブロック
-**テスト**: XSS攻撃ベクター13ケース必須（`tests/e2e/xss.spec.ts`）
-詳細→`docs/SECURITY.md`
+**XSS防御**: 全Markdown描画で`sanitizeHTML()`必須通過、xss
+(js-xss)で`javascript:`/`onerror`等ブロック **テスト**:
+XSS攻撃ベクター13ケース必須（`tests/e2e/xss.spec.ts`） 詳細→`docs/SECURITY.md`
 
 ## 実装フロー
 

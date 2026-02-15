@@ -21,7 +21,7 @@ Chrome拡張機能のアーキテクチャについて説明します。
 
 4. **セキュリティファースト**
    - XSS対策を最優先
-   - DOMPurifyによる厳格なサニタイゼーション
+   - xss (js-xss)による厳格なサニタイゼーション
 
 ---
 
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "RENDER_MARKDOWN") {
     const parsed = marked.parse(message.payload); // ← ダメ！
-    const sanitized = DOMPurify.sanitize(parsed); // ← ダメ！
+    const sanitized = xss(parsed); // ← ダメ！
     sendResponse({ html: sanitized });
   }
 });
@@ -421,7 +421,7 @@ domain/
 ├── markdown/
 │   ├── parser.ts          # Markdown→HTML変換
 │   ├── parser.test.ts
-│   ├── sanitizer.ts       # XSS対策（DOMPurify wrapper）
+│   ├── sanitizer.ts       # XSS対策（xss (js-xss) wrapper）
 │   ├── sanitizer.test.ts
 │   └── highlighter.ts     # シンタックスハイライト
 ├── theme/
@@ -455,16 +455,26 @@ export const parseMarkdown = (markdown: string): string => {
 };
 
 // src/domain/markdown/sanitizer.ts
-import DOMPurify from "dompurify";
+import xss from "xss";
 
 /**
  * HTMLサニタイゼーション
  * ✅ OK: 純粋関数、XSS対策に特化
  */
 export const sanitizeHTML = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ["p", "b", "i", "code", "pre", "a", "img", "h1", "h2", "h3"],
-    ALLOWED_ATTR: ["href", "src", "alt", "class"],
+  return xss(html, {
+    whiteList: {
+      "p": [],
+      "b": [],
+      "i": [],
+      "code": [],
+      "pre": [],
+      "a": ["href"],
+      "img": ["src", "alt"],
+      "h1": [],
+      "h2": [],
+      "h3": [],
+    },
   });
 };
 
@@ -672,51 +682,43 @@ export class StateManager {
 
 ```typescript
 // src/domain/markdown/sanitizer.ts
-import DOMPurify from "dompurify";
+import xss from "xss";
 
 export const sanitizeHTML = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "p",
-      "br",
-      "strong",
-      "em",
-      "u",
-      "s",
-      "code",
-      "pre",
-      "a",
-      "img",
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "ul",
-      "ol",
-      "li",
-      "blockquote",
-      "table",
-      "thead",
-      "tbody",
-      "tr",
-      "th",
-      "td",
-      "hr",
-      "div",
-      "span",
-    ],
-    ALLOWED_ATTR: [
-      "href",
-      "src",
-      "alt",
-      "title",
-      "class",
-      "id",
-    ],
-    ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false,
+  return xss(html, {
+    whiteList: {
+      "p": ["class", "id"],
+      "br": [],
+      "strong": ["class", "id"],
+      "em": ["class", "id"],
+      "u": ["class", "id"],
+      "s": ["class", "id"],
+      "code": ["class", "id"],
+      "pre": ["class", "id"],
+      "a": ["href", "title", "class", "id"],
+      "img": ["src", "alt", "title", "class", "id"],
+      "h1": ["class", "id"],
+      "h2": ["class", "id"],
+      "h3": ["class", "id"],
+      "h4": ["class", "id"],
+      "h5": ["class", "id"],
+      "h6": ["class", "id"],
+      "ul": ["class", "id"],
+      "ol": ["class", "id"],
+      "li": ["class", "id"],
+      "blockquote": ["class", "id"],
+      "table": ["class", "id"],
+      "thead": ["class", "id"],
+      "tbody": ["class", "id"],
+      "tr": ["class", "id"],
+      "th": ["class", "id"],
+      "td": ["class", "id"],
+      "hr": ["class", "id"],
+      "div": ["class", "id"],
+      "span": ["class", "id"],
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ["script", "style"],
   });
 };
 ```

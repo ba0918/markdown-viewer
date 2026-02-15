@@ -28,64 +28,47 @@ Chrome拡張機能のセキュリティ設計について詳述します。
 
 ### 1. XSS Protection
 
-#### DOMPurify統合
+#### xss (js-xss)統合
 
 ```typescript
-// src/shared/utils/security/sanitizer.ts
-import DOMPurify from "dompurify";
+// src/domain/markdown/sanitizer.ts
+import xss from "xss";
 
 export const sanitizeHTML = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "p",
-      "br",
-      "strong",
-      "em",
-      "u",
-      "s",
-      "code",
-      "pre",
-      "a",
-      "img",
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "ul",
-      "ol",
-      "li",
-      "blockquote",
-      "table",
-      "thead",
-      "tbody",
-      "tr",
-      "th",
-      "td",
-      "hr",
-      "div",
-      "span",
-    ],
-    ALLOWED_ATTR: [
-      "href",
-      "src",
-      "alt",
-      "title",
-      "class",
-      "id",
-      "width",
-      "height",
-      "align",
-      "start",
-      "type",
-    ],
-    ALLOWED_URI_REGEXP:
-      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-    ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false,
-    SAFE_FOR_TEMPLATES: true,
-    KEEP_CONTENT: true,
+  return xss(html, {
+    whiteList: {
+      "p": ["class", "id"],
+      "br": [],
+      "strong": ["class", "id"],
+      "em": ["class", "id"],
+      "u": ["class", "id"],
+      "s": ["class", "id"],
+      "code": ["class", "id"],
+      "pre": ["class", "id"],
+      "a": ["href", "title", "class", "id"],
+      "img": ["src", "alt", "title", "class", "id"],
+      "h1": ["class", "id"],
+      "h2": ["class", "id"],
+      "h3": ["class", "id"],
+      "h4": ["class", "id"],
+      "h5": ["class", "id"],
+      "h6": ["class", "id"],
+      "ul": ["class", "id"],
+      "ol": ["class", "id"],
+      "li": ["class", "id"],
+      "blockquote": ["class", "id"],
+      "table": ["class", "id"],
+      "thead": ["class", "id"],
+      "tbody": ["class", "id"],
+      "tr": ["class", "id"],
+      "th": ["class", "id"],
+      "td": ["class", "id"],
+      "hr": ["class", "id"],
+      "div": ["class", "id"],
+      "span": ["class", "id"],
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ["script", "style"],
   });
 };
 ```
@@ -266,7 +249,7 @@ test("安全なリンクは保持される", async ({ page }) => {
 
 実装時に以下を確認：
 
-- [ ] 全てのMarkdown描画でDOMPurify使用
+- [ ] 全てのMarkdown描画でxss (js-xss)使用
 - [ ] `javascript:` プロトコル完全ブロック
 - [ ] イベントハンドラ属性除去
 - [ ] CSP設定が適切
@@ -286,5 +269,5 @@ Advisoriesから報告してください。
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Chrome Extension Security Best Practices](https://developer.chrome.com/docs/extensions/mv3/security/)
-- [DOMPurify Documentation](https://github.com/cure53/DOMPurify)
+- [js-xss Documentation](https://github.com/leizongmin/js-xss)
 - [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)

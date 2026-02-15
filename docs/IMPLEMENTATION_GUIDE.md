@@ -168,55 +168,47 @@ export type MessageResponse<T = unknown> =
 
 ```typescript
 // src/domain/markdown/sanitizer.ts
-import DOMPurify from "dompurify";
+import xss from "xss";
 
 /**
  * HTMLサニタイゼーション
  * XSS対策を行う純粋関数
  */
 export const sanitizeHTML = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "p",
-      "br",
-      "strong",
-      "em",
-      "u",
-      "s",
-      "code",
-      "pre",
-      "a",
-      "img",
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "ul",
-      "ol",
-      "li",
-      "blockquote",
-      "table",
-      "thead",
-      "tbody",
-      "tr",
-      "th",
-      "td",
-      "hr",
-      "div",
-      "span",
-    ],
-    ALLOWED_ATTR: [
-      "href",
-      "src",
-      "alt",
-      "title",
-      "class",
-      "id",
-    ],
-    ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false,
+  return xss(html, {
+    whiteList: {
+      "p": ["class", "id"],
+      "br": [],
+      "strong": ["class", "id"],
+      "em": ["class", "id"],
+      "u": ["class", "id"],
+      "s": ["class", "id"],
+      "code": ["class", "id"],
+      "pre": ["class", "id"],
+      "a": ["href", "title", "class", "id"],
+      "img": ["src", "alt", "title", "class", "id"],
+      "h1": ["class", "id"],
+      "h2": ["class", "id"],
+      "h3": ["class", "id"],
+      "h4": ["class", "id"],
+      "h5": ["class", "id"],
+      "h6": ["class", "id"],
+      "ul": ["class", "id"],
+      "ol": ["class", "id"],
+      "li": ["class", "id"],
+      "blockquote": ["class", "id"],
+      "table": ["class", "id"],
+      "thead": ["class", "id"],
+      "tbody": ["class", "id"],
+      "tr": ["class", "id"],
+      "th": ["class", "id"],
+      "td": ["class", "id"],
+      "hr": ["class", "id"],
+      "div": ["class", "id"],
+      "span": ["class", "id"],
+    },
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ["script", "style"],
   });
 };
 ```
@@ -269,7 +261,7 @@ export const parseMarkdown = (markdown: string): string => {
   marked.setOptions({
     gfm: true,
     breaks: true,
-    sanitize: false, // DOMPurifyで処理
+    sanitize: false, // xss (js-xss)で処理
   });
 
   return marked.parse(markdown) as string;
@@ -858,7 +850,7 @@ console.log("Content Script loaded");
 - [Deno ドキュメント](https://deno.land/manual)
 - [Preact ドキュメント](https://preactjs.com/)
 - [marked ドキュメント](https://marked.js.org/)
-- [DOMPurify ドキュメント](https://github.com/cure53/DOMPurify)
+- [js-xss ドキュメント](https://github.com/leizongmin/js-xss)
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - アーキテクチャ設計
 - [DIRECTORY_STRUCTURE.md](./DIRECTORY_STRUCTURE.md) -
   ディレクトリ構造と責務定義

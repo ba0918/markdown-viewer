@@ -23,7 +23,7 @@ export const handleBackgroundMessage = async (message: Message) => {
     case "RENDER_MARKDOWN":
       // ❌ ここでMarkdown処理 → 死亡フラグ
       const parsed = marked.parse(message.payload.markdown);
-      const sanitized = DOMPurify.sanitize(parsed);
+      const sanitized = xss(parsed);
       const theme = await chrome.storage.sync.get("theme");
       const styled = applyTheme(sanitized, theme);
       return { success: true, data: styled };
@@ -67,14 +67,14 @@ export const handleBackgroundMessage = async (message: Message) => {
 // ❌ ダメ！content層でMarkdown処理
 // src/content/index.ts
 import { marked } from "marked";
-import DOMPurify from "dompurify";
+import xss from "xss";
 
 const init = async () => {
   const markdown = document.body.textContent || "";
 
   // ❌ ビジネスロジックを直接実装
   const rawHTML = marked.parse(markdown);
-  const cleanHTML = DOMPurify.sanitize(rawHTML);
+  const cleanHTML = xss(rawHTML);
 
   document.body.innerHTML = cleanHTML;
 };
@@ -584,7 +584,7 @@ export const handleBackgroundMessage = async (message: Message) => {
     case "RENDER_MARKDOWN":
       // ❌ messagingでMarkdown処理 → 死亡フラグ
       const parsed = marked.parse(message.payload.markdown);
-      const sanitized = DOMPurify.sanitize(parsed);
+      const sanitized = xss(parsed);
       const theme = await loadTheme(message.payload.themeId);
       const styled = applyTheme(sanitized, theme);
       return { success: true, data: styled };
