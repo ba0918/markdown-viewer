@@ -15,8 +15,10 @@ Export HTMLが「見た目通りに出力」されない問題を修正。
 
 - Mermaid SVGがExport HTMLに含まれる
 - MathJax SVGがExport HTMLに含まれる
-- ローカル画像がBase64 Data URLとして埋め込まれる
+- ~~ローカル画像がBase64 Data URLとして埋め込まれる~~ → **削除**
+  (Windows環境では動作するがWSL2で動作せず、環境依存の中途半端な対応になるため)
 - リモート画像はURLのまま保持（CORS/権限の問題で対応しない）
+- ローカル画像は元のパスのまま保持（環境依存を避けるため変換しない）
 
 ## 📐 Design
 
@@ -51,8 +53,7 @@ src/
 
   ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx
     - props: html → getRenderedHTML に変更
-    - convertLocalImagesToBase64() 関数追加
-    - export時にDOM HTML取得 → 画像Base64変換 → Background Scriptに送信
+    - export時にDOM HTML取得 → Background Scriptに送信
 
   domain/export/html-exporter.test.ts
     - Mermaid SVG埋め込みテスト追加
@@ -71,17 +72,16 @@ src/
 
 - **DOM innerHTML方式**: Export時にcontainerRefの `innerHTML` を取得することで、
   Mermaid SVGとMathJax SVGが自動的に含まれる（一石二鳥）
-- **ローカル画像Base64変換**: DOMParser + `<img src>`
-  走査、相対パス/file://の画像を `fetch()` → `Blob` → `FileReader` → Data
-  URLに変換
+- **ローカル画像Base64変換は見送り**: Windows環境では動作するが、WSL2環境で動作
+  しないため環境依存の中途半端な機能になる。詳細は
+  [chrome-extension-file-access-limitations.md](../chrome-extension-file-access-limitations.md)
+  参照
 - **リモート画像は対応しない**: CORS/権限の問題。URLのまま保持。
 - **MathJax CSS不要**: `<mjx-container>`
   のスタイルはMathJaxがインラインで適用するため追加CSS不要
 - **Mermaid SVG CSS不要**: SVGはインラインで生成されるため追加CSS不要
 - **コピーボタン除去**: DOMクローン → `.code-block-copy-button` のコンテナを
   `remove()`
-- **fileUrlからベースURL算出**: `pageUrl`
-  を別propsにせず、`new URL(src, baseUrlDir)` で `fileUrl` から相対パスを解決
 
 ## ✅ Tests
 
@@ -89,29 +89,27 @@ src/
 - [x] ExportMenuItem: コピーボタンがexport HTMLに含まれない
 - [x] ExportMenuItem: Mermaid SVGがexport HTMLに含まれる
 - [x] ExportMenuItem: MathJax SVGがexport HTMLに含まれる
-- [x] ExportMenuItem: ローカル画像がBase64 Data URLに変換される
-- [x] ExportMenuItem: リモート画像はURLのまま保持される
 - [x] html-exporter: Mermaid SVG付きHTMLの生成
 - [x] html-exporter: MathJax SVG付きHTMLの生成
 - [x] html-exporter: Base64画像付きHTMLの生成
+      (テンプレートレベル。実際の変換は非対応)
 - [x] html-exporter: 複合テスト（Mermaid + MathJax + Base64画像）
 
 ## 🔒 Security
 
-- [x] Base64変換はローカル画像のみ（リモートへのfetchは行わない）
 - [x] XSSベクターとなるdata: URLは画像のみ許可（sanitizerで制御済み）
 - [x] export HTMLにscriptタグが含まれないことを確認
 
 ## 📊 Progress
 
-| Step                           | Status |
-| ------------------------------ | ------ |
-| DOM HTML取得 (Mermaid+MathJax) | 🟢     |
-| ローカル画像 Base64 埋め込み   | 🟢     |
-| Export HTML テンプレート調整   | 🟢     |
-| Tests                          | 🟢     |
-| Build & 全テスト検証           | 🟢     |
-| Commit                         | 🟢     |
+| Step                           | Status                               |
+| ------------------------------ | ------------------------------------ |
+| DOM HTML取得 (Mermaid+MathJax) | 🟢                                   |
+| ローカル画像 Base64 埋め込み   | 🔴 断念 (Chrome拡張セキュリティ制限) |
+| Export HTML テンプレート調整   | 🟢                                   |
+| Tests                          | 🟢                                   |
+| Build & 全テスト検証           | 🟢                                   |
+| Commit                         | 🟢                                   |
 
 **Legend:** ⚪ Pending · 🟡 In Progress · 🟢 Done
 
@@ -124,8 +122,16 @@ src/
 
 ---
 
-**Learning:** DOM innerHTML方式は非常にエレガントな解決策。Mermaid SVGとMathJax
-SVGを
-個別に処理する必要がなく、DOMが持っているレンダリング済みの状態をそのまま取得できる。
-コピーボタン等のUI要素はDOMクローン + querySelectorAll + remove()
-でクリーンアップ。
+**Learning:**
+
+1. DOM innerHTML方式は非常にエレガントな解決策。Mermaid SVGとMathJax SVGを
+   個別に処理する必要がなく、DOMが持っているレンダリング済みの状態をそのまま取得できる。
+   コピーボタン等のUI要素はDOMクローン + querySelectorAll + remove()
+   でクリーンアップ。
+
+2. ローカル画像のBase64変換はBackground
+   Script経由のfetch()でWindows環境では成功。 しかしWSL2環境
+   (`file://wsl.localhost/`) では完全にブロックされるため、
+   ターゲット層（WSL2率の高いエンジニア）を考慮し、環境依存の中途半端な機能は
+   提供しない判断をした。技術的な敗北ではなく、プロダクト品質の判断。 詳細:
+   [chrome-extension-file-access-limitations.md](../chrome-extension-file-access-limitations.md)
