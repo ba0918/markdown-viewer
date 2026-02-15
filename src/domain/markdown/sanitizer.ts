@@ -64,6 +64,17 @@ const xssOptions = {
       // 相対パス、絶対パス、フラグメントを許可
       return `href="${value}"`;
     }
+    // 相対パスのsrcを許可 (ローカル画像表示用)
+    // Note: <a href>ではfile:をブロックするが、<img src>では許可
+    //       ローカル画像を絶対パス(file:///...)で参照するケースがあるため
+    if (tag === "img" && name === "src") {
+      const dangerous = ["javascript:", "data:", "vbscript:"];
+      const lowerValue = value.toLowerCase().trim();
+      if (dangerous.some((proto) => lowerValue.startsWith(proto))) {
+        return; // 危険なプロトコルは削除
+      }
+      return `src="${value}"`;
+    }
   },
 };
 

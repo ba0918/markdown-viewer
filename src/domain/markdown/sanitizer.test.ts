@@ -119,3 +119,57 @@ Deno.test("セキュリティ: タスクリストのinputにイベントハン�
   assertEquals(result.includes('type="checkbox"'), true);
   assertEquals(result.includes("disabled"), true);
 });
+
+/**
+ * 画像の相対パス・セキュリティテスト
+ */
+
+Deno.test("画像: 相対パスのsrcが保持される", async () => {
+  const valid = '<img src="images/photo.png" alt="Photo">';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('src="images/photo.png"'), true);
+  assertEquals(result.includes('alt="Photo"'), true);
+});
+
+Deno.test("画像: ./相対パスのsrcが保持される", async () => {
+  const valid = '<img src="./img/test.png" alt="Test">';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('src="./img/test.png"'), true);
+});
+
+Deno.test("画像: ../相対パスのsrcが保持される", async () => {
+  const valid = '<img src="../assets/logo.svg" alt="Logo">';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes('src="../assets/logo.svg"'), true);
+});
+
+Deno.test("画像: file://絶対パスのsrcが保持される", async () => {
+  const valid = '<img src="file:///home/user/images/photo.png" alt="Photo">';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes("file:///home/user/images/photo.png"), true);
+});
+
+Deno.test("画像: https://絶対URLのsrcが保持される", async () => {
+  const valid = '<img src="https://example.com/image.png" alt="Remote">';
+  const result = await sanitizeHTML(valid);
+  assertEquals(result.includes("https://example.com/image.png"), true);
+});
+
+Deno.test("XSS: img srcのjavascript:プロトコルをブロック", async () => {
+  const malicious = '<img src="javascript:alert(\'XSS\')" alt="XSS">';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("javascript:"), false);
+});
+
+Deno.test("XSS: img srcのdata:プロトコルをブロック", async () => {
+  const malicious =
+    '<img src="data:text/html,<script>alert(\'XSS\')</script>" alt="XSS">';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("data:"), false);
+});
+
+Deno.test("XSS: img srcのvbscript:プロトコルをブロック", async () => {
+  const malicious = '<img src="vbscript:MsgBox(\'XSS\')" alt="XSS">';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("vbscript:"), false);
+});
