@@ -40,7 +40,7 @@ interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<Theme>;
   initialTocState?: TocState; // ToC初期状態（CLS削減用）
-  fileUrl: string; // ファイルURL (エクスポート用)
+  fileUrl: string; // ファイルURL (エクスポート用 + 画像Base64変換の基準URL)
 }
 
 export const MarkdownViewer = (
@@ -92,6 +92,24 @@ export const MarkdownViewer = (
   // - ToCが表示されている場合: ToCの幅 + パディング
   // - ToCが非表示の場合: 最小サイドバー幅（40px）
   const marginLeft = isTocVisible ? tocState.width : 40;
+
+  // Export用: DOM上のレンダリング済みHTMLを取得
+  // Mermaid SVG・MathJax SVGが含まれた状態のHTMLを返す
+  // コピーボタン等のUI要素はクリーンアップして除外する
+  const getRenderedHTML = useCallback((): string => {
+    if (!containerRef.current) return result.html;
+
+    // DOMをクローンしてUI要素をクリーンアップ
+    const clone = containerRef.current.cloneNode(true) as HTMLElement;
+
+    // コピーボタンのコンテナを除去（code-block-wrapper内のbuttonContainer div）
+    clone.querySelectorAll(".code-block-copy-button").forEach((btn) => {
+      // ボタンのコンテナ（parentElement）ごと削除
+      btn.closest("div:not(.code-block-wrapper)")?.remove();
+    });
+
+    return clone.innerHTML;
+  }, [result.html]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -240,7 +258,7 @@ export const MarkdownViewer = (
       >
         <DocumentHeaderMenu>
           <ExportMenuItem
-            html={result.html}
+            getRenderedHTML={getRenderedHTML}
             themeId={themeId}
             fileUrl={fileUrl}
           />

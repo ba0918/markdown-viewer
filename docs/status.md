@@ -1,27 +1,67 @@
 # Project Status
 
-**Last Updated:** 2026-02-15 22:24:33
+**Last Updated:** 2026-02-16
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                         |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260215222433`                                                                                                              |
-| **Feature**  | Pre-Release Quality Improvements                                                                                              |
-| **Started**  | 2026-02-15 22:24:33                                                                                                           |
-| **Phase**    | 🟡 Planning                                                                                                                   |
-| **Plan**     | [docs/cycles/20260215222433_pre-release-quality-improvements.md](./cycles/20260215222433_pre-release-quality-improvements.md) |
+| Field        | Value                                                                                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Cycle ID** | `20260216025915`                                                                                                                    |
+| **Feature**  | Export HTMLスタンドアロン改善                                                                                                       |
+| **Started**  | 2026-02-16 02:59:15                                                                                                                 |
+| **Phase**    | 🟢 Completed                                                                                                                        |
+| **Plan**     | [docs/cycles/20260216025915_export-html-standalone-improvements.md](./cycles/20260216025915_export-html-standalone-improvements.md) |
 
-**Current Focus:**
-ストア公開前の最終品質改善。4つのレビューエージェントによるレビュー結果（CRITICAL
-2件、IMPORTANT 5件、OPTIONAL 6件）を体系的に解決し、完璧な状態でChrome Web
-Storeに公開する。
+**Current Focus:** Export HTMLが「見た目通りに出力」されない問題を修正完了。DOM
+innerHTML方式でMermaid SVG・MathJax
+SVGを一括取得、ローカル画像Base64変換、コピーボタンのクリーンアップを実装。243
+Unit tests + 88 E2E tests全通過。
 
 ---
 
 ## 📜 Session History
+
+### 20260216025915 - Export HTMLスタンドアロン改善
+
+- **Started:** 2026-02-16 02:59:15
+- **Completed:** 2026-02-16
+- **Status:** 🟢 Completed
+- **Summary:** Export HTMLが「見た目通りに出力」されない問題を修正。DOM
+  innerHTML方式で Mermaid SVG・MathJax SVGをExport
+  HTMLに埋め込み。ローカル画像をBase64 Data URLに変換。
+  コピーボタン等のUI要素をクリーンアップ。リモート画像はCORS/権限の問題でURLのまま保持。
+  MathJax/MermaidのCSSは不要（インラインスタイル適用済み）。全243 Unit tests +
+  88 E2E tests通過。
+- **Plan:**
+  [docs/cycles/20260216025915_export-html-standalone-improvements.md](./cycles/20260216025915_export-html-standalone-improvements.md)
+- **Key Changes:**
+  - MarkdownViewer.tsx: `getRenderedHTML()` コールバック追加
+  - ExportMenuItem.tsx: `html` props → `getRenderedHTML`
+    に変更、`convertLocalImagesToBase64()` 追加
+  - html-exporter.test.ts: Mermaid SVG/MathJax SVG/Base64画像テスト4件追加
+  - html-export.spec.ts: DOM検証E2Eテスト5件追加
+- **Learning:** DOM innerHTML方式でMermaid/MathJax変換後のHTMLを一括取得。
+  個別処理不要で非常にエレガント。
+
+### 20260215222433 - Pre-Release Quality Improvements
+
+- **Started:** 2026-02-15 22:24:33
+- **Completed:** 2026-02-16 02:55:00
+- **Status:** 🟢 Completed
+- **Summary:**
+  ストア公開前の品質改善。レビュー結果に基づく修正、競合分析、Store掲載
+  ドキュメント全面更新（STORE_LISTING.md, PRIVACY.md/ja, README.md/ja）、
+  相対パス画像表示対応（sanitizerのimg src許可 + Unit/E2Eテスト追加）、
+  デモMarkdown作成。Export HTMLの中途半端さ（Mermaid/MathJax/画像未対応）を
+  発見し、次サイクルで対応決定。
+- **Plan:**
+  [docs/cycles/20260215222433_pre-release-quality-improvements.md](./cycles/20260215222433_pre-release-quality-improvements.md)
+- **Commits:**
+  - `[abb9763]` docs: Export HTML・downloads権限・最新機能をドキュメントに反映
+  - `[5be53fd]` feat: sanitizerで画像の相対パスsrcを許可
+  - `[bce8d1e]` docs: READMEスクリーンショットを単一デモ画像に変更
 
 ### 20260215171626 - Toast Notification System
 

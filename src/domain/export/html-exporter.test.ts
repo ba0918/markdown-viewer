@@ -165,6 +165,99 @@ Deno.test("exportAsHTML: デフォルトタイトル", () => {
   assertStringIncludes(result, "<title>Markdown Document</title>");
 });
 
+Deno.test("exportAsHTML: Mermaid SVGが埋め込まれたHTMLを正しく出力", () => {
+  const mermaidSvg =
+    '<div class="mermaid-diagram" data-mermaid-code="graph TD; A-->B;" data-mermaid-rendered="true">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100">' +
+    '<g><rect x="0" y="0" width="100" height="50" fill="#f9f9f9"/>' +
+    '<text x="50" y="25">A</text></g></svg></div>';
+
+  const options: ExportOptions = {
+    html: `<h1>Mermaid Test</h1>${mermaidSvg}`,
+    themeId: "light",
+    themeCss: "body { color: black; }",
+    title: "Mermaid Document",
+  };
+
+  const result = exportAsHTML(options);
+
+  // Mermaid SVGが含まれていること
+  assertStringIncludes(result, "<svg");
+  assertStringIncludes(result, "mermaid-diagram");
+  assertStringIncludes(result, 'data-mermaid-rendered="true"');
+  // 元のMermaidコードも保持されていること
+  assertStringIncludes(result, "graph TD; A-->B;");
+});
+
+Deno.test("exportAsHTML: MathJax SVGが埋め込まれたHTMLを正しく出力", () => {
+  const mathjaxSvg =
+    '<mjx-container class="MathJax" jax="SVG" display="true">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="5em" height="2em">' +
+    '<g stroke="currentColor" fill="currentColor">' +
+    "<text>E=mc²</text></g></svg></mjx-container>";
+
+  const options: ExportOptions = {
+    html: `<p>Einstein's equation:</p>${mathjaxSvg}`,
+    themeId: "dark",
+    themeCss: "body { color: white; }",
+    title: "Math Document",
+  };
+
+  const result = exportAsHTML(options);
+
+  // MathJax SVGが含まれていること
+  assertStringIncludes(result, "mjx-container");
+  assertStringIncludes(result, "<svg");
+  assertStringIncludes(result, "E=mc²");
+});
+
+Deno.test("exportAsHTML: Base64画像が埋め込まれたHTMLを正しく出力", () => {
+  const base64Img =
+    '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="test">';
+
+  const options: ExportOptions = {
+    html: `<h1>Image Test</h1>${base64Img}`,
+    themeId: "github",
+    themeCss: "body { color: #24292e; }",
+    title: "Image Document",
+  };
+
+  const result = exportAsHTML(options);
+
+  // Base64画像が含まれていること
+  assertStringIncludes(result, "data:image/png;base64,");
+  assertStringIncludes(result, 'alt="test"');
+});
+
+Deno.test("exportAsHTML: Mermaid SVG + MathJax SVG + Base64画像の複合テスト", () => {
+  const html = [
+    "<h1>Full Export Test</h1>",
+    '<div class="mermaid-diagram" data-mermaid-code="graph LR; X-->Y;" data-mermaid-rendered="true"><svg><text>diagram</text></svg></div>',
+    '<mjx-container class="MathJax" jax="SVG"><svg><text>x²+y²=z²</text></svg></mjx-container>',
+    '<img src="data:image/png;base64,ABC123" alt="embedded">',
+    '<img src="https://example.com/remote.png" alt="remote">',
+  ].join("\n");
+
+  const options: ExportOptions = {
+    html,
+    themeId: "minimal",
+    themeCss: "body { color: #333; }",
+    title: "Full Test",
+  };
+
+  const result = exportAsHTML(options);
+
+  // 全要素が含まれていること
+  assertStringIncludes(result, "mermaid-diagram");
+  assertStringIncludes(result, "mjx-container");
+  assertStringIncludes(result, "data:image/png;base64,ABC123");
+  assertStringIncludes(result, "https://example.com/remote.png");
+
+  // スタンドアロンHTML構造が維持されていること
+  assertStringIncludes(result, "<!DOCTYPE html>");
+  assertStringIncludes(result, "<title>Full Test</title>");
+});
+
 Deno.test("escapeHtml: 基本的なエスケープ", () => {
   assertEquals(escapeHtml("&"), "&amp;");
   assertEquals(escapeHtml("<"), "&lt;");

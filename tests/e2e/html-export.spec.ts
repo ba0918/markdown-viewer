@@ -128,4 +128,149 @@ test.describe("HTML Export", () => {
     await menuButton.click();
     await expect(menuButton).toHaveAttribute("aria-expanded", "true");
   });
+
+  test("should include Mermaid SVG in rendered DOM for export", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/mermaid-test.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidダイアグラムがレンダリングされるまで待機
+    await page.waitForSelector(
+      ".mermaid-diagram[data-mermaid-rendered='true']",
+      { timeout: 10000 },
+    );
+
+    // DOM上のmarkdown-bodyのinnerHTMLにMermaid SVGが含まれること
+    // NOTE: .markdown-bodyが複数存在する場合があるため、.markdown-viewer内のものを指定
+    const bodyHTML = await page.locator(".markdown-viewer > .markdown-body")
+      .innerHTML();
+    expect(bodyHTML).toContain("<svg");
+    expect(bodyHTML).toContain("mermaid-diagram");
+    expect(bodyHTML).toContain("data-mermaid-rendered");
+
+    // 元のMermaidコードブロック（code.language-mermaid）がSVGに置換されていること
+    const mermaidCodeBlocks = await page.locator(
+      ".markdown-viewer code.language-mermaid",
+    ).count();
+    expect(mermaidCodeBlocks).toBe(0);
+  });
+
+  test("should include MathJax SVG in rendered DOM for export", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/math-test.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // MathJaxがレンダリングされるまで待機
+    await page.waitForSelector("mjx-container", { timeout: 10000 });
+
+    // DOM上のmarkdown-bodyのinnerHTMLにMathJax SVGが含まれること
+    // NOTE: .markdown-bodyが複数存在する場合があるため、.markdown-viewer内のものを指定
+    const bodyHTML = await page.locator(".markdown-viewer > .markdown-body")
+      .innerHTML();
+    expect(bodyHTML).toContain("mjx-container");
+    expect(bodyHTML).toContain("<svg");
+  });
+
+  test("should not include copy buttons in rendered DOM innerHTML", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/syntax-highlighting.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // コードブロックにコピーボタンが存在すること（DOM上）
+    const copyButtons = await page.locator(".code-block-copy-button").count();
+    expect(copyButtons).toBeGreaterThan(0);
+
+    // getRenderedHTMLのクリーンアップロジックを検証:
+    // DOMをクローンしてコピーボタンを除去した結果を確認
+    // NOTE: 実際のgetRenderedHTML関数はContent Script内部なので、
+    // 同等のロジックをpage.evaluate()で実行して検証
+    const cleanedHTML = await page.evaluate(() => {
+      const container = document.querySelector(".markdown-body");
+      if (!container) return "";
+      const clone = container.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".code-block-copy-button").forEach((btn) => {
+        btn.closest("div:not(.code-block-wrapper)")?.remove();
+      });
+      return clone.innerHTML;
+    });
+
+    // クリーンアップ後のHTMLにコピーボタンが含まれないこと
+    expect(cleanedHTML).not.toContain("code-block-copy-button");
+    // コードブロック自体は残っていること
+    expect(cleanedHTML).toContain("<pre");
+    expect(cleanedHTML).toContain("<code");
+  });
+
+  test("should trigger export without errors on Mermaid page", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/mermaid-test.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidレンダリング完了待機
+    await page.waitForSelector(
+      ".mermaid-diagram[data-mermaid-rendered='true']",
+      { timeout: 10000 },
+    );
+
+    // メニューを開いてExport HTMLをクリック
+    await page.locator(".document-header-menu-button").click();
+
+    const consoleErrors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        const text = msg.text();
+        if (text.includes("net::ERR_FAILED")) return;
+        consoleErrors.push(text);
+      }
+    });
+
+    await page.locator(".document-header-menu-item").filter({
+      hasText: "Export HTML",
+    }).click();
+
+    await page.waitForTimeout(1000);
+
+    // エクスポートエラーがないこと
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test("should trigger export without errors on MathJax page", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/math-test.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // MathJaxレンダリング完了待機
+    await page.waitForSelector("mjx-container", { timeout: 10000 });
+
+    // メニューを開いてExport HTMLをクリック
+    await page.locator(".document-header-menu-button").click();
+
+    const consoleErrors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        const text = msg.text();
+        if (text.includes("net::ERR_FAILED")) return;
+        consoleErrors.push(text);
+      }
+    });
+
+    await page.locator(".document-header-menu-item").filter({
+      hasText: "Export HTML",
+    }).click();
+
+    await page.waitForTimeout(1000);
+
+    // エクスポートエラーがないこと
+    expect(consoleErrors).toEqual([]);
+  });
 });
