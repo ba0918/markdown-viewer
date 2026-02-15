@@ -220,6 +220,7 @@ try {
 @import '../components/toc/base.css' layer(components);
 @import '../components/document-header/base.css' layer(components);
 @import '../components/document-header-menu/base.css' layer(components);
+@import '../components/toast/base.css' layer(components);
 @import '../components/raw-text-view/base.css' layer(components);
 @import '../components/code-block/base.css' layer(components);
 @import '../components/syntax-highlighting/base.css' layer(components);

@@ -14,6 +14,7 @@ import { useCallback } from "preact/hooks";
 import type { Signal } from "@preact/signals";
 import { sendMessage } from "../../../messaging/client.ts";
 import type { Theme } from "../../../shared/types/theme.ts";
+import { showToast } from "../../shared/Toast/index.ts";
 
 interface Props {
   /** レンダリング済みHTML */
@@ -76,11 +77,12 @@ export const ExportMenuItem = ({
     } catch (error) {
       console.error("Export error:", error);
       // ユーザーにエラーを通知
-      alert(
-        `Export failed: ${
+      showToast({
+        type: "error",
+        message: `Export failed: ${
           error instanceof Error ? error.message : "Unknown error"
         }`,
-      );
+      });
     }
   }, [html, themeId.value, fileUrl, onExported]);
 

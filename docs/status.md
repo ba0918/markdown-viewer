@@ -1,18 +1,24 @@
 # Project Status
 
-**Last Updated:** 2026-02-15 17:30:00
+**Last Updated:** 2026-02-15 17:16:26
 
 ---
 
 ## 🎯 Current Session
 
-**No active session**
+| Cycle ID       | Feature                   | Started             | Phase       | Plan                                                         |
+| -------------- | ------------------------- | ------------------- | ----------- | ------------------------------------------------------------ |
+| 20260215171626 | Toast Notification System | 2026-02-15 17:16:26 | 🟡 Planning | [Plan](./cycles/20260215171626_toast-notification-system.md) |
+
+**Current Focus:**
+汎用トースト通知システムを実装。alert()を置き換え、エラー/成功/情報メッセージを洗練されたUIで表示。Preact
+Signals、glassmorphismデザイン、自動消滅、スタック表示対応。
 
 ---
 
 ## 📜 Session History
 
-### 20260215152537 - HTML Export Feature
+### 20260215152537 - HTML Export Feature & Downloads Permission Removal
 
 - **Started:** 2026-02-15 15:25:37
 - **Completed:** 2026-02-15 17:30:00
@@ -20,23 +26,26 @@
 - **Summary:**
   レンダリング済みMarkdownをスタンドアロンHTMLファイルとしてエクスポートする機能を実装。Domain層でHTML生成ロジック（exportAsHTML,
   escapeHtml）、Services層でCSSフェッチとData
-  URL変換、Messaging層でEXPORT_HTMLメッセージタイプ、UI層でDocumentHeaderMenu（汎用コンテナ）+
-  ExportMenuItem（具体的項目）を実装。当初ExportButton予定だったが、拡張可能性を考慮してDocumentHeaderMenuに変更（PDF
-  Export、Copy HTML等の将来対応）。frontend-designスキルによる"Crystalline
-  Precision" glassmorphismデザイン適用。CSS build
-  pipeline統合修正（scripts/build.ts hardcoded imports同期問題解決）。全219 Unit
-  tests通過、5 E2E tests通過。
+  URL変換、Messaging層でGENERATE_EXPORT_HTMLメッセージタイプ、UI層でDocumentHeaderMenu（汎用コンテナ）+
+  ExportMenuItem（具体的項目）を実装。当初chrome.downloads
+  APIを使用したが、権限削減のため`<a>`タグダウンロード方式に変更（Background
+  Script: HTML生成、Content Script: Data
+  URL化+ダウンロード）。frontend-designスキルによる"Crystalline Precision"
+  glassmorphismデザイン適用。CSS build pipeline統合修正（scripts/build.ts
+  hardcoded imports同期問題解決）。全219 Unit tests通過、5 E2E tests通過。
 - **Plan:**
   [docs/cycles/20260215152537_html-export-feature.md](./cycles/20260215152537_html-export-feature.md)
 - **Commits:**
   - `[9a52c4c]` feat: HTML export機能を拡張可能なメニューアーキテクチャで実装
+  - `[680f9c0]` refactor: downloads権限を削除し`<a>`タグダウンロードに変更
 - **Key Changes:**
   - domain/export/html-exporter.ts, html-exporter.test.ts, types.ts 新規作成
-  - services/export-service.ts 新規作成
+  - services/export-service.ts 新規作成（後にdownloads権限削除対応で修正）
   - ui-components/markdown/DocumentHeaderMenu/ 新規作成
   - src/styles/components/document-header-menu/base.css 新規作成
   - tests/e2e/html-export.spec.ts 新規作成
   - scripts/build.ts CSS import追加（document-header-menu統合）
+  - manifest.json `downloads`権限削除
 
 ### 20260215131738 - Code Quality Comprehensive Refactoring
 

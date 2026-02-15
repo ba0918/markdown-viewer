@@ -1,0 +1,127 @@
+/* Toast Container - 画面右上配置 */
+.toast-container {
+  position: fixed;
+  top: 80px; /* DocumentHeaderの下 */
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+/* Toast Item */
+.toast {
+  min-width: 300px;
+  max-width: 400px;
+  padding: 14px 18px;
+  border-radius: 8px;
+
+  /* Glassmorphism */
+  background: var(--toast-bg, rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--toast-border, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  pointer-events: auto;
+
+  /* Animation */
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Type variants */
+.toast-error {
+  --toast-accent: #ef4444;
+  border-left: 4px solid var(--toast-accent);
+}
+
+.toast-success {
+  --toast-accent: #10b981;
+  border-left: 4px solid var(--toast-accent);
+}
+
+.toast-info {
+  --toast-accent: #3b82f6;
+  border-left: 4px solid var(--toast-accent);
+}
+
+.toast-warning {
+  --toast-accent: #f59e0b;
+  border-left: 4px solid var(--toast-accent);
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--toast-text, #24292f); /* Light theme default */
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: var(--toast-close, #6b7280); /* 既存の--toc-iconと同じ色味 */
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .toast {
+  --toast-bg: rgba(30, 30, 30, 0.9);
+  --toast-border: rgba(255, 255, 255, 0.1);
+  --toast-text: #e6edf3;
+  --toast-close: #9ca3af;
+}
+
+[data-theme="dark"] .toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 他のテーマでも同様に対応 */
+.markdown-viewer-theme-github .toast {
+  --toast-text: #24292f;
+  --toast-close: #6e7781;
+}
+
+.markdown-viewer-theme-minimal .toast {
+  --toast-text: #111827;
+  --toast-close: #6b7280;
+}
+
+.markdown-viewer-theme-solarized-light .toast {
+  --toast-text: #586e75;
+  --toast-close: #93a1a1;
+}
+
+.markdown-viewer-theme-solarized-dark .toast {
+  --toast-text: #93a1a1;
+  --toast-close: #586e75;
+}

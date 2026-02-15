@@ -4,6 +4,7 @@ import { h } from "preact";
 import { signal } from "@preact/signals";
 import { MarkdownViewer } from "./components/MarkdownViewer.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
+import { ToastContainer } from "../ui-components/shared/Toast/index.ts";
 import type { AppState } from "../shared/types/state.ts";
 import type { Theme } from "../shared/types/theme.ts";
 import type { RenderResult } from "../shared/types/render.ts";
@@ -290,12 +291,15 @@ const renderMarkdown = async (
       h(
         ErrorBoundary,
         null,
-        h(MarkdownViewer, {
-          result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
-          themeId: currentTheme,
-          initialTocState, // ToC初期状態（CLS削減用）
-          fileUrl: location.href, // ファイルURL（エクスポート用）
-        }),
+        [
+          h(MarkdownViewer, {
+            result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
+            themeId: currentTheme,
+            initialTocState, // ToC初期状態（CLS削減用）
+            fileUrl: location.href, // ファイルURL（エクスポート用）
+          }),
+          h(ToastContainer, null), // トースト通知コンテナ追加
+        ],
       ),
       viewerContainer,
     );
