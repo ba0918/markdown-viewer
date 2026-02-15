@@ -1,7 +1,7 @@
 # Implementation Plan: Code Quality Comprehensive Refactoring
 
 **Cycle ID:** 20260215131738 **Started:** 2026-02-15 13:17:38 **Type:**
-Refactoring **Status:** 🟡 Planning
+Refactoring **Status:** 🟢 In Progress
 
 ---
 
@@ -461,24 +461,24 @@ constructor:
 
 ## 📊 Progress Tracking
 
-| Phase       | Task                         | Status     | Time | Notes      |
-| ----------- | ---------------------------- | ---------- | ---- | ---------- |
-| **Phase 1** | StateManager型バリデーション | ⬜ Pending | -    |            |
-| **Phase 1** | Hot Reload Race Condition    | ⬜ Pending | -    |            |
-| **Phase 1** | console.log削除              | ⬜ Pending | -    |            |
-| **Phase 2** | CodeBlock.tsx削除            | ⬜ Pending | -    |            |
-| **Phase 2** | file-watcher未使用関数削除   | ⬜ Pending | -    |            |
-| **Phase 2** | mermaid-detector削除         | ⬜ Pending | -    |            |
-| **Phase 2** | math-renderer削除            | ⬜ Pending | -    |            |
-| **Phase 2** | lightningcss削除             | ⬜ Pending | -    |            |
-| **Phase 2** | **dompurify削除** 🔴         | ⬜ Pending | -    | 868KB削減! |
-| **Phase 2** | ドキュメントDOMPurify修正    | ⬜ Pending | -    | xssに統一  |
-| **Phase 2** | @preact/signals対応          | ⬜ Pending | -    |            |
-| **Phase 3** | useResizable最適化           | ⬜ Pending | -    |            |
-| **Phase 3** | normalizer最適化             | ⬜ Pending | -    |            |
-| **Phase 3** | CLAUDE.md修正                | ⬜ Pending | -    |            |
-| **Phase 3** | YAML汚染対策                 | ⬜ Pending | -    |            |
-| **Phase 3** | README.md追加                | ⬜ Pending | -    |            |
+| Phase       | Task                         | Status       | Time | Notes                      |
+| ----------- | ---------------------------- | ------------ | ---- | -------------------------- |
+| **Phase 1** | StateManager型バリデーション | ✅ Completed | 5分  | Commit: 0b72598            |
+| **Phase 1** | Hot Reload Race Condition    | ✅ Completed | 10分 | Commit: 0b72598            |
+| **Phase 1** | console.log削除              | ✅ Completed | 5分  | Commit: 0b72598            |
+| **Phase 2** | CodeBlock.tsx削除            | ✅ Completed | 1分  | Commit: 0b72598            |
+| **Phase 2** | file-watcher未使用関数削除   | ✅ Completed | 5分  | Commit: 0b72598            |
+| **Phase 2** | mermaid-detector削除         | ✅ Completed | 5分  | Commit: 0b72598            |
+| **Phase 2** | math-renderer削除            | ✅ Completed | 5分  | Commit: 0b72598            |
+| **Phase 2** | lightningcss削除             | ✅ Completed | 2分  | Commit: 0b72598            |
+| **Phase 2** | **dompurify削除** 🔴         | ✅ Completed | 2分  | 868KB削減! Commit: 0b72598 |
+| **Phase 2** | ドキュメントDOMPurify修正    | ⬜ Pending   | -    | 別セッションで実施         |
+| **Phase 2** | @preact/signals対応          | ✅ Completed | 15分 | 保持することに決定         |
+| **Phase 3** | useResizable最適化           | ⬜ Pending   | -    |                            |
+| **Phase 3** | normalizer最適化             | ⬜ Pending   | -    |                            |
+| **Phase 3** | CLAUDE.md修正                | ⬜ Pending   | -    |                            |
+| **Phase 3** | YAML汚染対策                 | ⬜ Pending   | -    |                            |
+| **Phase 3** | README.md追加                | ⬜ Pending   | -    |                            |
 
 ---
 
@@ -494,7 +494,8 @@ constructor:
 ### Key Decisions
 
 1. **dompurify**: 削除(完全未使用、xss使用中) 🔴 NEW - 868KB削減!
-2. **@preact/signals**: useState に置き換え(シンプル化優先)
+2. **@preact/signals**: 保持(テーマ変更時のスムーズな再レンダリングに必須) 🔴
+   決定変更!
 3. **lightningcss**: 削除(実装なし、コメントのみ)
 4. **console.log**: DEBUG化(完全削除ではなく制御可能に)
 5. **スクリーンショット**: 後回し可(公開後でも追加可能)
@@ -507,6 +508,9 @@ constructor:
 - Race Conditionは短いinterval設定で顕在化
 - O(n²)アルゴリズムは見出し100個以下では問題なし
 - **実際のサニタイザーはxss (js-xss)** - DOMPurifyではない!
+- **@preact/signalsの価値**:
+  単一Signal使用でも、リアクティブな状態管理として最適 🔴 NEW!
+- **適切な道具選び**: 「オーバースペック」ではなく「目的に合った選択」が重要
 
 ---
 
