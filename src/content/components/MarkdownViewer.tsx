@@ -96,6 +96,7 @@ export const MarkdownViewer = (
   // Export用: DOM上のレンダリング済みHTMLを取得
   // Mermaid SVG・MathJax SVGが含まれた状態のHTMLを返す
   // コピーボタン等のUI要素はクリーンアップして除外する
+  // ローカル画像はCanvas APIでBase64 Data URLに変換する
   const getRenderedHTML = useCallback((): string => {
     if (!containerRef.current) return result.html;
 
@@ -107,6 +108,43 @@ export const MarkdownViewer = (
       // ボタンのコンテナ（parentElement）ごと削除
       btn.closest("div:not(.code-block-wrapper)")?.remove();
     });
+
+    // ローカル画像をCanvas APIでBase64 Data URLに変換
+    // fetch()はContent Scriptからfile:// URLにアクセスできないため、
+    // ブラウザが既にロード済みの画像からCanvas経由でBase64を抽出する
+    const originalImages = containerRef.current.querySelectorAll("img");
+    const cloneImages = clone.querySelectorAll("img");
+
+    for (let i = 0; i < originalImages.length; i++) {
+      const originalImg = originalImages[i];
+      const cloneImg = cloneImages[i];
+      if (!originalImg || !cloneImg) continue;
+
+      const src = originalImg.getAttribute("src") || "";
+
+      // リモート画像（http/https）はスキップ
+      if (src.startsWith("http://") || src.startsWith("https://")) continue;
+      // 既にData URLの場合はスキップ
+      if (src.startsWith("data:")) continue;
+      // 画像が未ロードの場合はスキップ
+      if (originalImg.naturalWidth === 0) continue;
+
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = originalImg.naturalWidth;
+        canvas.height = originalImg.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) continue;
+
+        ctx.drawImage(originalImg, 0, 0);
+        // PNG形式でBase64に変換（tainted canvasの場合は例外が投げられる）
+        const dataUrl = canvas.toDataURL("image/png");
+        cloneImg.setAttribute("src", dataUrl);
+      } catch {
+        // tainted canvas等のエラー時は元のsrcを保持（ベストエフォート）
+        console.warn(`Failed to convert image to Base64 via Canvas: ${src}`);
+      }
+    }
 
     return clone.innerHTML;
   }, [result.html]);
