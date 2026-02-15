@@ -2,11 +2,15 @@
  * ExportMenuItemコンポーネント
  *
  * 責務: HTML Export メニュー項目
- * - Background Script: 重い処理（CSS fetch、HTML生成）
- * - Content Script: 軽い処理（Blob URL化、<a>ダウンロード）
+ * - Background Script: HTML生成 + chrome.downloads APIでダウンロード実行
+ * - Content Script: メッセージ送信のみ
+ *
+ * Content Script (Isolated World) の Blob URL は blob:null になり
+ * <a download> が効かないため、Background Script 経由で
+ * chrome.downloads API を使用してダウンロードする。
  *
  * ❌ 禁止: 重いビジネスロジック、services/domain直接呼び出し
- * ✅ OK: 軽量な処理（Blob URL変換、DOM操作）
+ * ✅ OK: messaging経由でBackground Scriptに委譲
  */
 
 import { h as _h } from "preact";
@@ -27,18 +31,6 @@ interface Props {
   onExported?: () => void;
 }
 
-/**
- * Blob URLを生成（Content Script側の軽量な処理）
- *
- * data: URLではなくBlob URLを使用する理由:
- * - リモートURL（https://）ではdata: URLのダウンロードがブロックされる
- * - Blob URLは同一オリジン制限を受けないため、全環境で動作する
- */
-const toBlobUrl = (html: string): string => {
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  return URL.createObjectURL(blob);
-};
-
 export const ExportMenuItem = ({
   html,
   themeId,
@@ -47,33 +39,33 @@ export const ExportMenuItem = ({
 }: Props) => {
   const handleExportHTML = useCallback(async () => {
     try {
-      // ファイル名を取得
-      const filename = fileUrl.split("/").pop() || "document.md";
-      const title = filename.replace(/\.md$/, "");
+      // ファイル名を取得（URLエンコードされたマルチバイト文字をデコード）
+      // GitHub Gist RAW等では二重エンコード（%25E6...）されている場合があるため、
+      // 変化がなくなるまで繰り返しデコードする
+      const rawFilename = fileUrl.split("/").pop() || "document.md";
+      let filename = rawFilename;
+      try {
+        let decoded = decodeURIComponent(filename);
+        while (decoded !== filename) {
+          filename = decoded;
+          decoded = decodeURIComponent(filename);
+        }
+        filename = decoded;
+      } catch {
+        // decodeURIComponent が失敗する場合はそのまま使用
+      }
+      const title = filename.replace(/\.(md|markdown)$/, "");
 
-      // 1. Background ScriptでHTML生成（重い処理: CSS fetch、HTML組み立て）
-      // sendMessage()はresponse.dataを直接返すため、HTML文字列が返る
-      const exportedHTML = (await sendMessage({
-        type: "GENERATE_EXPORT_HTML",
+      // Background ScriptでHTML生成 + chrome.downloads APIでダウンロード
+      await sendMessage({
+        type: "EXPORT_AND_DOWNLOAD",
         payload: {
           html,
           themeId: themeId.value,
           filename,
           title,
         },
-      })) as string;
-
-      // 2. Content Script側でBlob URL化 + ダウンロード（軽い処理）
-      const blobUrl = toBlobUrl(exportedHTML);
-
-      // 3. <a>タグでダウンロード（downloads権限不要）
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = filename.replace(/\.md$/, ".html");
-      a.click();
-
-      // メモリリーク防止: Blob URLを解放
-      URL.revokeObjectURL(blobUrl);
+      });
 
       // エクスポート完了後のコールバック
       onExported?.();

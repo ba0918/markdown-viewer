@@ -4,6 +4,31 @@ import { loadTheme } from "../../domain/theme/loader.ts";
 import { StateManager } from "../../background/state-manager.ts";
 import type { Message, MessageResponse } from "../types.ts";
 
+// Chrome API型定義
+declare const chrome: {
+  downloads: {
+    download: (options: {
+      url: string;
+      filename?: string;
+      saveAs?: boolean;
+    }) => Promise<number>;
+    onDeterminingFilename: {
+      addListener: (
+        callback: (
+          downloadItem: { id: number },
+          suggest: (suggestion?: { filename: string }) => void,
+        ) => void,
+      ) => void;
+      removeListener: (
+        callback: (
+          downloadItem: { id: number },
+          suggest: (suggestion?: { filename: string }) => void,
+        ) => void,
+      ) => void;
+    };
+  };
+};
+
 // StateManagerのインスタンス
 const stateManager = new StateManager();
 
@@ -20,6 +45,7 @@ const stateManager = new StateManager();
  */
 export const handleBackgroundMessage = async (
   message: Message,
+  _sender?: { tab?: { id?: number } },
 ): Promise<MessageResponse> => {
   try {
     switch (message.type) {
@@ -114,6 +140,55 @@ export const handleBackgroundMessage = async (
           message.payload,
         );
         return { success: true, data: exportedHTML };
+      }
+
+      case "EXPORT_AND_DOWNLOAD": {
+        // ✅ HTML生成 + chrome.downloads APIでダウンロード実行
+        // Content Script (Isolated World) の Blob URL はオリジンが null になり
+        // <a download> が効かない。chrome.downloads API はページのオリジンに
+        // 依存せず、拡張機能の権限でダウンロードを実行できる。
+
+        // 1. HTML生成
+        const html = await exportService.generateExportHTML(message.payload);
+        const downloadFilename = message.payload.filename.replace(
+          /\.(md|markdown)$/,
+          ".html",
+        );
+
+        // 2. Data URL に変換
+        // btoa() はバイナリ文字列のみ受け付けるため、UTF-8エンコード経由で変換
+        const utf8Bytes = new TextEncoder().encode(html);
+        let binary = "";
+        for (let i = 0; i < utf8Bytes.length; i++) {
+          binary += String.fromCharCode(utf8Bytes[i]);
+        }
+        const dataUrl = "data:text/html;base64," + btoa(binary);
+
+        // 3. onDeterminingFilename で非ASCIIファイル名を設定
+        // chrome.downloads.download() の filename パラメータは Data URL 使用時に
+        // 非ASCII文字をエスケープする既知の問題がある（Chromium Bug #579563）。
+        // onDeterminingFilename イベントリスナーでファイル名を差し替えることで回避。
+        //
+        // 注: リスナーはdownload()呼び出し前に登録する。
+        // download()のPromise解決とonDeterminingFilenameイベント発火は
+        // 同じマイクロタスクキュー内で順序が保証されないため、
+        // downloadIdの代わりにフラグベースでワンショット制御する。
+        let handled = false;
+        const listener = (
+          _downloadItem: { id: number },
+          suggest: (suggestion?: { filename: string }) => void,
+        ) => {
+          if (!handled) {
+            handled = true;
+            suggest({ filename: downloadFilename });
+            chrome.downloads.onDeterminingFilename.removeListener(listener);
+          }
+        };
+        chrome.downloads.onDeterminingFilename.addListener(listener);
+
+        await chrome.downloads.download({ url: dataUrl });
+
+        return { success: true, data: null };
       }
 
       default:

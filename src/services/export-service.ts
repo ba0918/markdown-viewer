@@ -4,8 +4,10 @@
  * 責務: エクスポート機能のフロー制御
  * - domain層のexportAsHTML()を呼び出し
  * - テーマCSSをfetch
- * - Data URL生成
- * - chrome.downloads.download()でダウンロード
+ * - スタンドアロンHTML文字列を生成
+ *
+ * ダウンロード実行はbackground-handler.tsで
+ * chrome.downloads APIを使用して行う
  */
 
 import { exportAsHTML } from "../domain/export/html-exporter.ts";
@@ -39,7 +41,7 @@ export class ExportService {
    *
    * 1. テーマCSSを fetch
    * 2. domain層でスタンドアロンHTML生成
-   * 3. HTML文字列を返す（ダウンロードはContent Script側で実行）
+   * 3. HTML文字列を返す（ダウンロードはbackground-handler側でchrome.downloads APIで実行）
    *
    * @param params - エクスポートパラメータ
    * @returns エクスポートされたHTML文字列

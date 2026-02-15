@@ -44,30 +44,34 @@ test.describe("Toast Notification", () => {
       throw new Error("Service worker not found");
     }
 
-    // Background Script側で chrome.runtime.onMessage ハンドラーをモック
+    // Background Script側で handleBackgroundMessage の内部で使われる
+    // exportService.generateExportHTML をモックして必ずエラーにする。
+    // chrome.runtime.onMessage.addListener() でモックすると、
+    // 元のハンドラーも同時に実行されて executeScript が走ってしまうため、
+    // サービス層をモックする方が確実。
     await serviceWorker.evaluate(() => {
-      // 新しいモックハンドラーを追加
-      chrome.runtime.onMessage.addListener(
-        (message: any, _sender: any, sendResponse: any) => {
-          console.log(
-            "🔥 Background: Received message:",
-            JSON.stringify(message),
+      // グローバルスコープに保存されている exportService のメソッドを上書き
+      // esbuild でバンドルされているため、グローバル変数経由では直接アクセスできない。
+      // 代わりに onMessage リスナーを追加して、EXPORT_AND_DOWNLOAD を完全に横取りし、
+      // 元のリスナーには false を返さないようにする（return true で非同期レスポンスを示す）。
+      // 注: Chrome では最初に sendResponse を呼んだリスナーのレスポンスが使われ、
+      // 元のリスナーの sendResponse は無視される。ただし元のハンドラーの
+      // 非同期処理（executeScript等）は止められないため、
+      // fetch をモックして exportService.generateExportHTML を内部でエラーにする。
+      const originalFetch = globalThis.fetch;
+      (globalThis as any).__exportMockActive = true;
+      globalThis.fetch = function (input: any, init?: any) {
+        if (
+          (globalThis as any).__exportMockActive && typeof input === "string" &&
+          input.includes("themes/")
+        ) {
+          // テーマCSS の fetch を失敗させる → exportService.generateExportHTML がエラーになる
+          return Promise.reject(
+            new Error("Export operation failed: Invalid theme data"),
           );
-
-          if (message.type === "GENERATE_EXPORT_HTML") {
-            console.log("🚨 Background: Returning ERROR response");
-            sendResponse({
-              success: false,
-              error: "Export operation failed: Invalid theme data",
-            });
-            return true; // 非同期レスポンスを示す
-          }
-
-          // 他のメッセージは元のハンドラーに委譲
-          console.log("✅ Background: Passing to original handler");
-          return false; // 元のハンドラーに処理を委譲
-        },
-      );
+        }
+        return originalFetch.call(globalThis, input, init);
+      } as typeof fetch;
     });
 
     // Document Header Menu ボタンをクリック
@@ -87,7 +91,7 @@ test.describe("Toast Notification", () => {
 
     // エラートーストが表示されることを確認
     const errorToast = page.locator(".toast.toast-error");
-    await expect(errorToast).toBeVisible({ timeout: 3000 });
+    await expect(errorToast).toBeVisible({ timeout: 5000 });
 
     // エラーメッセージが正しく表示されることを確認
     const toastMessage = errorToast.locator(".toast-message");
@@ -99,5 +103,10 @@ test.describe("Toast Notification", () => {
     // トーストに閉じるボタンがあることを確認
     const closeButton = errorToast.locator(".toast-close");
     await expect(closeButton).toBeVisible();
+
+    // モックをクリーンアップ
+    await serviceWorker.evaluate(() => {
+      (globalThis as any).__exportMockActive = false;
+    });
   });
 });

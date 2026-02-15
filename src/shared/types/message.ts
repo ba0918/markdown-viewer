@@ -23,6 +23,15 @@ export type Message =
       filename: string;
       title?: string;
     };
+  }
+  | {
+    type: "EXPORT_AND_DOWNLOAD";
+    payload: {
+      html: string;
+      themeId: Theme;
+      filename: string;
+      title?: string;
+    };
   };
 
 /**

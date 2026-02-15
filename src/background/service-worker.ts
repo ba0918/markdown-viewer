@@ -101,8 +101,8 @@ chrome.runtime.onStartup.addListener(() => {
  * メッセージ受信ハンドラ
  * ✅ OK: handlerに委譲するだけ
  */
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  handleBackgroundMessage(message)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  handleBackgroundMessage(message, sender)
     .then(sendResponse)
     .catch((error) => sendResponse({ success: false, error: error.message }));
 

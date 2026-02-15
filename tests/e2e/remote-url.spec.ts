@@ -101,8 +101,11 @@ test.describe("Remote URL Settings", () => {
     // optional_host_permissionsはhttps://*/*のみ（カスタムドメイン用）
     expect(manifest.optional_host_permissions).toEqual(["https://*/*"]);
 
-    // host_permissionsはfile://のみ
-    expect(manifest.host_permissions).toEqual(["file:///*"]);
+    // host_permissionsはfile://とlocalhostのみ（MAIN worldでのExportに必要）
+    expect(manifest.host_permissions).toEqual([
+      "file:///*",
+      "http://localhost:*/*",
+    ]);
   });
 
   test("should have scripting permission for dynamic content script registration", async ({ page, extensionId }) => {

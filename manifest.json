@@ -46,11 +46,13 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "downloads"
   ],
 
   "host_permissions": [
-    "file:///*"
+    "file:///*",
+    "http://localhost:*/*"
   ],
 
   "optional_host_permissions": [
