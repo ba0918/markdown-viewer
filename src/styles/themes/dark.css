@@ -128,4 +128,40 @@
   --hljs-addition-bg: #033a16;
   --hljs-deletion: #ffdcd7;
   --hljs-deletion-bg: #67060c;
+
+  /* Toast - Dark theme */
+  --toast-bg: rgba(20, 20, 22, 0.95);
+  --toast-border: rgba(255, 255, 255, 0.12);
+
+  /* Toast Success */
+  --toast-success-accent: #10b981;
+  --toast-success-icon-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --toast-success-icon-color: #ffffff;
+  --toast-success-text: #6ee7b7;
+  --toast-success-close-color: #6ee7b7;
+  --toast-success-close-hover-bg: rgba(110, 231, 183, 0.15);
+
+  /* Toast Error */
+  --toast-error-accent: #ef4444;
+  --toast-error-icon-bg: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --toast-error-icon-color: #ffffff;
+  --toast-error-text: #fca5a5;
+  --toast-error-close-color: #fca5a5;
+  --toast-error-close-hover-bg: rgba(252, 165, 165, 0.15);
+
+  /* Toast Warning */
+  --toast-warning-accent: #f59e0b;
+  --toast-warning-icon-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --toast-warning-icon-color: #ffffff;
+  --toast-warning-text: #fcd34d;
+  --toast-warning-close-color: #fcd34d;
+  --toast-warning-close-hover-bg: rgba(252, 211, 77, 0.15);
+
+  /* Toast Info */
+  --toast-info-accent: #3b82f6;
+  --toast-info-icon-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --toast-info-icon-color: #ffffff;
+  --toast-info-text: #93c5fd;
+  --toast-info-close-color: #93c5fd;
+  --toast-info-close-hover-bg: rgba(147, 197, 253, 0.15);
 }

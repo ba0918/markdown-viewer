@@ -85,3 +85,91 @@ window.someFunction();
 - `page.evaluate()`で複雑な処理を実行するよりも、実際のUI操作をテストする方が良い
 - 例:
   トースト表示のテストは、Export失敗時に自動的にテストされるため、ToastContainerの存在確認のみで十分
+
+## Chrome拡張機能のE2Eテスト
+
+### chrome.runtime.sendMessage のモック方法
+
+Chrome拡張機能のE2Eテストで `chrome.runtime.sendMessage`
+をモックする場合、**Content Script側ではなくBackground Script (Service
+Worker)側**でモックする必要がある。
+
+#### ❌ 間違ったアプローチ
+
+Content Script側で `chrome.runtime.sendMessage`
+を上書きしようとしても動作しない:
+
+```typescript
+// ❌ これは動かない
+await page.addInitScript(() => {
+  window.chrome.runtime.sendMessage = (message) => {
+    // モック処理
+  };
+});
+```
+
+#### ✅ 正しいアプローチ
+
+Service Worker側で `chrome.runtime.onMessage`
+リスナーを追加してレスポンスを制御する:
+
+```typescript
+test("should show error toast when HTML export fails", async ({page,testServerUrl,context, // ← BrowserContext を取得
+}) => {
+  // Markdownファイルを開く
+  await openMarkdownFile(page, `${testServerUrl}/tests/e2e/fixtures/simple.md`);
+  await expectMarkdownRendered(page);
+
+  // Service Worker (Background Script) を取得
+  const [serviceWorker] = context.serviceWorkers();
+  if (!serviceWorker) {
+    throw new Error("Service worker not found");
+  }
+
+  // Background Script側で chrome.runtime.onMessage ハンドラーをモック
+  await serviceWorker.evaluate(() => {
+    // 新しいモックハンドラーを追加
+    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+      console.log("Received message:", message);
+
+      if (message.type === "GENERATE_EXPORT_HTML") {
+        // エラーレスポンスを返す
+        sendResponse({
+          success: false,
+          error: "Export operation failed: Invalid theme data",
+        });
+        return true; // 非同期レスポンスを示す
+      }
+
+      // 他のメッセージは元のハンドラーに委譲
+      return false;
+    });
+  });
+
+  // 以降、通常通りUI操作をテスト
+  const menuButton = page.locator(".document-header-menu-button");
+  await menuButton.click();
+  // ...
+});
+```
+
+#### 重要なポイント
+
+1. **`context.serviceWorkers()` でService Workerを取得**
+   - fixtures.tsで既にService Workerは起動済み
+
+2. **`serviceWorker.evaluate()` でBackground Script内のコードを実行**
+   - ページコンテキストではなく、Service Workerコンテキストで実行される
+
+3. **`chrome.runtime.onMessage.addListener()` でハンドラー追加**
+   - 既存のハンドラーより先に実行されるため、特定メッセージのみインターセプト可能
+   - `return true` で非同期レスポンスを示す
+   - `return false` で元のハンドラーに処理を委譲
+
+4. **モックは`openMarkdownFile()`の後に設定**
+   - ページロード後にService Workerが確実に起動している状態で設定
+
+### 参考資料
+
+- [Chrome extensions | Playwright](https://playwright.dev/docs/chrome-extensions)
+- [Test Chrome Extensions with Puppeteer | Chrome for Developers](https://developer.chrome.com/docs/extensions/how-to/test/puppeteer)
