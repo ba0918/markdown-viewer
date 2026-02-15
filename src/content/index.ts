@@ -65,8 +65,8 @@ const currentTheme = signal<Theme>("light");
  * Markdownファイル判定（ローカル＋リモートURL対応）
  *
  * - ローカルファイル（file://）とlocalhost: URL拡張子で判定
- * - リモートURL: Content-Type（text/markdown, text/plain）またはURL拡張子で判定
- * - GitHubのrawファイルはtext/plainで配信されることが多いため、text/plainも許可
+ * - リモートURL: URL拡張子優先、拡張子なしの場合のみContent-Typeで判定
+ * - text/plain は誤検知が多いため、拡張子なしの場合のみ許可
  */
 const isMarkdownFile = (): boolean => {
   const url = location.href;
@@ -76,16 +76,15 @@ const isMarkdownFile = (): boolean => {
     return location.pathname.match(/\.(md|markdown)$/i) !== null;
   }
 
-  // リモートURL: Content-Typeチェック
-  const contentType = document.contentType || "";
-  const hasMarkdownContentType = contentType.includes("text/markdown") ||
-    contentType.includes("text/plain");
-
-  // URLの拡張子チェック
+  // リモートURL: まず拡張子チェック（優先）
   const hasMarkdownExtension = /\.(md|markdown)$/i.test(url);
+  if (hasMarkdownExtension) {
+    return true;
+  }
 
-  // どちらかに該当すればMarkdownとして扱う
-  return hasMarkdownContentType || hasMarkdownExtension;
+  // 拡張子なしの場合のみ Content-Type で判定
+  const contentType = document.contentType || "";
+  return contentType.includes("text/markdown");
 };
 
 /**
