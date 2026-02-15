@@ -6,17 +6,36 @@
 
 ## 🎯 Current Session
 
-| Cycle ID       | Feature                   | Started             | Phase       | Plan                                                         |
-| -------------- | ------------------------- | ------------------- | ----------- | ------------------------------------------------------------ |
-| 20260215171626 | Toast Notification System | 2026-02-15 17:16:26 | 🟡 Planning | [Plan](./cycles/20260215171626_toast-notification-system.md) |
-
-**Current Focus:**
-汎用トースト通知システムを実装。alert()を置き換え、エラー/成功/情報メッセージを洗練されたUIで表示。Preact
-Signals、glassmorphismデザイン、自動消滅、スタック表示対応。
+_No active session. Ready for new work!_
 
 ---
 
 ## 📜 Session History
+
+### 20260215171626 - Toast Notification System
+
+- **Started:** 2026-02-15 17:16:26
+- **Completed:** 2026-02-15 18:30:00
+- **Status:** 🟢 Completed
+- **Summary:** 汎用トースト通知システムを実装してalert()を置き換え。Preact
+  Signalsベースのリアクティブ状態管理、glassmorphismデザイン、4種類のトーストタイプ(error,
+  success, info,
+  warning)対応。自動消滅(デフォルト4秒)と手動クローズ機能、スタック表示。UI層にToast/ToastContainer、toast-manager.tsでSignals管理。ExportMenuItemでshowToast()使用。E2Eテストはセキュリティ上の理由からToastContainer存在確認のみ(window.showToast露出せず)。全228
+  Unit tests通過、69 E2E tests通過。
+- **Plan:**
+  [docs/cycles/20260215171626_toast-notification-system.md](./cycles/20260215171626_toast-notification-system.md)
+- **Commits:**
+  - `[7b10a09]` feat: トースト通知システムを実装してalert()を置き換え
+- **Key Changes:**
+  - src/ui-components/shared/Toast/ 新規作成 (types.ts, toast-manager.ts,
+    Toast.tsx, ToastContainer.tsx, Toast.test.tsx)
+  - src/styles/components/toast/base.css 新規作成 (glassmorphismデザイン)
+  - src/ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx
+    showToast()に置き換え
+  - tests/e2e/toast.spec.ts 新規作成 (ToastContainer存在確認のみ)
+  - .claude/rules/testing.md 新規作成 (Deno.testパターン記録)
+- **Learning:** Chrome拡張Content ScriptはIsolated Worldで動作し、Page
+  Contextと分離されている。E2Eテストでwindow.showToast()を公開すると脆弱性になるため、ToastContainer存在確認のみ実施し、Toast動作は実際のユーザー操作(Export失敗など)を通じてテストする方針に決定。
 
 ### 20260215152537 - HTML Export Feature & Downloads Permission Removal
 
