@@ -56,10 +56,18 @@ export class StateManager {
         ? (stored.theme as Theme)
         : this.DEFAULT_STATE.theme;
 
-      // hotReload設定をマージ
+      // hotReload設定をマージ（型バリデーション付き）
       const hotReload = {
-        ...this.DEFAULT_STATE.hotReload,
-        ...stored.hotReload,
+        enabled: typeof stored.hotReload?.enabled === "boolean"
+          ? stored.hotReload.enabled
+          : this.DEFAULT_STATE.hotReload.enabled,
+        interval: typeof stored.hotReload?.interval === "number" &&
+            stored.hotReload.interval >= 1000
+          ? stored.hotReload.interval
+          : this.DEFAULT_STATE.hotReload.interval,
+        autoReload: typeof stored.hotReload?.autoReload === "boolean"
+          ? stored.hotReload.autoReload
+          : this.DEFAULT_STATE.hotReload.autoReload,
       };
 
       return { theme, hotReload };

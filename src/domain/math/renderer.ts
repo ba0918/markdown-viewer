@@ -55,25 +55,5 @@ export function renderMath(element: HTMLElement): void {
   mathDocument.updateDocument();
 }
 
-/**
- * Converts a LaTeX string to an SVG element
- *
- * @param latex - LaTeX math expression string
- * @param display - true for display mode (block), false for inline mode
- * @returns HTMLElement containing the SVG representation
- *
- * @example
- * ```ts
- * const svg = texToSvg('x^2 + y^2 = z^2', false);
- * document.body.appendChild(svg);
- * ```
- */
-export function texToSvg(latex: string, display = false): HTMLElement {
-  const node = mathDocument.convert(latex, {
-    display: display,
-    em: 16,
-    ex: 8,
-    containerWidth: 80 * 16,
-  });
-  return node; // Returns <mjx-container>...<svg>...</mjx-container>
-}
+// texToSvg() は削除されました（未使用関数）
+// 必要な場合は renderMath() を使用してください

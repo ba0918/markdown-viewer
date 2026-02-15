@@ -70,16 +70,16 @@ Deno.test("StateManager: 部分的な状態の更新", async () => {
   // デフォルト状態を保存
   await manager.save({ theme: "light" });
 
-  // hotReloadのみ更新
+  // hotReloadのみ更新（intervalは1000以上が必要）
   await manager.save({
-    hotReload: { enabled: true, interval: 5, autoReload: true },
+    hotReload: { enabled: true, interval: 5000, autoReload: true },
   });
 
   const state = await manager.load();
 
   assertEquals(state.theme, "light"); // 前の値を維持
   assertEquals(state.hotReload.enabled, true);
-  assertEquals(state.hotReload.interval, 5);
+  assertEquals(state.hotReload.interval, 5000);
   assertEquals(state.hotReload.autoReload, true);
 });
 
@@ -87,17 +87,17 @@ Deno.test("StateManager: 存在する状態の読み込み", async () => {
   mockStorage.clear();
   const manager = new StateManager();
 
-  // 事前にストレージにデータを設定
+  // 事前にストレージにデータを設定（intervalは1000以上が必要）
   mockStorage.set("appState", {
     theme: "dark",
-    hotReload: { enabled: true, interval: 10, autoReload: false },
+    hotReload: { enabled: true, interval: 10000, autoReload: false },
   });
 
   const state = await manager.load();
 
   assertEquals(state.theme, "dark");
   assertEquals(state.hotReload.enabled, true);
-  assertEquals(state.hotReload.interval, 10);
+  assertEquals(state.hotReload.interval, 10000);
   assertEquals(state.hotReload.autoReload, false);
 });
 
@@ -147,13 +147,13 @@ Deno.test("StateManager: hotReload設定のみの更新", async () => {
 
   await manager.updateHotReload({
     enabled: true,
-    interval: 3,
+    interval: 3000,
     autoReload: true,
   });
   const state = await manager.load();
 
   assertEquals(state.hotReload.enabled, true);
-  assertEquals(state.hotReload.interval, 3);
+  assertEquals(state.hotReload.interval, 3000);
   assertEquals(state.hotReload.autoReload, true);
 });
 
@@ -216,4 +216,56 @@ Deno.test("StateManager: solarized-darkテーマの保存と読み込み", async
   const state = await manager.load();
 
   assertEquals(state.theme, "solarized-dark");
+});
+
+// 型バリデーションテスト
+Deno.test("StateManager: interval < 1000 の場合にデフォルト値を使用", async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  // 不正なinterval値を設定
+  mockStorage.set("appState", {
+    theme: "dark",
+    hotReload: { enabled: true, interval: 500, autoReload: true },
+  });
+
+  const state = await manager.load();
+
+  assertEquals(state.hotReload.interval, 3000); // デフォルト値
+  assertEquals(state.hotReload.enabled, true); // 有効な値は維持
+  assertEquals(state.hotReload.autoReload, true); // 有効な値は維持
+});
+
+Deno.test("StateManager: interval が文字列の場合にデフォルト値を使用", async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  // 不正な型のinterval値を設定
+  mockStorage.set("appState", {
+    theme: "dark",
+    hotReload: { enabled: true, interval: "5000", autoReload: true },
+  });
+
+  const state = await manager.load();
+
+  assertEquals(state.hotReload.interval, 3000); // デフォルト値
+  assertEquals(state.hotReload.enabled, true); // 有効な値は維持
+  assertEquals(state.hotReload.autoReload, true); // 有効な値は維持
+});
+
+Deno.test("StateManager: enabled が文字列の場合にデフォルト値を使用", async () => {
+  mockStorage.clear();
+  const manager = new StateManager();
+
+  // 不正な型のenabled値を設定
+  mockStorage.set("appState", {
+    theme: "dark",
+    hotReload: { enabled: "true", interval: 5000, autoReload: false },
+  });
+
+  const state = await manager.load();
+
+  assertEquals(state.hotReload.enabled, false); // デフォルト値
+  assertEquals(state.hotReload.interval, 5000); // 有効な値は維持
+  assertEquals(state.hotReload.autoReload, false); // 有効な値は維持
 });

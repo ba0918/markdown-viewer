@@ -14,6 +14,9 @@ import {
   resolveRelativeLink,
 } from "../shared/utils/url-resolver.ts";
 
+// DEBUGフラグ: 本番ビルドではfalseにする
+const DEBUG = false;
+
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
   runtime: {
@@ -90,12 +93,12 @@ const loadThemeCss = (theme: Theme): void => {
     linkElement.setAttribute("data-markdown-theme", theme);
     linkElement.href = cssUrl;
     document.head.appendChild(linkElement);
-    console.log(`Markdown Viewer: Theme CSS loaded - ${theme}`);
+    if (DEBUG) console.log(`Markdown Viewer: Theme CSS loaded - ${theme}`);
   } else {
     // テーマ変更時: hrefを更新（再レンダリング不要！）
     linkElement.setAttribute("data-markdown-theme", theme);
     linkElement.href = cssUrl;
-    console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
+    if (DEBUG) console.log(`Markdown Viewer: Theme CSS updated - ${theme}`);
   }
 
   // bodyにテーマクラスを付与（CSS変数のスコープを全ページに拡大）
@@ -115,9 +118,11 @@ const loadThemeCss = (theme: Theme): void => {
 const startHotReload = async (interval: number): Promise<void> => {
   // WSL2ファイルはHot Reload非対応（Chromeセキュリティ制限）
   if (isWslFile(location.href)) {
-    console.log(
-      "Markdown Viewer: Hot Reload is not available for WSL2 files (file://wsl.localhost/...). Please use a localhost HTTP server instead.",
-    );
+    if (DEBUG) {
+      console.log(
+        "Markdown Viewer: Hot Reload is not available for WSL2 files (file://wsl.localhost/...). Please use a localhost HTTP server instead.",
+      );
+    }
     return;
   }
 
@@ -142,12 +147,20 @@ const startHotReload = async (interval: number): Promise<void> => {
     return;
   }
 
-  console.log(
-    `Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`,
-  );
+  if (DEBUG) {
+    console.log(
+      `Markdown Viewer: Hot Reload started (interval: ${safeInterval}ms)`,
+    );
+  }
+
+  // Race Condition対策用フラグ
+  let isChecking = false;
 
   // setIntervalでファイル変更を監視
   hotReloadInterval = globalThis.setInterval(async () => {
+    if (isChecking) return; // 前回のチェックが完了していなければスキップ
+
+    isChecking = true;
     try {
       // Background Scriptでfile://をfetch
       const currentContent = await sendMessage<string>({
@@ -159,13 +172,17 @@ const startHotReload = async (interval: number): Promise<void> => {
       const changed = currentContent !== lastFileContent;
 
       if (changed) {
-        console.log("Markdown Viewer: File changed detected! Reloading...");
-        lastFileContent = currentContent;
+        if (DEBUG) {
+          console.log("Markdown Viewer: File changed detected! Reloading...");
+        }
+        stopHotReload(); // リロード前にintervalをクリア
         globalThis.location.reload();
       }
     } catch {
       // Fetch failed, stop Hot Reload (silently)
       stopHotReload();
+    } finally {
+      isChecking = false;
     }
   }, safeInterval);
 };
@@ -178,7 +195,7 @@ const stopHotReload = (): void => {
     clearInterval(hotReloadInterval);
     hotReloadInterval = null;
     lastFileContent = null;
-    console.log("Markdown Viewer: Hot Reload stopped");
+    if (DEBUG) console.log("Markdown Viewer: Hot Reload stopped");
   }
 };
 
@@ -208,13 +225,13 @@ const setupRelativeLinkHandler = (): void => {
 
     const absoluteUrl = resolveRelativeLink(location.href, href);
 
-    console.log(`Markdown Viewer: Navigating to ${absoluteUrl}`);
+    if (DEBUG) console.log(`Markdown Viewer: Navigating to ${absoluteUrl}`);
 
     // 同じタブで遷移
     location.href = absoluteUrl;
   }, true); // キャプチャフェーズで処理
 
-  console.log("Markdown Viewer: Relative link handler set up");
+  if (DEBUG) console.log("Markdown Viewer: Relative link handler set up");
 };
 
 /**
@@ -269,7 +286,9 @@ const renderMarkdown = async (
     // 6. 相対リンクハンドラを設定（レンダリング後に実行）
     setupRelativeLinkHandler();
 
-    console.log(`Markdown Viewer: Rendering completed with theme '${theme}'`);
+    if (DEBUG) {
+      console.log(`Markdown Viewer: Rendering completed with theme '${theme}'`);
+    }
   } catch (error) {
     console.error("Failed to render markdown:", error);
     document.body.innerHTML = `
@@ -336,7 +355,9 @@ const init = async () => {
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === "sync" && changes.appState) {
       const newState = changes.appState.newValue as AppState;
-      console.log("Settings changed, updating theme:", newState.theme);
+      if (DEBUG) {
+        console.log("Settings changed, updating theme:", newState.theme);
+      }
 
       // CSSファイルのみ差し替え（高速・表示が消えない！）
       loadThemeCss(newState.theme);

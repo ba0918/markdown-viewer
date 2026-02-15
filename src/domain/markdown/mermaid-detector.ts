@@ -64,24 +64,8 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
   return blocks;
 }
 
-/**
- * Checks if HTML contains any Mermaid code blocks
- *
- * @param html - HTML string
- * @returns true if Mermaid blocks exist
- *
- * @example
- * ```ts
- * if (hasMermaidBlocks(html)) {
- *   // Load Mermaid library dynamically
- * }
- * ```
- */
-export function hasMermaidBlocks(html: string): boolean {
-  // Quick check with regex
-  const pattern = /<code class="[^"]*language-mermaid[^"]*"/i;
-  return pattern.test(html);
-}
+// hasMermaidBlocks() は削除されました（未使用関数）
+// 必要な場合は detectMermaidBlocks(html).length > 0 を使用してください
 
 /**
  * Decodes HTML entities in a string

@@ -8,7 +8,6 @@
 import { assertEquals } from "@std/assert";
 import {
   detectMermaidBlocks,
-  hasMermaidBlocks,
   type MermaidBlock as _MermaidBlock,
 } from "./mermaid-detector.ts";
 
@@ -107,26 +106,7 @@ Deno.test("detectMermaidBlocks: handles mixed case class names", () => {
   assertEquals(blocks.length, 2);
 });
 
-Deno.test("hasMermaidBlocks: returns true when Mermaid blocks exist", () => {
-  const html = `
-    <pre><code class="language-mermaid">graph TD
-    A --> B</code></pre>
-  `;
-
-  assertEquals(hasMermaidBlocks(html), true);
-});
-
-Deno.test("hasMermaidBlocks: returns false when no Mermaid blocks", () => {
-  const html = `
-    <pre><code class="language-javascript">console.log('hello');</code></pre>
-  `;
-
-  assertEquals(hasMermaidBlocks(html), false);
-});
-
-Deno.test("hasMermaidBlocks: returns false for empty HTML", () => {
-  assertEquals(hasMermaidBlocks(""), false);
-});
+// hasMermaidBlocks() のテストは削除されました（未使用関数）
 
 Deno.test("detectMermaidBlocks: preserves original code indentation", () => {
   const html = `
