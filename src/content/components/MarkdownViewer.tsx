@@ -1,13 +1,6 @@
-import { h as _h, render } from "preact";
+import { h as _h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
-import { renderMath } from "../../domain/math/renderer.ts";
-import { hasMathExpression } from "../../domain/math/detector.ts";
-import { detectMermaidBlocks } from "../../domain/markdown/mermaid-detector.ts";
-import {
-  getMermaidTheme,
-  renderMermaid,
-} from "../../domain/markdown/mermaid-renderer.ts";
 import { TableOfContents } from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
 import { tocService } from "../../services/toc-service.ts";
 import type { TocItem } from "../../domain/toc/types.ts";
@@ -20,11 +13,13 @@ import {
   DEFAULT_VIEW_MODE,
   type ViewMode,
 } from "../../shared/types/view-mode.ts";
-import { CopyButton } from "../../ui-components/shared/CopyButton.tsx";
 // NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
 // import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
 // import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
 import type { Theme } from "../../shared/types/theme.ts";
+import { useCopyButtons } from "./hooks/useCopyButtons.ts";
+import { useMathJax } from "./hooks/useMathJax.ts";
+import { useMermaid } from "./hooks/useMermaid.ts";
 
 /**
  * MarkdownViewerコンポーネント
@@ -103,155 +98,14 @@ export const MarkdownViewer = (
   //   return clone.innerHTML;
   // }, [result.html]);
 
-  useEffect(() => {
-    // rawモードではコードブロック処理・Mermaidレンダリング不要（パフォーマンス改善）
-    if (viewMode === "raw") return;
-    if (!containerRef.current) return;
+  // カスタムフック: コードブロックにコピーボタンを追加
+  useCopyButtons(containerRef, viewMode);
 
-    // アンマウント後のDOM操作を防ぐフラグ
-    let isMounted = true;
+  // カスタムフック: MathJax数式レンダリング
+  useMathJax(containerRef, result.html, viewMode);
 
-    // コードブロックにコピーボタンを追加
-    const codeBlocks = containerRef.current.querySelectorAll("pre > code");
-    codeBlocks.forEach((codeElement) => {
-      const preElement = codeElement.parentElement;
-      if (!preElement) return;
-
-      // 既にコピーボタンが追加されている場合はスキップ
-      if (preElement.querySelector(".code-block-copy-button")) return;
-
-      // Mermaidブロックはスキップ（専用のダイアグラム表示になるため）
-      if (codeElement.classList.contains("language-mermaid")) return;
-
-      // コードの内容を取得
-      const code = codeElement.textContent || "";
-
-      // ラッパーdivを作成
-      const wrapper = document.createElement("div");
-      wrapper.className = "code-block-wrapper";
-
-      // preElementをwrapperで囲む
-      preElement.parentNode?.insertBefore(wrapper, preElement);
-      wrapper.appendChild(preElement);
-
-      // コピーボタンをPreactコンポーネントとして追加
-      const buttonContainer = document.createElement("div");
-      wrapper.insertBefore(buttonContainer, preElement);
-      render(
-        <CopyButton
-          text={code}
-          className="copy-button code-block-copy-button"
-          ariaLabel="Copy code to clipboard"
-          title="Copy code"
-        />,
-        buttonContainer,
-      );
-    });
-
-    // MathJax数式レンダリング
-    if (hasMathExpression(result.html)) {
-      try {
-        renderMath(containerRef.current);
-      } catch (error) {
-        console.error("MathJax rendering failed:", error);
-      }
-    }
-
-    // Mermaidダイアグラムレンダリング
-    const mermaidBlocks = detectMermaidBlocks(result.html);
-    const existingDiagrams = containerRef.current?.querySelectorAll(
-      ".mermaid-diagram",
-    );
-
-    // アプリテーマからMermaidテーマを取得
-    const theme = getMermaidTheme(themeId.value);
-
-    // 既存のダイアグラムがある場合は再レンダリング（テーマ変更時）
-    // Promise.all()で並列化（パフォーマンス改善）
-    if (existingDiagrams && existingDiagrams.length > 0) {
-      (async () => {
-        await Promise.all(
-          Array.from(existingDiagrams).map(async (diagram) => {
-            // アンマウント後はスキップ
-            if (!isMounted) return;
-
-            try {
-              const code = diagram.getAttribute("data-mermaid-code");
-              if (!code) {
-                console.warn(
-                  "Mermaid diagram missing data-mermaid-code attribute",
-                );
-                return;
-              }
-              const svg = await renderMermaid(code, theme);
-              if (!isMounted) return; // レンダリング後にも再チェック
-              diagram.innerHTML = svg;
-            } catch (error) {
-              console.error("Mermaid re-rendering failed:", error);
-              // フォールバック: 元のコードブロックを表示
-              if (!isMounted) return;
-              const code = diagram.getAttribute("data-mermaid-code");
-              if (code) {
-                const escaped = code.replace(/</g, "&lt;").replace(
-                  />/g,
-                  "&gt;",
-                );
-                diagram.innerHTML =
-                  `<pre style="padding: 1rem; background: var(--markdown-viewer-code-bg, #f5f5f5); border-radius: 4px; overflow-x: auto;">` +
-                  `<code class="language-mermaid">${escaped}</code></pre>` +
-                  `<p style="color: var(--markdown-viewer-error-color, #c53030); font-size: 0.875rem; margin-top: 0.5rem;">` +
-                  `Failed to render Mermaid diagram</p>`;
-              }
-            }
-          }),
-        );
-      })();
-    } // 新規レンダリング（初回表示時）
-    // Note: DOM操作の順序依存のため逐次処理を維持
-    else if (mermaidBlocks.length > 0) {
-      (async () => {
-        for (const block of mermaidBlocks) {
-          // アンマウント後はスキップ
-          if (!isMounted) return;
-
-          try {
-            // SVGをレンダリング
-            const svg = await renderMermaid(block.code, theme);
-            if (!isMounted) return; // レンダリング後にも再チェック
-
-            // 元のコードブロックを見つける（毎回再取得）
-            const codeBlocks = containerRef.current?.querySelectorAll(
-              "code.language-mermaid",
-            );
-            if (codeBlocks && codeBlocks[0]) {
-              // 常に最初の要素を処理（前の要素は置き換えられているため）
-              const codeBlock = codeBlocks[0];
-              const preElement = codeBlock.parentElement;
-
-              if (preElement) {
-                // SVGコンテナを作成
-                const container = document.createElement("div");
-                container.className = "mermaid-diagram";
-                container.setAttribute("data-mermaid-code", block.code); // 元のコードを保存
-                container.setAttribute("data-mermaid-rendered", "true"); // レンダリング済みマーク
-                container.innerHTML = svg;
-
-                // 元の<pre>要素を置き換え
-                preElement.replaceWith(container);
-              }
-            }
-          } catch (error) {
-            console.error("Mermaid rendering failed:", error);
-          }
-        }
-      })();
-    }
-
-    // クリーンアップ: アンマウント時にフラグを更新
-    return () => {
-      isMounted = false;
-    };
-  }, [result.html, themeId.value, viewMode]);
+  // カスタムフック: Mermaidダイアグラムレンダリング
+  useMermaid(containerRef, result.html, themeId.value, viewMode);
 
   return (
     <div
