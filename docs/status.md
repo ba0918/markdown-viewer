@@ -1,26 +1,47 @@
 # Project Status
 
-**Last Updated:** 2026-02-16 17:07:08
+**Last Updated:** 2026-02-16 18:30:00
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                                     |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260216170708`                                                                                                                          |
-| **Feature**  | Code Review - Comprehensive Improvements                                                                                                  |
-| **Started**  | 2026-02-16 17:07:08                                                                                                                       |
-| **Phase**    | 🟡 Planning                                                                                                                               |
-| **Plan**     | [docs/cycles/20260216170708_code-review-comprehensive-improvements.md](./cycles/20260216170708_code-review-comprehensive-improvements.md) |
-
-**Current Focus:**
-コードレビューで検出された全問題（メモリリーク4件、パフォーマンス/論理問題6件、デッドコード2件、重複コード5件）を体系的に修正。
-Phase 1〜4の順で対応予定。
+_No active session_
 
 ---
 
 ## 📜 Session History
+
+### 20260216170708 - Code Review - Comprehensive Improvements
+
+- **Started:** 2026-02-16 17:07:08
+- **Completed:** 2026-02-16 18:30:00
+- **Status:** 🟢 Completed
+- **Summary:** コードレビューで検出された全問題を体系的に修正。 Phase 1:
+  メモリリーク修正4件（リスナー重複登録防止フラグ、タイマークリーンアップ）
+  Phase 2: パフォーマンス/論理問題修正6件（Mermaid並列化、null
+  guard、isMountedフラグ） Phase 3: デッドコード削除2件（空ファイル、未使用型）
+  Phase 4: 重複コード共通化3件（unique-id.ts、encode.ts新設） 全243 Unit tests +
+  80 E2E tests通過。
+- **Plan:**
+  [docs/cycles/20260216170708_code-review-comprehensive-improvements.md](./cycles/20260216170708_code-review-comprehensive-improvements.md)
+- **Commits:**
+  - `[5dda076]` refactor: コードレビュー結果に基づく品質改善
+- **Key Changes:**
+  - src/content/index.ts: リスナー重複登録防止フラグ追加
+  - src/ui-components/shared/Toast/toast-manager.ts: タイマーMap管理
+  - src/ui-components/shared/CopyButton.tsx: useRef + useEffectクリーンアップ
+  - src/content/components/MarkdownViewer.tsx:
+    rawモード早期リターン、isMounted、Promise.all並列化
+  - src/settings/options/App.tsx: タイマーRef管理、null guard
+  - src/settings/popup/App.tsx: null guard
+  - src/shared/utils/unique-id.ts: 新規作成（ID重複ロジック共通化）
+  - src/shared/utils/encode.ts: 新規作成（Base64エンコード共通化）
+  - src/domain/file-watcher/ 削除（空ファイル）
+  - src/domain/frontmatter/types.ts: 未使用型削除
+- **Learning:**
+  メモリリーク防止パターン（フラグ、Map、useRef+useEffect）を一貫適用。
+  Promise.allによるMermaid並列レンダリングでパフォーマンス向上。
 
 ### 20260216025915 - Export HTMLスタンドアロン改善
 
