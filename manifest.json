@@ -22,7 +22,9 @@
   "content_scripts": [{
     "matches": [
       "file://*/*.md",
-      "file://*/*.markdown"
+      "file://*/*.markdown",
+      "file://*/*.mdown",
+      "file://*/*.mkd"
     ],
     "js": ["content.js"],
     "run_at": "document_start"

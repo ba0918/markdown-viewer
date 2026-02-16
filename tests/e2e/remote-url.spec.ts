@@ -116,6 +116,8 @@ test.describe("Remote URL Settings", () => {
     expect(manifest.content_scripts[0].matches).toEqual([
       "file://*/*.md",
       "file://*/*.markdown",
+      "file://*/*.mdown",
+      "file://*/*.mkd",
     ]);
 
     // web_accessible_resourcesにlocalhostが含まれないこと

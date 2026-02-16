@@ -6,6 +6,7 @@ import postcss from "postcss";
 import postcssImport from "postcss-import";
 import cssnano from "cssnano";
 import process from "node:process";
+import { MARKDOWN_EXTENSIONS } from "../src/shared/constants/markdown.ts";
 
 /**
  * ビルドスクリプト
@@ -109,10 +110,9 @@ try {
   console.log("📄 Copying manifest.json...");
   if (isDev) {
     const manifest = JSON.parse(await Deno.readTextFile("manifest.json"));
-    // E2Eテスト用: localhost設定を注入
+    // E2Eテスト用: localhost設定を注入（MARKDOWN_EXTENSIONSから動的生成）
     manifest.content_scripts[0].matches.push(
-      "http://localhost:*/*.md",
-      "http://localhost:*/*.markdown",
+      ...MARKDOWN_EXTENSIONS.map((ext) => `http://localhost:*/*${ext}`),
     );
     manifest.host_permissions.push("http://localhost:*/*");
     manifest.web_accessible_resources[0].matches.push("http://localhost:*/*");

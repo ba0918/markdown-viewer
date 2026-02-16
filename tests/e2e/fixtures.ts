@@ -15,8 +15,33 @@ import { type BrowserContext, chromium, test as base } from "@playwright/test";
 import path from "node:path";
 import process from "node:process";
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import type { Socket } from "node:net";
+
+/**
+ * Markdown拡張子セットをmanifest.jsonのcontent_scripts.matchesから動的生成
+ *
+ * shared/constants/markdown.ts の MARKDOWN_EXTENSIONS と manifest.json は同期されているため、
+ * manifest.jsonから拡張子を抽出することでハードコードを排除する。
+ * matchesパターン (例: file://STAR/STAR.md) から拡張子 (.md) を抽出する。
+ */
+const loadMarkdownExtensions = (): Set<string> => {
+  const manifestPath = path.join(process.cwd(), "manifest.json");
+  const manifest = JSON.parse(
+    readFileSync(manifestPath, "utf-8"),
+  );
+  const matches: string[] = manifest.content_scripts?.[0]?.matches ?? [];
+  const extensions = matches
+    .map((m: string) => {
+      const match = m.match(/\*(\.[a-zA-Z]+)$/);
+      return match ? match[1] : null;
+    })
+    .filter((ext: string | null): ext is string => ext !== null);
+  return new Set(extensions);
+};
+
+const MARKDOWN_EXTENSIONS = loadMarkdownExtensions();
 
 /**
  * Chrome拡張機能テスト用の型定義
@@ -105,7 +130,7 @@ export const test = base.extend<ExtensionFixtures>({
       try {
         const file = await readFile(filePath);
         const ext = path.extname(filePath);
-        const contentType = ext === ".md" || ext === ".markdown"
+        const contentType = MARKDOWN_EXTENSIONS.has(ext)
           ? "text/markdown"
           : "text/plain";
 
