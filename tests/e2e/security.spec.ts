@@ -282,6 +282,78 @@ test.describe("XSS Protection", () => {
   });
 });
 
+test.describe("Mermaid SVG XSS Protection", () => {
+  test("Mermaid図にXSS攻撃ベクターを含むMarkdownを安全にレンダリングする", async ({ page, testServerUrl }) => {
+    // ダイアログ（alert等）が発火しないことを監視
+    let alertFired = false;
+    page.on("dialog", async (dialog) => {
+      alertFired = true;
+      await dialog.dismiss();
+    });
+
+    // Mermaid XSSフィクスチャを開く
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-mermaid.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidダイアグラムのレンダリングを待機
+    await page.waitForTimeout(3000);
+
+    // alertが発火していないことを確認
+    expect(alertFired).toBe(false);
+  });
+
+  test("Mermaid SVG内にscriptタグが存在しない", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-mermaid.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidダイアグラムのレンダリングを待機
+    await page.waitForTimeout(3000);
+
+    // Mermaidダイアグラム内のscriptタグが存在しないことを確認
+    const scripts = await page.locator(".mermaid-diagram script").all();
+    expect(scripts.length).toBe(0);
+  });
+
+  test("Mermaid SVG内にイベントハンドラ属性が存在しない", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-mermaid.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidダイアグラムのレンダリングを待機
+    await page.waitForTimeout(3000);
+
+    // Mermaidダイアグラム内のイベントハンドラ属性が存在しないことを確認
+    const maliciousElements = await page.locator(
+      ".mermaid-diagram [onerror], .mermaid-diagram [onload], .mermaid-diagram [onclick], .mermaid-diagram [onmouseover]",
+    ).all();
+    expect(maliciousElements.length).toBe(0);
+  });
+
+  test("Mermaid SVG内にjavascript: URLが存在しない", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-mermaid.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // Mermaidダイアグラムのレンダリングを待機
+    await page.waitForTimeout(3000);
+
+    // Mermaidダイアグラム内のリンクにjavascript:が含まれていないことを確認
+    const links = await page.locator('.mermaid-diagram a[href*="javascript"]')
+      .all();
+    expect(links.length).toBe(0);
+  });
+});
+
 test.describe("Content Security Policy", () => {
   test.skip("拡張機能のCSPが正しく設定されている", async () => {
     // TODO: CSP検証の実装

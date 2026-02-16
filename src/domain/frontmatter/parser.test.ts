@@ -190,3 +190,53 @@ title: Safe Title
   assertEquals(result.data, {});
   assertEquals(result.content.trim(), "# Content");
 });
+
+/**
+ * エッジケーステスト（バイナリデータ・特殊入力）
+ */
+
+Deno.test("parseFrontmatter: バイナリっぽいデータを含むFrontmatter → graceful fallback", () => {
+  // NULLバイトや制御文字を含むケース
+  const markdown = `---
+title: Test\x00Document
+binary: \x01\x02\x03
+---
+# Content`;
+
+  const result = parseFrontmatter(markdown);
+  // クラッシュせず結果が返ること
+  assertEquals(typeof result.content, "string");
+  assertEquals(typeof result.data, "object");
+});
+
+Deno.test("parseFrontmatter: 巨大なFrontmatter（10KB相当）→ クラッシュしない", () => {
+  const longValue = "x".repeat(10000);
+  const markdown = `---
+title: ${longValue}
+---
+# Content`;
+
+  const result = parseFrontmatter(markdown);
+  assertEquals(typeof result.data, "object");
+  assertEquals(result.content.trim(), "# Content");
+});
+
+Deno.test("parseFrontmatter: Frontmatterの区切り線が3つ以上の場合", () => {
+  const markdown = `---
+title: Test
+---
+# Content
+---
+More content after HR`;
+
+  const result = parseFrontmatter(markdown);
+  // Frontmatterが正しく解析され、contentにHR以降も含まれる
+  assertEquals(result.data.title, "Test");
+  assertEquals(result.content.includes("Content"), true);
+});
+
+Deno.test("parseFrontmatter: 空文字列 → クラッシュしない", () => {
+  const result = parseFrontmatter("");
+  assertEquals(result.data, {});
+  assertEquals(result.content, "");
+});

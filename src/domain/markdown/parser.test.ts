@@ -191,3 +191,51 @@ Deno.test("GFM: 複合機能（タスクリスト + 打ち消し線 + リンク�
   assertStringIncludes(html, "<strong>Bold</strong>");
   assertStringIncludes(html, "<em>italic</em>");
 });
+
+/**
+ * エッジケーステスト
+ */
+
+Deno.test("エッジケース: 空文字列 → 空のHTMLが返る", () => {
+  const html = parseMarkdown("");
+  // 空文字列でもクラッシュせず、空（または改行のみ）のHTMLが返る
+  assertEquals(html.trim().length === 0 || html === "\n", true);
+});
+
+Deno.test("エッジケース: 空白文字のみ → クラッシュしない", () => {
+  const html = parseMarkdown("   \n\n  \t  ");
+  assertEquals(typeof html, "string");
+});
+
+Deno.test("エッジケース: 超長文Markdown（100KB相当）→ OOMしない", () => {
+  // 100KBの繰り返しMarkdown
+  const longMarkdown = "# Heading\n\nParagraph with **bold** text.\n\n".repeat(
+    2500,
+  );
+  const html = parseMarkdown(longMarkdown);
+  assertStringIncludes(html, "<h1");
+  assertStringIncludes(html, "<strong>");
+  // 長さが元のMarkdownより大きい（HTMLタグが追加されるため）
+  assertEquals(html.length > longMarkdown.length, true);
+});
+
+Deno.test("エッジケース: 見出しだけのMarkdown", () => {
+  const html = parseMarkdown("# Title");
+  assertStringIncludes(html, "<h1");
+  assertStringIncludes(html, "Title");
+});
+
+Deno.test("エッジケース: 深いネスト（6段階見出し）", () => {
+  const markdown = `# H1\n## H2\n### H3\n#### H4\n##### H5\n###### H6`;
+  const html = parseMarkdown(markdown);
+  assertStringIncludes(html, "<h1");
+  assertStringIncludes(html, "<h6");
+});
+
+Deno.test("エッジケース: 特殊文字を含むMarkdown", () => {
+  const markdown = "Special chars: <>&\"' and `backtick`";
+  const html = parseMarkdown(markdown);
+  // バッククォートはcode要素になる
+  assertStringIncludes(html, "<code>");
+  assertStringIncludes(html, "backtick");
+});

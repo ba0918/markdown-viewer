@@ -152,3 +152,62 @@ Deno.test("MarkdownService: Frontmatter統合テスト - Frontmatterなし", asy
   assertEquals(result.rawMarkdown, markdown);
   assertEquals(result.frontmatter, {});
 });
+
+/**
+ * エッジケース統合テスト
+ */
+
+Deno.test("MarkdownService: 空白のみのMarkdown → クラッシュしない", async () => {
+  const service = new MarkdownService();
+  const markdown = "   \n\n  \t  ";
+  const theme: ThemeData = {
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
+  };
+
+  const result = await service.render(markdown, theme);
+
+  assertStringIncludes(result.html, "markdown-body");
+  assertEquals(result.rawMarkdown, markdown);
+});
+
+Deno.test("MarkdownService: 超長文Markdown（50KB相当）→ OOMしない", async () => {
+  const service = new MarkdownService();
+  const markdown = "# Section\n\nParagraph **bold** text.\n\n".repeat(1500);
+  const theme: ThemeData = {
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
+  };
+
+  const result = await service.render(markdown, theme);
+
+  assertStringIncludes(result.html, "<h1");
+  assertStringIncludes(result.html, "<strong>");
+  assertEquals(result.html.length > 0, true);
+});
+
+Deno.test("MarkdownService: Frontmatter + XSS混在テスト", async () => {
+  const service = new MarkdownService();
+  const markdown = `---
+title: Test
+---
+# Content
+
+<script>alert('XSS')</script>
+
+[Click](javascript:alert(1))`;
+  const theme: ThemeData = {
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
+  };
+
+  const result = await service.render(markdown, theme);
+
+  // Frontmatterは正しく解析
+  assertEquals(result.frontmatter.title, "Test");
+  // XSSはブロック
+  assertEquals(result.html.includes("<script"), false);
+  assertEquals(result.html.includes("javascript:"), false);
+  // 正常なコンテンツは保持
+  assertStringIncludes(result.html, "Content");
+});
