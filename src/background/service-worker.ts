@@ -26,7 +26,6 @@ async function reregisterCustomOrigins() {
     }> || [];
 
     if (customOrigins.length === 0) {
-      console.log("No custom origins to register");
       return;
     }
 
@@ -42,7 +41,6 @@ async function reregisterCustomOrigins() {
         await chrome.scripting.unregisterContentScripts({
           ids: customScriptIds,
         });
-        console.log(`Unregistered ${customScriptIds.length} custom scripts`);
       }
     } catch (e) {
       console.warn("Failed to unregister existing scripts:", e);
@@ -59,17 +57,10 @@ async function reregisterCustomOrigins() {
           js: ["content.js"],
           runAt: "document_start",
         }]);
-        console.log(
-          `Registered Content Script for ${item.origin} (id: ${scriptId})`,
-        );
       } catch (err) {
         console.error(`Failed to register script for ${item.origin}:`, err);
       }
     }
-
-    console.log(
-      `Successfully re-registered ${customOrigins.length} custom origins`,
-    );
   } catch (error) {
     console.error("Failed to re-register custom origins:", error);
   }
@@ -79,7 +70,6 @@ async function reregisterCustomOrigins() {
  * 拡張機能インストール時
  */
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Markdown Viewer installed");
   // インストール/更新時にカスタムドメインを再登録
   reregisterCustomOrigins();
 });
@@ -88,7 +78,6 @@ chrome.runtime.onInstalled.addListener(() => {
  * Service Worker起動時（拡張リロード含む）
  */
 chrome.runtime.onStartup.addListener(() => {
-  console.log("Markdown Viewer started");
   // 起動時にカスタムドメインを再登録
   reregisterCustomOrigins();
 });
