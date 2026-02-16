@@ -1,26 +1,43 @@
 # Project Status
 
-**Last Updated:** 2026-02-17 01:10:00
+**Last Updated:** 2026-02-17
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                               |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260217011000`                                                                                                                    |
-| **Feature**  | Logger Utility & DEBUG自動注入                                                                                                      |
-| **Started**  | 2026-02-17 01:10:00                                                                                                                 |
-| **Phase**    | 🟡 Planning                                                                                                                         |
-| **Plan**     | [docs/cycles/20260217011000_logger-utility-debug-auto-injection.md](./cycles/20260217011000_logger-utility-debug-auto-injection.md) |
-
-**Current Focus:** `if (DEBUG) console.log(...)`
-パターンの冗長性を解消。esbuildのdefineでDEBUG自動注入 +
-shared/にloggerユーティリティを抽出し、開発体験を向上させる。
+なし（前回のサイクル完了済み）
 
 ---
 
 ## 📜 Session History
+
+### 20260217011000 - Logger Utility & DEBUG自動注入
+
+- **Started:** 2026-02-17 01:10:00
+- **Completed:** 2026-02-17
+- **Status:** 🟢 Completed
+- **Summary:** `if (DEBUG) console.log(...)`
+  パターンの冗長性を解消。esbuildのdefineで DEBUG自動注入（dev=true,
+  build=false）+ shared/にloggerユーティリティを
+  抽出。本番ビルドではtree-shakingでログ出力が完全削除される。 全253 Unit
+  tests + 83 E2E tests通過。
+- **Plan:**
+  [docs/cycles/20260217011000_logger-utility-debug-auto-injection.md](./cycles/20260217011000_logger-utility-debug-auto-injection.md)
+- **Commits:**
+  - `[fc4bf92]` refactor: loggerユーティリティ導入とDEBUG自動注入
+  - `[1b5aa03]` docs: loggerユーティリティ導入のcycle doc・status更新
+- **Key Changes:**
+  - src/shared/utils/logger.ts: 新規作成（DEBUGフラグ連動ログユーティリティ）
+  - src/shared/utils/logger.test.ts: 新規作成（8テストケース）
+  - src/content/index.ts:
+    DEBUG変数削除、全if(DEBUG)パターンをlogger呼び出しに置換
+  - scripts/build.ts: define に "DEBUG": "false" 追加
+  - scripts/watch.ts: define ブロック新設（"DEBUG": "true"）
+  - .claude/CLAUDE.md: ログ出力ルール追加
+- **Learning:**
+  esbuildのdefineでグローバル定数注入→tree-shakingで本番ビルドから完全削除。
+  process.env.NODE_ENVはライブラリ用、DEBUGはアプリケーション用で目的が異なる。
 
 ### 20260216190941 - ToC アクティブハイライト安定化
 
