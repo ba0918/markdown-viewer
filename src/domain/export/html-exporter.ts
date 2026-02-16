@@ -6,6 +6,7 @@
  */
 
 import type { ExportOptions } from "./types.ts";
+import { escapeHtml } from "../../shared/utils/escape-html.ts";
 
 /**
  * スタンドアロンHTMLを生成
@@ -94,21 +95,6 @@ export const exportAsHTML = (options: ExportOptions): string => {
 </html>`;
 };
 
-/**
- * HTMLエスケープ（XSS対策）
- *
- * タイトルやメタデータをエスケープして、XSS攻撃を防ぐ
- *
- * @param text - エスケープする文字列
- * @returns エスケープされた文字列
- */
-export const escapeHtml = (text: string): string => {
-  const map: Record<string, string> = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
-};
+// escapeHtml は shared/utils/escape-html.ts から re-export
+// 既存の外部参照を維持するため
+export { escapeHtml } from "../../shared/utils/escape-html.ts";

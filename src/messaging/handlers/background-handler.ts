@@ -2,6 +2,8 @@ import { markdownService } from "../../services/markdown-service.ts";
 import { exportService } from "../../services/export-service.ts";
 import { loadTheme } from "../../domain/theme/loader.ts";
 import { StateManager } from "../../background/state-manager.ts";
+import { encodeHtmlToDataUrl } from "../../domain/export/base64-encoder.ts";
+import { computeSHA256 } from "../../shared/utils/hash.ts";
 import type { Message, MessageResponse } from "../types.ts";
 
 // Chrome API型定義
@@ -97,7 +99,13 @@ export const handleBackgroundMessage = async (
           }
 
           const content = await response.text();
-          return { success: true, data: content };
+          try {
+            const hash = await computeSHA256(content);
+            return { success: true, data: hash };
+          } catch {
+            // フォールバック: ハッシュ計算失敗時はコンテンツ全体を返す
+            return { success: true, data: content };
+          }
         } catch (error) {
           const errorMsg = error instanceof Error
             ? error.message
@@ -137,13 +145,7 @@ export const handleBackgroundMessage = async (
           ".html",
         );
 
-        // btoa()はバイナリ文字列のみのためUTF-8エンコード経由で変換
-        const utf8Bytes = new TextEncoder().encode(html);
-        let binary = "";
-        for (let i = 0; i < utf8Bytes.length; i++) {
-          binary += String.fromCharCode(utf8Bytes[i]);
-        }
-        const dataUrl = "data:text/html;base64," + btoa(binary);
+        const dataUrl = encodeHtmlToDataUrl(html);
 
         // 非ASCIIファイル名対策: onDeterminingFilenameで設定（Chromium Bug #579563）
         let handled = false;

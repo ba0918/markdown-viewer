@@ -131,6 +131,10 @@ export const HotReloadSettings = ({
           life and performance. It's recommended to disable it during normal
           browsing.
         </p>
+        <p class="hot-reload-local-note">
+          Hot Reload only works with local files (file://) and localhost. Remote
+          URLs are not supported.
+        </p>
       </div>
     </div>
   );
