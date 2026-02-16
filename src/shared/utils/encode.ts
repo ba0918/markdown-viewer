@@ -1,8 +1,7 @@
 /**
  * エンコーディングユーティリティ
  *
- * 責務: URLセーフなBase64エンコード等の共通処理
- * DRY原則: service-worker.ts, RemoteUrlSettings.tsx で共通使用
+ * URLセーフなBase64エンコード、Content Script ID生成などの共通処理を提供。
  */
 
 /**

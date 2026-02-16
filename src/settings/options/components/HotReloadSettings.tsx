@@ -11,10 +11,8 @@ interface HotReloadSettingsProps {
 /**
  * Hot Reload設定コンポーネント
  *
- * 責務: Hot Reload設定UIのみ
- * レイヤー: ui-components層
- *
- * Phase 3-3で完全実装予定
+ * Hot Reload機能の有効/無効、チェック間隔、自動リロード設定を管理するUI。
+ * 間隔入力にはバリデーション（最小2000ms）を適用。
  */
 export const HotReloadSettings = ({
   enabled,

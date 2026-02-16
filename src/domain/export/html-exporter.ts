@@ -1,9 +1,8 @@
 /**
  * HTML Export Logic
  *
- * 責務: レンダリング済みHTMLをスタンドアロンHTMLファイルに変換
- * ✅ OK: 純粋関数、テスト可能
- * ❌ NG: DOM操作、副作用
+ * レンダリング済みHTMLをスタンドアロンHTMLファイルに変換する。
+ * テーマCSS、フォント、メタデータを全て1ファイルに埋め込み。
  */
 
 import type { ExportOptions } from "./types.ts";

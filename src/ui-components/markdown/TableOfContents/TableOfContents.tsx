@@ -1,9 +1,8 @@
 /**
  * Table of Contents (TOC) コンポーネント
  *
- * 責務: TOCの表示、スクロール追従、アクティブ状態管理、折りたたみ、Toggle、Resize
- * ✅ OK: 純粋なUIコンポーネント、Preact
- * ❌ NG: ビジネスロジック、messaging直接呼び出し
+ * 目次の表示、スクロール追従によるアクティブ状態管理、折りたたみ、Toggle、Resize機能を提供する。
+ * chrome.storage経由で状態を永続化し、ページリロード後も設定を維持。
  */
 
 import { Fragment as _Fragment, h as _h } from "preact";

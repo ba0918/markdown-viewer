@@ -1,17 +1,8 @@
 /**
  * ExportMenuItemコンポーネント
  *
- * 責務: HTML Export メニュー項目
- * - DOM上のレンダリング済みHTMLを取得（Mermaid SVG・MathJax SVG含む）
- * - Background Script: HTML生成 + chrome.downloads APIでダウンロード実行
- * - Content Script: メッセージ送信のみ
- *
- * Content Script (Isolated World) の Blob URL は blob:null になり
- * <a download> が効かないため、Background Script 経由で
- * chrome.downloads API を使用してダウンロードする。
- *
- * ❌ 禁止: 重いビジネスロジック、services/domain直接呼び出し
- * ✅ OK: messaging経由でBackground Scriptに委譲、DOM操作（UI層の責務）
+ * HTML Exportメニュー項目。DOM上のレンダリング済みHTML（Mermaid SVG・MathJax SVG含む）を
+ * messaging経由でBackground Scriptに送信し、chrome.downloads APIでダウンロードを実行する。
  */
 
 import { h as _h } from "preact";

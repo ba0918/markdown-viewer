@@ -4,8 +4,8 @@ import { CopyButton } from "../../shared/CopyButton.tsx";
 /**
  * RawTextViewコンポーネント
  *
- * 責務: Rawモードで元のMarkdownテキストを表示、コピー機能
- * ❌ 禁止: ビジネスロジック、messaging直接呼び出し
+ * Rawモードで元のMarkdownテキスト（Frontmatter含む）をプレーンテキストとして表示する。
+ * コピーボタン付き。
  */
 
 interface Props {

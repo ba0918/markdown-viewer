@@ -17,9 +17,8 @@ declare const chrome: {
 /**
  * StateManager
  *
- * 責務: Chrome Storage Sync APIとの通信、状態の読み書き、デフォルト値の管理
- *
- * レイヤー: background層（Chrome API直接使用可能）
+ * Chrome Storage Sync APIを使用してアプリケーション状態（テーマ、Hot Reload設定等）を
+ * 永続化・読み込みする。不正データ時はデフォルト値にフォールバック。
  */
 export class StateManager {
   private readonly STORAGE_KEY = "appState";

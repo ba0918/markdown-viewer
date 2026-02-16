@@ -1,9 +1,8 @@
 /**
  * useResizable Hook
  *
- * 責務: ToC横幅のリサイズ機能を提供
- * ✅ OK: ドラッグ操作の状態管理、イベントハンドリング
- * ❌ NG: ビジネスロジック、messaging直接呼び出し
+ * ToC横幅のドラッグリサイズ機能を提供するカスタムフック。
+ * マウスドラッグによる横幅変更、最小/最大幅の制限、変更完了時のコールバックをサポート。
  */
 
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";

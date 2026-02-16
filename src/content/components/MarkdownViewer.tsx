@@ -29,12 +29,8 @@ import type { Theme } from "../../shared/types/theme.ts";
 /**
  * MarkdownViewerコンポーネント
  *
- * 責務: Markdownの表示、View/Raw切り替え、MathJax数式レンダリング、Mermaid図レンダリング、TOC表示、レイアウト可変対応
- * ❌ 禁止: ビジネスロジック
- *
- * レイアウト可変対応:
- * - ToCの幅に合わせて `.markdown-viewer` の `margin-left` を動的に調整
- * - ToCがリサイズされても、Markdownコンテンツに被らないようにする
+ * Markdownの表示を担当するメインコンポーネント。View/Raw切り替え、MathJax数式レンダリング、
+ * Mermaid図レンダリング、TOC表示、レイアウト可変対応（ToCリサイズ連動）を提供。
  */
 
 interface Props {

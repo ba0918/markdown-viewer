@@ -4,7 +4,7 @@ import { App } from "./App.tsx";
 /**
  * Popup エントリーポイント
  *
- * 責務: Preact アプリケーションのマウント
+ * popup.htmlにPreact Appコンポーネントをマウントする。
  */
 const root = document.getElementById("app");
 if (root) {

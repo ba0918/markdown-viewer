@@ -1,9 +1,8 @@
 /**
  * TOC生成サービス
  *
- * 責務: domainロジックを組み合わせてTOC生成のビジネスフローを実現
- * ✅ OK: domainの組み合わせ、ビジネスフロー
- * ❌ NG: Chrome API、UI処理
+ * Markdownテキストから目次（Table of Contents）を生成する。
+ * 見出し抽出、レベル正規化、ツリー構築の順に処理を実行。
  */
 
 import { extractHeadings } from "../domain/toc/extractor.ts";

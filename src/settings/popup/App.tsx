@@ -8,11 +8,8 @@ import type { Theme } from "../../shared/types/theme.ts";
 /**
  * Popup メインコンポーネント
  *
- * 責務: messaging I/O のみ、UI状態管理
- * レイヤー: settings/popup層
- *
- * ❌ 絶対禁止: services/domain直接呼び出し
- * ✅ OK: messaging経由でのみ通信
+ * ツールバーアイコンクリック時に表示されるPopup UI。
+ * messaging経由でテーマ設定の読み込み・保存を行う。
  */
 export const App = () => {
   const [settings, setSettings] = useState<AppState | null>(null);

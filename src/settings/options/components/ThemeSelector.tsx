@@ -9,8 +9,8 @@ interface ThemeSelectorProps {
 /**
  * テーマ選択コンポーネント (6テーマ対応版)
  *
- * 責務: テーマの表示と選択UIのみ
- * レイヤー: ui-components層
+ * 6種類のテーマ（Light, Dark, GitHub, Minimal, Solarized Light/Dark）から選択できるUI。
+ * 各テーマにはプレビューカラーとアイコンを表示。
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
   const themes: {

@@ -4,11 +4,8 @@ import { useEffect, useRef, useState } from "preact/hooks";
 /**
  * CopyButton コンポーネント
  *
- * 責務: テキストをクリップボードにコピーする汎用ボタン
- * レイヤー: ui-components/shared層
- *
- * ❌ 禁止: ビジネスロジック、messaging直接呼び出し
- * ✅ OK: 再利用可能なUI部品
+ * テキストをクリップボードにコピーする汎用ボタン。
+ * コピー成功時にチェックアイコンを表示し、2秒後に元に戻る。
  */
 
 interface Props {

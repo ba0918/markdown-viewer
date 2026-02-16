@@ -1,7 +1,7 @@
 /**
  * TOC (Table of Contents) 型定義
  *
- * 責務: 目次データ構造の型定義
+ * 目次（Table of Contents）で使用するデータ構造の型定義。
  */
 
 /**

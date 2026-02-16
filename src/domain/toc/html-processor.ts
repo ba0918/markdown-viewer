@@ -1,9 +1,8 @@
 /**
  * HTML見出しID付与処理
  *
- * 責務: レンダリング済みHTMLの見出しタグにID属性を付与
- * ✅ OK: 純粋関数、DOM操作なし(文字列処理)
- * ❌ NG: 副作用
+ * レンダリング済みHTMLの見出しタグ(H1-H3)にID属性を付与する。
+ * ToC内リンクからのスクロールナビゲーションに必要。重複IDには連番を付与。
  */
 
 import { generateHeadingId } from "./extractor.ts";

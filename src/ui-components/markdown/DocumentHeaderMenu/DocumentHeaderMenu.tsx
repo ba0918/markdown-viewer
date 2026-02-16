@@ -1,13 +1,8 @@
 /**
  * DocumentHeaderMenuコンポーネント
  *
- * 責務: DocumentHeader右側のメニューUI、ドロップダウン管理
- * ❌ 禁止: ビジネスロジック、機能特化した実装
- *
- * 設計思想:
- * - 汎用的なメニューコンテナ（Export専用ではない）
- * - 子コンポーネント（MenuItem）を受け取って表示
- * - 将来的にPDF Export、Copy HTML等の追加が容易
+ * DocumentHeader右側のドロップダウンメニューUI。
+ * 汎用的なメニューコンテナとして、ExportMenuItem等の子コンポーネントを受け取って表示する。
  */
 
 import { type ComponentChildren, h as _h } from "preact";

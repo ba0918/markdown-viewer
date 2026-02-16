@@ -35,13 +35,8 @@ const stateManager = new StateManager();
 /**
  * background層のメッセージハンドラ
  *
- * 責務: ルーティングのみ、serviceへの委譲
- *
- * ❌ 絶対禁止: ビジネスロジックの実装
- * ✅ OK: serviceに委譲するだけ
- *
- * これは過去の失敗（DuckDB + offscreen）から学んだ最大の教訓！
- * messaging層にビジネスロジックを書くと、offscreen対応で破綻する
+ * content scriptからのメッセージを受信し、適切なserviceへルーティングする。
+ * このレイヤーでビジネスロジックを記述しないこと。
  */
 export const handleBackgroundMessage = async (
   message: Message,

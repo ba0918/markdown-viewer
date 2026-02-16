@@ -8,9 +8,9 @@ import type { RenderResult } from "../shared/types/render.ts";
 
 /**
  * Markdownレンダリングサービス
- * 責務: 複数のドメインロジックを組み合わせて1つのビジネスフローを実現
  *
- * 重要: この層でビジネスフローを実装。messaging層には書かない！
+ * Frontmatter解析、Markdown→HTML変換、XSSサニタイズ、見出しID付与、テーマ適用を
+ * 一連のパイプラインとして実行し、レンダリング結果を返す。
  */
 export class MarkdownService {
   /**

@@ -1,13 +1,8 @@
 /**
  * Export Service
  *
- * 責務: エクスポート機能のフロー制御
- * - domain層のexportAsHTML()を呼び出し
- * - テーマCSSをfetch
- * - スタンドアロンHTML文字列を生成
- *
- * ダウンロード実行はbackground-handler.tsで
- * chrome.downloads APIを使用して行う
+ * レンダリング済みMarkdownをスタンドアロンHTMLファイルとしてエクスポートする。
+ * テーマCSSを取得し、埋め込んだ完全なHTML文字列を生成する。
  */
 
 import { exportAsHTML } from "../domain/export/html-exporter.ts";

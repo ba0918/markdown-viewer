@@ -6,10 +6,8 @@ import { getContentScriptId } from "../shared/utils/encode.ts";
 /**
  * Service Worker (Background Script)
  *
- * 責務: messaging I/O のみ
- *
- * ❌ 絶対禁止: ビジネスロジック、domain/services直接呼び出し
- * ✅ OK: handlerへの委譲のみ
+ * Chrome拡張のバックグラウンドで動作し、メッセージ受信とContent Script登録を管理する。
+ * メッセージ処理はbackground-handlerに委譲する。
  */
 
 /**
@@ -78,7 +76,6 @@ chrome.runtime.onStartup.addListener(() => {
 
 /**
  * メッセージ受信ハンドラ
- * ✅ OK: handlerに委譲するだけ
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleBackgroundMessage(message, sender)

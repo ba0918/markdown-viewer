@@ -1,7 +1,7 @@
 /**
  * Export domain types
  *
- * 責務: エクスポート機能の型定義
+ * HTMLエクスポート機能で使用する型定義。
  */
 
 import type { Theme } from "../../shared/types/theme.ts";

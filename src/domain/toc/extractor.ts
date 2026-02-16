@@ -1,9 +1,8 @@
 /**
  * TOC抽出ロジック
  *
- * 責務: Markdownテキストから見出し(H1-H3)を抽出し、TOC用データを生成
- * ✅ OK: 純粋関数、単一責任
- * ❌ NG: DOM操作、副作用
+ * Markdownテキストから見出し(H1-H3)を抽出し、TOC用データ（テキスト、レベル、ID）を生成する。
+ * marked.lexer()によるトークン解析を使用し、重複IDには連番を付与。
  */
 
 import { marked } from "marked";

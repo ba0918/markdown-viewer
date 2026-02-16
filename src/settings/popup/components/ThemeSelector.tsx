@@ -9,8 +9,7 @@ interface ThemeSelectorProps {
 /**
  * テーマ選択コンポーネント
  *
- * 責務: テーマの表示と選択UIのみ
- * レイヤー: ui-components層
+ * Popup用の簡易テーマ選択UI。6種類のテーマから選択可能。
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
   const themes: { id: Theme; label: string; emoji: string }[] = [

@@ -1,15 +1,8 @@
 /**
  * Syntax Highlighting Styles
- * highlight.js のクラスにCSS変数を適用
  *
- * 責務:
- * - highlight.js が生成する .hljs-* クラスにスタイルを適用
- * - テーマごとのCSS変数（--hljs-*）を使用して色を定義
- * - 全テーマ共通のスタイル定義（フォントスタイル、太字など）
- *
- * 注意:
- * - 色の定義は各テーマCSS（light.css, dark.css等）で行う
- * - このファイルはクラスと変数のマッピングのみ
+ * highlight.jsが生成する.hljs-*クラスにテーマCSS変数を適用する。
+ * 色は各テーマCSS（light.css, dark.css等）で定義。
  */
 
 /* ベーススタイル */

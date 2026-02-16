@@ -5,15 +5,8 @@ import type { ViewMode } from "../../../shared/types/view-mode.ts";
 /**
  * DocumentHeaderコンポーネント
  *
- * 責務: View/Rawモード切り替えタブUI、アクションメニュー表示
- * ❌ 禁止: ビジネスロジック、messaging直接呼び出し
- *
- * デザイン:
- * - 固定ヘッダー（position: fixed, top: 0）
- * - 半透明背景 + Blur Effect
- * - 左側: View/Rawタブ
- * - 右側: アクションメニュー(children経由)
- * - ホバー・アクティブアニメーション
+ * View/Rawモード切り替えタブとアクションメニューを表示する固定ヘッダー。
+ * 半透明背景 + Blur Effectのglassmorphismデザイン。
  */
 
 interface Props {

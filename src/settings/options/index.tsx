@@ -4,7 +4,7 @@ import { App } from "./App.tsx";
 /**
  * Options エントリーポイント
  *
- * 責務: Preact アプリケーションのマウント
+ * options.htmlにPreact Appコンポーネントをマウントする。
  */
 const root = document.getElementById("app");
 if (root) {

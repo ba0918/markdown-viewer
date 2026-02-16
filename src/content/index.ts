@@ -41,10 +41,8 @@ declare const chrome: {
 /**
  * Content Script エントリーポイント
  *
- * 責務: messaging I/O のみ、UI描画、CSS読み込み
- *
- * ❌ 絶対禁止: ビジネスロジック、domain/services直接呼び出し
- * ✅ OK: messaging経由でserviceを利用、chrome.runtime.getURL()でCSS読み込み
+ * Markdownファイルを検出し、messaging経由でレンダリング結果を取得してUIを描画する。
+ * テーマCSS読み込み、Hot Reload、相対リンク解決も担当。
  */
 
 // グローバル変数でMarkdownコンテンツを保持（再レンダリング用）
@@ -217,12 +215,9 @@ const stopHotReload = (): void => {
 
 /**
  * 相対リンクを絶対パスに解決するイベントハンドラを設定
- * 例: docs/ARCHITECTURE.md → file://[base-url]/docs/ARCHITECTURE.md
  *
- * 責務: messaging I/O のみ、イベントハンドリング
- * ✅ OK: shared/utils/url-resolver.tsの純粋関数を使用
- *
- * Note: メモリリーク防止のため、フラグで重複登録を防止
+ * Markdown内の相対リンク（例: docs/ARCHITECTURE.md）をクリック時に
+ * 絶対URL（例: file://[base-url]/docs/ARCHITECTURE.md）に変換してナビゲートする。
  */
 const setupRelativeLinkHandler = (): void => {
   if (relativeLinkHandlerSetup) return;
