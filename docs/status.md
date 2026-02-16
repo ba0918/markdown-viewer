@@ -1,12 +1,21 @@
 # Project Status
 
-**Last Updated:** 2026-02-16 18:30:00
+**Last Updated:** 2026-02-16 19:09:41
 
 ---
 
 ## 🎯 Current Session
 
-_No active session_
+| Field        | Value                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **Cycle ID** | `20260216190941`                                                                                                          |
+| **Feature**  | ToC アクティブハイライト安定化                                                                                            |
+| **Started**  | 2026-02-16 19:09:41                                                                                                       |
+| **Phase**    | 🟡 Planning                                                                                                               |
+| **Plan**     | [docs/cycles/20260216190941_toc-active-highlight-stability.md](./cycles/20260216190941_toc-active-highlight-stability.md) |
+
+**Current Focus:**
+ToCのアクティブハイライトが不安定な問題を調査・修正。IntersectionObserverのrootMargin設定とフォールバックロジック追加で安定化。
 
 ---
 

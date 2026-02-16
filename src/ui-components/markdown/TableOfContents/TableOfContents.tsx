@@ -183,7 +183,7 @@ export const TableOfContents = ({
    * ビューポート上部（DocumentHeader下端）より上にある最後の見出しを返す
    */
   const findLastPassedHeading = useCallback((): string => {
-    const HEADER_HEIGHT = 40; // DocumentHeaderの高さ(px)
+    const HEADER_HEIGHT = 56; // DocumentHeaderの高さ(px) - base.cssの.document-headerと一致
     const headings = getContentHeadings();
     let lastPassedId = "";
     for (const heading of headings) {
@@ -267,9 +267,9 @@ export const TableOfContents = ({
           }
         },
         {
-          // DocumentHeader高さ(40px)分を上部から除外、下部70%を除外
+          // DocumentHeader高さ(56px)分を上部から除外、下部70%を除外
           // → ビューポート上部30%の領域で見出しを検出
-          rootMargin: "-40px 0px -70% 0px",
+          rootMargin: "-56px 0px -70% 0px",
         },
       );
 
