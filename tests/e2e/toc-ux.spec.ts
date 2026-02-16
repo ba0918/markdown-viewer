@@ -8,6 +8,7 @@
  * - 横幅調整機能（Resize Handle）
  * - スクロール追従（固定位置）
  * - デザイン（全6テーマ対応）
+ * - アクティブハイライト安定性
  */
 
 import { expect, test } from "./fixtures.ts";
@@ -184,6 +185,105 @@ test.describe("ToC UX Improvements", () => {
 
     const classes = await tocContainer.getAttribute("class");
     expect(classes).toContain("toc-container");
+  });
+
+  test("アクティブハイライト: ページロード直後に最初の見出しがアクティブ", async ({ page, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/long-document.md`;
+    await openMarkdownFile(page, testUrl);
+    await expectMarkdownRendered(page);
+
+    // ToCが表示されるのを待つ（前のテストでchrome.storageに非表示状態が残る場合の対策）
+    const tocContainer = page.locator(".toc-container.visible");
+    const isVisible = await tocContainer.isVisible().catch(() => false);
+    if (!isVisible) {
+      // ToCが非表示の場合、Showボタンをクリックして表示
+      const showBtn = page.locator(".toc-show-btn");
+      if (await showBtn.isVisible()) {
+        await showBtn.click();
+        await expect(tocContainer).toBeVisible();
+      }
+    }
+
+    // ページロード直後にアクティブなToCリンクが存在すること
+    const activeLink = page.locator(".toc-link.active");
+    await expect(activeLink).toBeVisible({ timeout: 5000 });
+
+    // 最初の見出し（Long Document Test）がアクティブであること
+    const activeText = await activeLink.textContent();
+    expect(activeText).toBe("Long Document Test");
+  });
+
+  test("アクティブハイライト: ページ最下部にスクロール後、最上部に戻ってもアクティブが消えない", async ({ page, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/long-document.md`;
+    await openMarkdownFile(page, testUrl);
+    await expectMarkdownRendered(page);
+
+    // ToCが表示されていることを保証
+    const tocContainer = page.locator(".toc-container.visible");
+    const isVisible = await tocContainer.isVisible().catch(() => false);
+    if (!isVisible) {
+      const showBtn = page.locator(".toc-show-btn");
+      if (await showBtn.isVisible()) {
+        await showBtn.click();
+        await expect(tocContainer).toBeVisible();
+      }
+    }
+
+    // 初期状態でアクティブがあることを確認
+    const activeLink = page.locator(".toc-link.active");
+    await expect(activeLink).toBeVisible({ timeout: 5000 });
+
+    // ページ最下部にスクロール
+    await page.evaluate(() => {
+      globalThis.scrollTo(0, document.body.scrollHeight);
+    });
+    await page.waitForTimeout(500);
+
+    // 最下部でもアクティブがあること
+    await expect(activeLink).toBeVisible();
+
+    // ページ最上部に戻る
+    await page.evaluate(() => {
+      globalThis.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(500);
+
+    // 最上部でもアクティブが消えないこと
+    await expect(activeLink).toBeVisible();
+  });
+
+  test("アクティブハイライト: スクロール中に常にいずれかの見出しがアクティブ", async ({ page, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/long-document.md`;
+    await openMarkdownFile(page, testUrl);
+    await expectMarkdownRendered(page);
+
+    // ToCが表示されていることを保証
+    const tocContainer = page.locator(".toc-container.visible");
+    const isVisible = await tocContainer.isVisible().catch(() => false);
+    if (!isVisible) {
+      const showBtn = page.locator(".toc-show-btn");
+      if (await showBtn.isVisible()) {
+        await showBtn.click();
+        await expect(tocContainer).toBeVisible();
+      }
+    }
+
+    // 初期状態でアクティブがあることを確認
+    const activeLink = page.locator(".toc-link.active");
+    await expect(activeLink).toBeVisible({ timeout: 5000 });
+
+    // 複数のスクロール位置でアクティブが常に存在することを確認
+    const scrollPositions = [0.25, 0.5, 0.75, 1.0, 0.5, 0.0];
+    for (const ratio of scrollPositions) {
+      await page.evaluate((r) => {
+        globalThis.scrollTo(0, document.body.scrollHeight * r);
+      }, ratio);
+      await page.waitForTimeout(400);
+
+      // アクティブなリンクが常に1つ存在すること
+      const count = await page.locator(".toc-link.active").count();
+      expect(count).toBe(1);
+    }
   });
 
   test("折りたたみ状態: リロード後も状態が保持される", async ({ page, testServerUrl }) => {

@@ -15,6 +15,7 @@ import { makeUniqueId } from "../../shared/utils/unique-id.ts";
  *
  * ルール:
  * - 空白とアンダースコアをハイフンに変換
+ * - バックティック(`)を除去（HTML側のID生成と一致させるため）
  * - 危険な記号のみ削除(/, :, ~, *, ?, ", <, >, |, \, 括弧類)
  * - 連続ハイフンを1つに
  * - 先頭/末尾のハイフンを削除
@@ -32,6 +33,9 @@ import { makeUniqueId } from "../../shared/utils/unique-id.ts";
 export const generateHeadingId = (text: string): string => {
   return text
     .trim()
+    // バックティックを除去（Markdown→HTMLで<code>タグに変換されるため、
+    // HTML側のID生成と一致させる必要がある）
+    .replace(/`/g, "")
     // 空白とアンダースコアをハイフンに
     .replace(/[\s_]+/g, "-")
     // 危険な記号のみ削除(/, :, ~, *, ?, ", <, >, |, \, 括弧類)

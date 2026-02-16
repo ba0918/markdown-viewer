@@ -33,6 +33,10 @@ globalThis.Event = window.Event;
 // chrome.storage のモック
 let chromeStorage: Record<string, unknown> = {};
 
+// IntersectionObserverのインスタンスを保持（テストからトリガーするため）
+// deno-lint-ignore no-explicit-any
+let latestObserverInstance: any = null;
+
 function setupMocks() {
   chromeStorage = {};
 
@@ -58,13 +62,36 @@ function setupMocks() {
     },
   };
 
-  // IntersectionObserver のモック
+  // IntersectionObserver のモック（コールバックを保存して後からトリガー可能）
   // @ts-ignore: IntersectionObserver mock for testing
   globalThis.IntersectionObserver = class IntersectionObserver {
-    observe() {}
-    disconnect() {}
+    _callback: (entries: unknown[]) => void;
+    _elements: Element[] = [];
+    constructor(callback: (entries: unknown[]) => void) {
+      this._callback = callback;
+      latestObserverInstance = this;
+    }
+    observe(el: Element) {
+      this._elements.push(el);
+    }
+    disconnect() {
+      this._elements = [];
+    }
     unobserve() {}
+    // テストからentryをシミュレートするためのヘルパー
+    trigger(entries: unknown[]) {
+      this._callback(entries);
+    }
   };
+
+  // requestAnimationFrame のモック
+  // @ts-ignore: requestAnimationFrame mock for testing
+  globalThis.requestAnimationFrame = (cb: () => void) => {
+    cb();
+    return 0;
+  };
+  // @ts-ignore: cancelAnimationFrame mock for testing
+  globalThis.cancelAnimationFrame = () => {};
 
   // scrollIntoView のモック
   Element.prototype.scrollIntoView = () => {};
@@ -75,6 +102,7 @@ function cleanupMocks() {
   delete globalThis.chrome;
   // @ts-ignore: cleanup test mock
   delete globalThis.IntersectionObserver;
+  latestObserverInstance = null;
   chromeStorage = {};
 }
 
@@ -188,176 +216,201 @@ Deno.test({
   },
 });
 
-Deno.test("TableOfContents: should show ToC when clicking show button", async () => {
-  setupMocks();
+Deno.test({
+  name: "TableOfContents: should show ToC when clicking show button",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
 
-  const items: TocItem[] = [
-    { id: "h1", text: "Heading 1", level: 1, children: [] },
-  ];
+    const items: TocItem[] = [
+      { id: "h1", text: "Heading 1", level: 1, children: [] },
+    ];
 
-  const { container } = render(
-    <TableOfContents items={items} themeId="github" />,
-  );
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // まず非表示にする
-  const toggleBtn = container.querySelector(".toc-toggle-btn");
-  toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    // まず非表示にする
+    const toggleBtn = container.querySelector(".toc-toggle-btn");
+    toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // Show ボタンをクリック
-  const showBtn = container.querySelector(".toc-show-btn");
-  showBtn?.dispatchEvent(new Event("click", { bubbles: true }));
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    // Show ボタンをクリック
+    const showBtn = container.querySelector(".toc-show-btn");
+    showBtn?.dispatchEvent(new Event("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // visible になる
-  const tocContainer = container.querySelector(".toc-container");
-  assertEquals(tocContainer?.classList.contains("visible"), true);
+    // visible になる
+    const tocContainer = container.querySelector(".toc-container");
+    assertEquals(tocContainer?.classList.contains("visible"), true);
 
-  cleanupMocks();
+    cleanupMocks();
+  },
 });
 
-Deno.test("TableOfContents: should collapse and expand items", async () => {
-  setupMocks();
+Deno.test({
+  name: "TableOfContents: should collapse and expand items",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
 
-  const items: TocItem[] = [
-    {
-      id: "h1",
-      text: "Heading 1",
-      level: 1,
-      children: [
-        { id: "h2", text: "Heading 2", level: 2, children: [] },
-      ],
-    },
-  ];
-
-  const { container } = render(
-    <TableOfContents items={items} themeId="github" />,
-  );
-
-  await new Promise((resolve) => setTimeout(resolve, 50));
-
-  // 子要素が表示されている
-  const sublist = container.querySelector(".toc-sublist");
-  assertEquals(sublist !== null, true);
-
-  // Collapse ボタンをクリック
-  const collapseBtn = container.querySelector(".toc-collapse-btn");
-  assertEquals(collapseBtn !== null, true);
-  assertEquals(collapseBtn?.textContent, "▼"); // 展開状態
-
-  collapseBtn?.dispatchEvent(new Event("click", { bubbles: true }));
-  await new Promise((resolve) => setTimeout(resolve, 50));
-
-  // ボタンが折りたたみ状態に変わる
-  assertEquals(collapseBtn?.textContent, "▶"); // 折りたたみ状態
-
-  cleanupMocks();
-});
-
-Deno.test("TableOfContents: should navigate to heading on link click", async () => {
-  setupMocks();
-
-  const items: TocItem[] = [
-    { id: "heading-1", text: "Heading 1", level: 1, children: [] },
-  ];
-
-  // getElementById のモック
-  let scrolledElementId: string | null = null;
-  const originalGetElementById = document.getElementById;
-  document.getElementById = (id: string) => {
-    const element = {
-      scrollIntoView: () => {
-        scrolledElementId = id;
+    const items: TocItem[] = [
+      {
+        id: "h1",
+        text: "Heading 1",
+        level: 1,
+        children: [
+          { id: "h2", text: "Heading 2", level: 2, children: [] },
+        ],
       },
+    ];
+
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // 子要素が表示されている
+    const sublist = container.querySelector(".toc-sublist");
+    assertEquals(sublist !== null, true);
+
+    // Collapse ボタンをクリック
+    const collapseBtn = container.querySelector(".toc-collapse-btn");
+    assertEquals(collapseBtn !== null, true);
+    assertEquals(collapseBtn?.textContent, "▼"); // 展開状態
+
+    collapseBtn?.dispatchEvent(new Event("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // ボタンが折りたたみ状態に変わる
+    assertEquals(collapseBtn?.textContent, "▶"); // 折りたたみ状態
+
+    cleanupMocks();
+  },
+});
+
+Deno.test({
+  name: "TableOfContents: should navigate to heading on link click",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
+
+    const items: TocItem[] = [
+      { id: "heading-1", text: "Heading 1", level: 1, children: [] },
+    ];
+
+    // getElementById のモック
+    let scrolledElementId: string | null = null;
+    const originalGetElementById = document.getElementById;
+    document.getElementById = (id: string) => {
+      const element = {
+        scrollIntoView: () => {
+          scrolledElementId = id;
+        },
+      };
+      return element as HTMLElement;
     };
-    return element as HTMLElement;
-  };
 
-  const { container } = render(
-    <TableOfContents items={items} themeId="github" />,
-  );
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // リンクをクリック
-  const link = container.querySelector(".toc-link");
-  link?.dispatchEvent(new Event("click", { bubbles: true }));
+    // リンクをクリック
+    const link = container.querySelector(".toc-link");
+    link?.dispatchEvent(new Event("click", { bubbles: true }));
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // scrollIntoView が呼ばれた
-  assertEquals(scrolledElementId, "heading-1");
+    // scrollIntoView が呼ばれた
+    assertEquals(scrolledElementId, "heading-1");
 
-  // 元に戻す
-  document.getElementById = originalGetElementById;
+    // 元に戻す
+    document.getElementById = originalGetElementById;
 
-  cleanupMocks();
+    cleanupMocks();
+  },
 });
 
-Deno.test("TableOfContents: should call onTocStateChange when state changes", async () => {
-  setupMocks();
+Deno.test({
+  name: "TableOfContents: should call onTocStateChange when state changes",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
 
-  const items: TocItem[] = [
-    { id: "h1", text: "Heading 1", level: 1, children: [] },
-  ];
+    const items: TocItem[] = [
+      { id: "h1", text: "Heading 1", level: 1, children: [] },
+    ];
 
-  let callbackCalled = false;
-  const onTocStateChange = () => {
-    callbackCalled = true;
-  };
+    let callbackCalled = false;
+    const onTocStateChange = () => {
+      callbackCalled = true;
+    };
 
-  const { container } = render(
-    <TableOfContents
-      items={items}
-      themeId="github"
-      onTocStateChange={onTocStateChange}
-    />,
-  );
+    const { container } = render(
+      <TableOfContents
+        items={items}
+        themeId="github"
+        onTocStateChange={onTocStateChange}
+      />,
+    );
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // Toggle ボタンをクリック
-  const toggleBtn = container.querySelector(".toc-toggle-btn");
-  toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
+    // Toggle ボタンをクリック
+    const toggleBtn = container.querySelector(".toc-toggle-btn");
+    toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // コールバックが呼ばれた
-  assertEquals(callbackCalled, true);
+    // コールバックが呼ばれた
+    assertEquals(callbackCalled, true);
 
-  cleanupMocks();
+    cleanupMocks();
+  },
 });
 
-Deno.test("TableOfContents: should persist state to chrome.storage", async () => {
-  setupMocks();
+Deno.test({
+  name: "TableOfContents: should persist state to chrome.storage",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
 
-  const items: TocItem[] = [
-    { id: "h1", text: "Heading 1", level: 1, children: [] },
-  ];
+    const items: TocItem[] = [
+      { id: "h1", text: "Heading 1", level: 1, children: [] },
+    ];
 
-  const { container } = render(
-    <TableOfContents items={items} themeId="github" />,
-  );
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // Toggle ボタンをクリック
-  const toggleBtn = container.querySelector(".toc-toggle-btn");
-  toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
+    // Toggle ボタンをクリック
+    const toggleBtn = container.querySelector(".toc-toggle-btn");
+    toggleBtn?.dispatchEvent(new Event("click", { bubbles: true }));
 
-  await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // chrome.storage.sync.set が呼ばれ、状態が保存された
-  assertEquals("tocState" in chromeStorage, true);
+    // chrome.storage.sync.set が呼ばれ、状態が保存された
+    assertEquals("tocState" in chromeStorage, true);
 
-  const tocState = chromeStorage.tocState as {
-    visible: boolean;
-  };
-  assertEquals(tocState.visible, false);
+    const tocState = chromeStorage.tocState as {
+      visible: boolean;
+    };
+    assertEquals(tocState.visible, false);
 
-  cleanupMocks();
+    cleanupMocks();
+  },
 });
 
 Deno.test({
@@ -392,6 +445,130 @@ Deno.test({
     const showBtn = container.querySelector(".toc-show-btn");
     assertEquals(showBtn !== null, true);
 
+    cleanupMocks();
+  },
+});
+
+Deno.test({
+  name:
+    "TableOfContents: should set initial active heading via requestAnimationFrame",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
+
+    // DOM上に見出し要素を配置（IntersectionObserverのフォールバック用）
+    const h1 = document.createElement("h1");
+    h1.id = "first-heading";
+    h1.textContent = "First Heading";
+    document.body.appendChild(h1);
+
+    // getBoundingClientRect のモック（ページトップにある想定）
+    h1.getBoundingClientRect = () =>
+      ({
+        top: 60,
+        bottom: 100,
+        left: 0,
+        right: 100,
+        width: 100,
+        height: 40,
+      }) as DOMRect;
+
+    const items: TocItem[] = [
+      { id: "first-heading", text: "First Heading", level: 1, children: [] },
+    ];
+
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
+
+    // chrome.storage.get + requestAnimationFrame の処理を待つ
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // requestAnimationFrameにより最初の見出しがアクティブに設定される
+    const activeLink = container.querySelector(".toc-link.active");
+    assertEquals(activeLink !== null, true);
+    assertEquals(activeLink?.textContent, "First Heading");
+
+    // クリーンアップ
+    document.body.removeChild(h1);
+    cleanupMocks();
+  },
+});
+
+Deno.test({
+  name:
+    "TableOfContents: should fallback to last passed heading when no visible headings in observer",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
+
+    // DOM上に見出し要素を配置
+    const h1 = document.createElement("h1");
+    h1.id = "passed-heading";
+    h1.textContent = "Passed Heading";
+    document.body.appendChild(h1);
+
+    const h2 = document.createElement("h2");
+    h2.id = "next-heading";
+    h2.textContent = "Next Heading";
+    document.body.appendChild(h2);
+
+    // h1はスクロール位置より上にある（既に通過した）
+    h1.getBoundingClientRect = () =>
+      ({
+        top: -50,
+        bottom: -10,
+        left: 0,
+        right: 100,
+        width: 100,
+        height: 40,
+      }) as DOMRect;
+
+    // h2はまだ検出範囲に入っていない
+    h2.getBoundingClientRect = () =>
+      ({
+        top: 500,
+        bottom: 540,
+        left: 0,
+        right: 100,
+        width: 100,
+        height: 40,
+      }) as DOMRect;
+
+    const items: TocItem[] = [
+      { id: "passed-heading", text: "Passed Heading", level: 1, children: [] },
+      { id: "next-heading", text: "Next Heading", level: 2, children: [] },
+    ];
+
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // IntersectionObserverのコールバックをトリガー（見出しなし = ギャップ状態）
+    if (latestObserverInstance) {
+      latestObserverInstance.trigger([
+        {
+          target: h1,
+          isIntersecting: false,
+          boundingClientRect: { top: -50 },
+        },
+      ]);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // フォールバックにより、通過済みの見出しがアクティブになる
+    const activeLink = container.querySelector(".toc-link.active");
+    assertEquals(activeLink !== null, true);
+    assertEquals(activeLink?.textContent, "Passed Heading");
+
+    // クリーンアップ
+    document.body.removeChild(h1);
+    document.body.removeChild(h2);
     cleanupMocks();
   },
 });
