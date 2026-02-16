@@ -4,6 +4,7 @@ import { exists } from "@std/fs";
 import { fromFileUrl } from "@std/path";
 import postcss from "postcss";
 import postcssImport from "postcss-import";
+import cssnano from "cssnano";
 import process from "node:process";
 
 /**
@@ -158,6 +159,7 @@ try {
           return await Deno.readTextFile(filename);
         },
       }),
+      cssnano(),
     ]).process(cssContent, { from: entry.input });
 
     await Deno.writeTextFile(entry.output, result.css);
@@ -294,7 +296,7 @@ ${interFontCss}
 ${jetbrainsFontCss}
 `;
 
-    // 2. PostCSS処理（@import解決）
+    // 2. PostCSS処理（@import解決 + cssnanoでminify）
     const result = await postcss([
       postcssImport({
         resolve: (id: string, basedir: string) => {
@@ -311,19 +313,15 @@ ${jetbrainsFontCss}
           return await Deno.readTextFile(filename);
         },
       }),
+      cssnano(),
     ]).process(entryContent, {
       from: "src/styles/entry-points/content.css",
     });
 
-    // 3. Lightning CSS処理（minify + optimize）
-    // Note: bundleAsyncは使わず、直接minifyする
-    // （PostCSSで既に@import解決済みのため、bundleは不要）
-    const minified = result.css; // 本来はlightningcssでminifyしたいが、現状はPostCSS出力をそのまま使用
-
-    // 4. 最終CSS出力
+    // 3. 最終CSS出力（cssnanoでminify済み）
     await Deno.writeTextFile(
       `${outDir}/content/styles/themes/${theme}.css`,
-      minified,
+      result.css,
     );
 
     console.log(`  ✓ ${theme}.css (PostCSS + Lightning CSS)`);

@@ -1438,6 +1438,7 @@
       "dependencies": [
         "npm:@playwright/test@^1.58.2",
         "npm:@types/node@^25.2.3",
+        "npm:cssnano@^7.1.2",
         "npm:linkedom@~0.18.12",
         "npm:mermaid@^11.12.2",
         "npm:postcss-import@^16.1.1",
