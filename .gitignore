@@ -46,3 +46,8 @@ test-results/
 
 # Example files (reference implementation)
 example/
+
+# Implementation plans (internal use)
+.claude/plans/
+docs/cycles/
+docs/status.md
