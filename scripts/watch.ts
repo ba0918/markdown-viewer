@@ -28,7 +28,7 @@ try {
   const ctxBackground = await esbuild.context({
     ...commonConfig,
     entryPoints: ["src/background/service-worker.ts"],
-    outfile: "dist/background.js",
+    outfile: "dist/development/background.js",
     platform: "browser",
   });
 
@@ -36,7 +36,7 @@ try {
   const ctxContent = await esbuild.context({
     ...commonConfig,
     entryPoints: ["src/content/index.ts"],
-    outfile: "dist/content.js",
+    outfile: "dist/development/content.js",
     platform: "browser",
   });
 

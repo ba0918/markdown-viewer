@@ -2,6 +2,7 @@
   "tasks": {
     "dev": "deno run --allow-all scripts/watch.ts",
     "build": "deno run --allow-all scripts/build.ts",
+    "build:dev": "deno run --allow-all scripts/build.ts --dev",
     "test": "deno test --allow-all",
     "test:watch": "deno test --allow-all --watch",
     "test:e2e": "playwright test",

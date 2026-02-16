@@ -9,7 +9,14 @@ import process from "node:process";
 /**
  * ビルドスクリプト
  * esbuildを使用してTypeScriptをバンドル
+ *
+ * --dev フラグ付きで実行すると、開発/テスト用ビルド（dist/development/）を生成。
+ * manifest.jsonにlocalhost設定を注入し、E2Eテストで使用可能にする。
  */
+
+// --dev フラグの解析
+const isDev = Deno.args.includes("--dev");
+const outDir = isDev ? "./dist/development" : "./dist/release";
 
 // プロジェクトルートの絶対パスを取得
 const projectRoot = fromFileUrl(new URL("../", import.meta.url));
@@ -44,13 +51,16 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   },
 };
 
-console.log("🔨 Building Markdown Viewer...\n");
+console.log(
+  `🔨 Building Markdown Viewer... (${
+    isDev ? "dev" : "production"
+  } → ${outDir})\n`,
+);
 
-// distディレクトリ作成
-const distDir = "./dist";
-if (!await exists(distDir)) {
-  await Deno.mkdir(distDir, { recursive: true });
-  console.log("📁 Created dist/ directory");
+// 出力ディレクトリ作成
+if (!await exists(outDir)) {
+  await Deno.mkdir(outDir, { recursive: true });
+  console.log(`📁 Created ${outDir}/ directory`);
 }
 
 try {
@@ -59,7 +69,7 @@ try {
   await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/background/service-worker.ts"],
-    outfile: "dist/background.js",
+    outfile: `${outDir}/background.js`,
     platform: "browser",
   });
   console.log("✅ background.js built");
@@ -69,7 +79,7 @@ try {
   await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/content/index.ts"],
-    outfile: "dist/content.js",
+    outfile: `${outDir}/content.js`,
     platform: "browser",
   });
   console.log("✅ content.js built");
@@ -79,7 +89,7 @@ try {
   await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/settings/popup/index.tsx"],
-    outfile: "dist/popup.js",
+    outfile: `${outDir}/popup.js`,
     platform: "browser",
   });
   console.log("✅ popup.js built");
@@ -89,27 +99,49 @@ try {
   await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/settings/options/index.tsx"],
-    outfile: "dist/options.js",
+    outfile: `${outDir}/options.js`,
     platform: "browser",
   });
   console.log("✅ options.js built");
 
-  // manifest.jsonをdist/にコピー
+  // manifest.jsonを出力先にコピー（devモードではlocalhost設定を注入）
   console.log("📄 Copying manifest.json...");
-  await Deno.copyFile("manifest.json", "dist/manifest.json");
-  console.log("✅ manifest.json copied");
+  if (isDev) {
+    const manifest = JSON.parse(await Deno.readTextFile("manifest.json"));
+    // E2Eテスト用: localhost設定を注入
+    manifest.content_scripts[0].matches.push(
+      "http://localhost:*/*.md",
+      "http://localhost:*/*.markdown",
+    );
+    manifest.host_permissions.push("http://localhost:*/*");
+    manifest.web_accessible_resources[0].matches.push("http://localhost:*/*");
+    await Deno.writeTextFile(
+      `${outDir}/manifest.json`,
+      JSON.stringify(manifest, null, 2) + "\n",
+    );
+    console.log("✅ manifest.json copied (with localhost for dev/test)");
+  } else {
+    await Deno.copyFile("manifest.json", `${outDir}/manifest.json`);
+    console.log("✅ manifest.json copied");
+  }
 
-  // HTMLファイルをdist/にコピー
+  // HTMLファイルをコピー
   console.log("📄 Copying HTML files...");
-  await Deno.copyFile("src/settings/popup/popup.html", "dist/popup.html");
-  await Deno.copyFile("src/settings/options/options.html", "dist/options.html");
+  await Deno.copyFile("src/settings/popup/popup.html", `${outDir}/popup.html`);
+  await Deno.copyFile(
+    "src/settings/options/options.html",
+    `${outDir}/options.html`,
+  );
   console.log("✅ HTML files copied");
 
   // Settings CSSファイルをPostCSS経由でビルド
   console.log("🎨 Building settings CSS...");
   const settingsCssEntries = [
-    { input: "src/settings/options/options.css", output: "dist/options.css" },
-    { input: "src/settings/popup/popup.css", output: "dist/popup.css" },
+    {
+      input: "src/settings/options/options.css",
+      output: `${outDir}/options.css`,
+    },
+    { input: "src/settings/popup/popup.css", output: `${outDir}/popup.css` },
   ];
 
   for (const entry of settingsCssEntries) {
@@ -133,13 +165,13 @@ try {
   }
   console.log("✅ Settings CSS built");
 
-  // CSSファイルをバンドルしてdist/にコピー (Phase 3: 6テーマ対応 + ToC統合)
+  // CSSファイルをバンドル (6テーマ対応 + ToC統合)
   console.log("🎨 Bundling CSS files with ToC styles...");
-  await Deno.mkdir("dist/content/styles/themes", { recursive: true });
+  await Deno.mkdir(`${outDir}/content/styles/themes`, { recursive: true });
 
   // フォントファイルをコピー (Inter + JetBrains Mono)
   console.log("🔤 Copying font files...");
-  await Deno.mkdir("dist/content/styles/fonts", { recursive: true });
+  await Deno.mkdir(`${outDir}/content/styles/fonts`, { recursive: true });
 
   const interPath =
     "node_modules/.deno/@fontsource+inter@5.2.8/node_modules/@fontsource/inter";
@@ -193,7 +225,7 @@ try {
   const jetbrainsFontCss = jetbrainsFontCss400 + "\n" + jetbrainsFontCss500;
 
   // フォント files ディレクトリをコピー
-  await Deno.mkdir("dist/content/styles/fonts/files", { recursive: true });
+  await Deno.mkdir(`${outDir}/content/styles/fonts/files`, { recursive: true });
 
   // Inter WOFF2ファイルをコピー
   for await (const entry of Deno.readDir(`${interPath}/files`)) {
@@ -202,7 +234,7 @@ try {
     ) {
       await Deno.copyFile(
         `${interPath}/files/${entry.name}`,
-        `dist/content/styles/fonts/files/${entry.name}`,
+        `${outDir}/content/styles/fonts/files/${entry.name}`,
       );
     }
   }
@@ -214,7 +246,7 @@ try {
     ) {
       await Deno.copyFile(
         `${jetbrainsPath}/files/${entry.name}`,
-        `dist/content/styles/fonts/files/${entry.name}`,
+        `${outDir}/content/styles/fonts/files/${entry.name}`,
       );
     }
   }
@@ -223,7 +255,7 @@ try {
 
   // PostCSS + Lightning CSS による新しいビルドシステム
   console.log("🎨 Building CSS with PostCSS + Lightning CSS...");
-  await Deno.mkdir("dist/content/styles/themes", { recursive: true });
+  await Deno.mkdir(`${outDir}/content/styles/themes`, { recursive: true });
 
   const themeNames = [
     "light",
@@ -290,7 +322,7 @@ ${jetbrainsFontCss}
 
     // 4. 最終CSS出力
     await Deno.writeTextFile(
-      `dist/content/styles/themes/${theme}.css`,
+      `${outDir}/content/styles/themes/${theme}.css`,
       minified,
     );
 
@@ -299,19 +331,23 @@ ${jetbrainsFontCss}
 
   console.log("✅ CSS files built successfully with PostCSS");
 
-  // アイコンをdist/にコピー
+  // アイコンをコピー
   console.log("🎨 Copying icons...");
-  await Deno.mkdir("dist/icons", { recursive: true });
-  await Deno.copyFile("icons/icon16.png", "dist/icons/icon16.png");
-  await Deno.copyFile("icons/icon48.png", "dist/icons/icon48.png");
-  await Deno.copyFile("icons/icon128.png", "dist/icons/icon128.png");
+  await Deno.mkdir(`${outDir}/icons`, { recursive: true });
+  await Deno.copyFile("icons/icon16.png", `${outDir}/icons/icon16.png`);
+  await Deno.copyFile("icons/icon48.png", `${outDir}/icons/icon48.png`);
+  await Deno.copyFile("icons/icon128.png", `${outDir}/icons/icon128.png`);
   console.log("✅ Icons copied");
 
-  console.log("\n🎉 Build completed successfully!");
+  console.log(
+    `\n🎉 Build completed successfully! (${
+      isDev ? "dev" : "production"
+    } → ${outDir})`,
+  );
   console.log("\n📋 Next steps:");
   console.log("1. Load extension in Chrome: chrome://extensions/");
   console.log('2. Enable "Developer mode"');
-  console.log('3. Click "Load unpacked" and select the "dist" directory');
+  console.log(`3. Click "Load unpacked" and select the "${outDir}" directory`);
 } catch (error) {
   console.error("❌ Build failed:", error);
   Deno.exit(1);

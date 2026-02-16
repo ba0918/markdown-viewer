@@ -37,7 +37,7 @@ export const test = base.extend<ExtensionFixtures>({
   // deno-lint-ignore no-empty-pattern
   context: async ({}, use) => {
     // 拡張機能のdistディレクトリパス
-    const pathToExtension = path.join(process.cwd(), "dist");
+    const pathToExtension = path.join(process.cwd(), "dist", "development");
 
     // 一時的なユーザーデータディレクトリを作成
     // NOTE: 空文字列だと予期しない動作になる可能性があるため、明示的に一時ディレクトリを作成

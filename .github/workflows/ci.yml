@@ -68,6 +68,10 @@ jobs:
         if: matrix.deno-version == '2.x'
         run: npx playwright install --with-deps chromium
 
+      - name: Build for E2E tests (dev mode)
+        if: matrix.deno-version == '2.x'
+        run: deno task build:dev
+
       - name: Run E2E tests
         if: matrix.deno-version == '2.x'
         run: deno task test:e2e:wsl2 || echo "⚠️ E2E tests failed - continuing build"
@@ -117,17 +121,17 @@ jobs:
       - name: Verify build output
         run: |
           echo "=== Build Output Size ==="
-          du -sh dist/
+          du -sh dist/release/
           echo "=== Build Contents ==="
-          find dist/ -type f -name "*.js" -exec wc -c {} + | sort -n
+          find dist/release/ -type f -name "*.js" -exec wc -c {} + | sort -n
           echo "=== Manifest Version ==="
-          cat dist/manifest.json | grep -E '"version"|"manifest_version"'
+          cat dist/release/manifest.json | grep -E '"version"|"manifest_version"'
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: extension-build-${{ github.run_number }}
-          path: dist/
+          path: dist/release/
           retention-days: 7
 
   security:

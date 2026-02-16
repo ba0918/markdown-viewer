@@ -69,17 +69,17 @@ jobs:
         run: |
           VERSION_NUMBER="${{ steps.version.outputs.version_number }}"
           deno eval "
-            const manifest = JSON.parse(await Deno.readTextFile('./dist/manifest.json'));
+            const manifest = JSON.parse(await Deno.readTextFile('./dist/release/manifest.json'));
             manifest.version = '$VERSION_NUMBER';
-            await Deno.writeTextFile('./dist/manifest.json', JSON.stringify(manifest, null, 2));
+            await Deno.writeTextFile('./dist/release/manifest.json', JSON.stringify(manifest, null, 2));
             console.log('Updated manifest.json version to:', manifest.version);
           "
 
       - name: Create extension package
         run: |
-          cd dist
-          zip -r "../ba-markdown-viewer-${{ steps.version.outputs.version }}.zip" .
-          cd ..
+          cd dist/release
+          zip -r "../../ba-markdown-viewer-${{ steps.version.outputs.version }}.zip" .
+          cd ../..
 
       - name: Generate release notes
         id: release_notes
@@ -101,7 +101,7 @@ jobs:
             echo "5. Click \"Load unpacked\" and select the extracted folder"
             echo ""
             echo "### 📊 Build Statistics"
-            find dist/ -name "*.js" -exec wc -l {} + | tail -1 | awk '{print "- **Total Lines of Code**: " $1}'
+            find dist/release/ -name "*.js" -exec wc -l {} + | tail -1 | awk '{print "- **Total Lines of Code**: " $1}'
             echo ""
             echo "### 🔒 Security Features"
             echo "✅ DOMPurify XSS protection"

@@ -7,6 +7,9 @@
  */
 
 import { expect, test } from "./fixtures.ts";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
 
 test.describe("Remote URL Settings", () => {
   test("should display remote URL settings section", async ({ page, extensionId }) => {
@@ -92,19 +95,33 @@ test.describe("Remote URL Settings", () => {
     await expect(page.locator("text=must end with /*")).toBeVisible();
   });
 
-  test("should not have any preset domains in manifest", async ({ page, extensionId }) => {
-    // manifest.jsonを確認
-    const manifestUrl = `chrome-extension://${extensionId}/manifest.json`;
-    const response = await page.goto(manifestUrl);
-    const manifest = await response?.json();
+  test("should not have any preset domains in production manifest", async () => {
+    // 本番用manifest.json（ソース）を検証
+    // localhost記述はdev buildでのみ注入され、本番manifestには含まれない
+    const manifestContent = await readFile(
+      path.join(process.cwd(), "manifest.json"),
+      "utf-8",
+    );
+    const manifest = JSON.parse(manifestContent);
 
     // optional_host_permissionsはhttps://*/*のみ（カスタムドメイン用）
     expect(manifest.optional_host_permissions).toEqual(["https://*/*"]);
 
-    // host_permissionsはfile://とlocalhostのみ（MAIN worldでのExportに必要）
+    // host_permissionsはfile://のみ（localhostはdev buildでのみ注入）
     expect(manifest.host_permissions).toEqual([
       "file:///*",
-      "http://localhost:*/*",
+    ]);
+
+    // content_scriptsにlocalhostが含まれないこと
+    expect(manifest.content_scripts[0].matches).toEqual([
+      "file://*/*.md",
+      "file://*/*.markdown",
+    ]);
+
+    // web_accessible_resourcesにlocalhostが含まれないこと
+    expect(manifest.web_accessible_resources[0].matches).toEqual([
+      "file://*/*",
+      "https://*/*",
     ]);
   });
 

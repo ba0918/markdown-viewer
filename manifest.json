@@ -22,9 +22,7 @@
   "content_scripts": [{
     "matches": [
       "file://*/*.md",
-      "file://*/*.markdown",
-      "http://localhost:*/*.md",
-      "http://localhost:*/*.markdown"
+      "file://*/*.markdown"
     ],
     "js": ["content.js"],
     "run_at": "document_start"
@@ -50,8 +48,7 @@
   ],
 
   "host_permissions": [
-    "file:///*",
-    "http://localhost:*/*"
+    "file:///*"
   ],
 
   "optional_host_permissions": [
@@ -70,7 +67,6 @@
     ],
     "matches": [
       "file://*/*",
-      "http://localhost:*/*",
       "https://*/*"
     ]
   }]

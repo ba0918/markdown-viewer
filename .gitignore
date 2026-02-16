@@ -1,4 +1,4 @@
-# Build output
+# Build output (dist/release/ for production, dist/development/ for dev/test)
 dist/
 *.js
 *.js.map
