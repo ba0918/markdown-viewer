@@ -1,25 +1,36 @@
 # Project Status
 
-**Last Updated:** 2026-02-16 19:09:41
+**Last Updated:** 2026-02-17 01:10:00
 
 ---
 
 ## 🎯 Current Session
 
-| Field        | Value                                                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **Cycle ID** | `20260216190941`                                                                                                          |
-| **Feature**  | ToC アクティブハイライト安定化                                                                                            |
-| **Started**  | 2026-02-16 19:09:41                                                                                                       |
-| **Phase**    | 🟡 Planning                                                                                                               |
-| **Plan**     | [docs/cycles/20260216190941_toc-active-highlight-stability.md](./cycles/20260216190941_toc-active-highlight-stability.md) |
+| Field        | Value                                                                                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Cycle ID** | `20260217011000`                                                                                                                    |
+| **Feature**  | Logger Utility & DEBUG自動注入                                                                                                      |
+| **Started**  | 2026-02-17 01:10:00                                                                                                                 |
+| **Phase**    | 🟡 Planning                                                                                                                         |
+| **Plan**     | [docs/cycles/20260217011000_logger-utility-debug-auto-injection.md](./cycles/20260217011000_logger-utility-debug-auto-injection.md) |
 
-**Current Focus:**
-ToCのアクティブハイライトが不安定な問題を調査・修正。IntersectionObserverのrootMargin設定とフォールバックロジック追加で安定化。
+**Current Focus:** `if (DEBUG) console.log(...)`
+パターンの冗長性を解消。esbuildのdefineでDEBUG自動注入 +
+shared/にloggerユーティリティを抽出し、開発体験を向上させる。
 
 ---
 
 ## 📜 Session History
+
+### 20260216190941 - ToC アクティブハイライト安定化
+
+- **Started:** 2026-02-16 19:09:41
+- **Completed:** 2026-02-17
+- **Status:** 🟢 Completed
+- **Summary:**
+  ToCのアクティブハイライト安定化。IntersectionObserverのrootMargin設定とフォールバックロジック追加で安定化。
+- **Plan:**
+  [docs/cycles/20260216190941_toc-active-highlight-stability.md](./cycles/20260216190941_toc-active-highlight-stability.md)
 
 ### 20260216170708 - Code Review - Comprehensive Improvements
 

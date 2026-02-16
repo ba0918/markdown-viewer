@@ -1,3 +1,7 @@
+---
+paths: ["tests/**", "src/**/*.test.ts"]
+---
+
 # Testing Rules
 
 ## Unit Test
