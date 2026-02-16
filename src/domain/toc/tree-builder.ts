@@ -37,20 +37,16 @@ export const buildTocTree = (headings: TocHeading[]): TocItem[] => {
   for (const heading of headings) {
     const item: TocItem = { ...heading, children: [] };
 
-    // 現在のレベルより深い階層をスタックから削除
     while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
       stack.pop();
     }
 
     if (stack.length === 0) {
-      // ルートレベル(H1 または 最初の見出し)
       root.push(item);
     } else {
-      // 親要素の子として追加
       stack[stack.length - 1].children.push(item);
     }
 
-    // 現在の項目をスタックに追加
     stack.push(item);
   }
 

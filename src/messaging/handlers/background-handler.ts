@@ -50,7 +50,6 @@ export const handleBackgroundMessage = async (
   try {
     switch (message.type) {
       case "RENDER_MARKDOWN": {
-        // ✅ OK: serviceに委譲するだけ
         const theme = loadTheme(message.payload.themeId);
         const result = markdownService.render(
           message.payload.markdown,
@@ -60,19 +59,16 @@ export const handleBackgroundMessage = async (
       }
 
       case "LOAD_THEME": {
-        // ✅ OK: domainに委譲するだけ（軽量な処理のため直接呼び出しOK）
         const theme = loadTheme(message.payload.themeId);
         return { success: true, data: theme };
       }
 
       case "UPDATE_THEME": {
-        // ✅ StateManagerで永続化
         await stateManager.updateTheme(message.payload.themeId);
         return { success: true, data: null };
       }
 
       case "UPDATE_HOT_RELOAD": {
-        // ✅ Hot Reload設定を更新
         await stateManager.updateHotReload({
           enabled: message.payload.enabled,
           interval: message.payload.interval,
@@ -82,11 +78,10 @@ export const handleBackgroundMessage = async (
       }
 
       case "CHECK_FILE_CHANGE": {
-        // ✅ Background Scriptでfile://を読み込み（キャッシュ回避）
         try {
           const url = message.payload.url + "?preventCache=" + Date.now();
 
-          // WSL2ファイルはChromeのセキュリティポリシーでfetch不可
+          // WSL2ファイルはChrome制限でfetch不可
           if (url.includes("file://wsl.localhost/")) {
             return {
               success: false,
@@ -98,7 +93,6 @@ export const handleBackgroundMessage = async (
 
           const response = await fetch(url);
 
-          // HTTPステータスチェック
           if (!response.ok) {
             return {
               success: false,
@@ -122,20 +116,17 @@ export const handleBackgroundMessage = async (
       }
 
       case "GET_SETTINGS": {
-        // ✅ 現在の設定を取得
         const settings = await stateManager.load();
         return { success: true, data: settings };
       }
 
       case "UPDATE_SETTINGS": {
-        // ✅ 設定を更新
         await stateManager.save(message.payload);
         const updated = await stateManager.load();
         return { success: true, data: updated };
       }
 
       case "GENERATE_EXPORT_HTML": {
-        // ✅ エクスポート用HTML生成（serviceに委譲）
         const exportedHTML = await exportService.generateExportHTML(
           message.payload,
         );
@@ -143,20 +134,15 @@ export const handleBackgroundMessage = async (
       }
 
       case "EXPORT_AND_DOWNLOAD": {
-        // ✅ HTML生成 + chrome.downloads APIでダウンロード実行
-        // Content Script (Isolated World) の Blob URL はオリジンが null になり
-        // <a download> が効かない。chrome.downloads API はページのオリジンに
-        // 依存せず、拡張機能の権限でダウンロードを実行できる。
-
-        // 1. HTML生成
+        // Content Script (Isolated World) のBlob URLはオリジンがnullで
+        // <a download>が効かないため、chrome.downloads APIを使用
         const html = await exportService.generateExportHTML(message.payload);
         const downloadFilename = message.payload.filename.replace(
           /\.(md|markdown)$/,
           ".html",
         );
 
-        // 2. Data URL に変換
-        // btoa() はバイナリ文字列のみ受け付けるため、UTF-8エンコード経由で変換
+        // btoa()はバイナリ文字列のみのためUTF-8エンコード経由で変換
         const utf8Bytes = new TextEncoder().encode(html);
         let binary = "";
         for (let i = 0; i < utf8Bytes.length; i++) {
@@ -164,15 +150,7 @@ export const handleBackgroundMessage = async (
         }
         const dataUrl = "data:text/html;base64," + btoa(binary);
 
-        // 3. onDeterminingFilename で非ASCIIファイル名を設定
-        // chrome.downloads.download() の filename パラメータは Data URL 使用時に
-        // 非ASCII文字をエスケープする既知の問題がある（Chromium Bug #579563）。
-        // onDeterminingFilename イベントリスナーでファイル名を差し替えることで回避。
-        //
-        // 注: リスナーはdownload()呼び出し前に登録する。
-        // download()のPromise解決とonDeterminingFilenameイベント発火は
-        // 同じマイクロタスクキュー内で順序が保証されないため、
-        // downloadIdの代わりにフラグベースでワンショット制御する。
+        // 非ASCIIファイル名対策: onDeterminingFilenameで設定（Chromium Bug #579563）
         let handled = false;
         const listener = (
           _downloadItem: { id: number },
@@ -189,9 +167,7 @@ export const handleBackgroundMessage = async (
         try {
           await chrome.downloads.download({ url: dataUrl });
         } finally {
-          // メモリリーク防止: ダウンロード成功/失敗に関わらずリスナーを確実に削除
-          // handledフラグがtrueの場合は既にremoveListenerされているが、
-          // removeListenerは冪等（同じリスナーを複数回削除しても安全）なので問題なし
+          // removeListenerは冪等なので安全
           chrome.downloads.onDeterminingFilename.removeListener(listener);
         }
 

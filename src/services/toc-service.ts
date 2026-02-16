@@ -27,15 +27,9 @@ export class TocService {
    * @returns TOCツリー（階層構造、不正レベル補正済み）
    */
   generate(markdown: string): TocItem[] {
-    // 1. domain層で見出しを抽出
     const headings = extractHeadings(markdown);
-
-    // 2. domain層で見出しレベルを正規化
     const normalizedHeadings = normalizeHeadingLevels(headings);
-
-    // 3. domain層でツリー構造を構築
     const tree = buildTocTree(normalizedHeadings);
-
     return tree;
   }
 }

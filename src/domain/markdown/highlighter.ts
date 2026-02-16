@@ -8,7 +8,6 @@
  * - Markdownファイルは通常1つずつ読み込まれるため、パフォーマンス影響は小さい
  */
 
-// highlight.js 全言語サポート版
 import hljs from "highlight.js";
 
 /**
@@ -29,16 +28,10 @@ import hljs from "highlight.js";
  */
 export const highlightCode = (code: string, lang: string): string => {
   try {
-    // 言語が登録されているか確認
     const language = hljs.getLanguage(lang) ? lang : "plaintext";
-
-    // ハイライト実行（返り値はオブジェクト）
     const result = hljs.highlight(code, { language });
-
-    // .value プロパティでHTML文字列を取得
     return result.value;
   } catch (err) {
-    // エラー時は元のコードを返す（エスケープなし）
     console.error(`Failed to highlight code (lang: ${lang}):`, err);
     return code;
   }

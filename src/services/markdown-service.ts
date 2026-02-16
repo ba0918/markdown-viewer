@@ -28,25 +28,13 @@ export class MarkdownService {
    * @returns RenderResult（html, rawMarkdown, content, frontmatter）
    */
   render(markdown: string, theme: ThemeData): RenderResult {
-    // 0. Frontmatter解析（domain/frontmatter）
     const { data: frontmatter, content } = parseFrontmatter(markdown);
-
-    // 1. Markdown解析（domain/markdown）
-    // Frontmatter除外済みのcontentを使用
     const parsed = parseMarkdown(content);
-
-    // 2. サニタイズ（domain/markdown）
     // セキュリティファースト: 全Markdown描画でsanitizeHTML必須
     const sanitized = sanitizeHTML(parsed);
-
-    // 3. 見出しにID属性を付与（domain/toc）
-    // TOC機能のために、H1-H3タグにid属性を追加
     const withHeadingIds = addHeadingIds(sanitized);
-
-    // 4. テーマ適用（domain/theme）
     const html = applyTheme(withHeadingIds, theme);
 
-    // 5. 結果を返す
     return {
       html,
       rawMarkdown: markdown,

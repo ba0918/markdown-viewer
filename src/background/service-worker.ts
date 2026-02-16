@@ -18,7 +18,6 @@ import { getContentScriptId } from "../shared/utils/encode.ts";
  */
 async function reregisterCustomOrigins() {
   try {
-    // Storageからカスタムドメイン一覧を取得
     const result = await chrome.storage.sync.get(["customOrigins"]);
     const customOrigins = result.customOrigins as Array<{
       origin: string;
@@ -29,7 +28,6 @@ async function reregisterCustomOrigins() {
       return;
     }
 
-    // 既存の登録済みContent Scriptをクリア
     try {
       const existingScripts = await chrome.scripting
         .getRegisteredContentScripts();
@@ -46,10 +44,8 @@ async function reregisterCustomOrigins() {
       console.warn("Failed to unregister existing scripts:", e);
     }
 
-    // 各カスタムドメインのContent Scriptを登録
     for (const item of customOrigins) {
       try {
-        // IDは共通関数で生成（URLセーフBase64）
         const scriptId = getContentScriptId(item.origin);
         await chrome.scripting.registerContentScripts([{
           id: scriptId,
@@ -70,7 +66,6 @@ async function reregisterCustomOrigins() {
  * 拡張機能インストール時
  */
 chrome.runtime.onInstalled.addListener(() => {
-  // インストール/更新時にカスタムドメインを再登録
   reregisterCustomOrigins();
 });
 
@@ -78,7 +73,6 @@ chrome.runtime.onInstalled.addListener(() => {
  * Service Worker起動時（拡張リロード含む）
  */
 chrome.runtime.onStartup.addListener(() => {
-  // 起動時にカスタムドメインを再登録
   reregisterCustomOrigins();
 });
 

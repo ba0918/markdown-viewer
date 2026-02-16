@@ -33,9 +33,6 @@ export interface MermaidBlock {
 export function detectMermaidBlocks(html: string): MermaidBlock[] {
   const blocks: MermaidBlock[] = [];
 
-  // Regex pattern to match Mermaid code blocks
-  // Matches: <pre><code class="language-mermaid">...</code></pre>
-  // Case-insensitive for class name
   const pattern =
     /<pre><code class="[^"]*language-mermaid[^"]*"[^>]*>([\s\S]*?)<\/code><\/pre>/gi;
 
@@ -44,11 +41,8 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
 
   while ((match = pattern.exec(html)) !== null) {
     const rawCode = match[1];
-
-    // Decode HTML entities
     const code = decodeHTMLEntities(rawCode);
 
-    // Skip empty blocks
     if (code.trim().length === 0) {
       continue;
     }

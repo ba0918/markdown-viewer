@@ -46,7 +46,6 @@ const mathDocument = mathjax.document(document, {
  * ```
  */
 export function renderMath(element: HTMLElement): void {
-  // Clear, scan, compile, measure, typeset, and update
   mathDocument.clear();
   mathDocument.findMath({ elements: [element] });
   mathDocument.compile();

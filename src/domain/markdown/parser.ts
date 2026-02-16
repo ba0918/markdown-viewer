@@ -11,16 +11,14 @@ let initialized = false;
 const initializeMarked = () => {
   if (initialized) return;
 
-  // marked-highlight 拡張を登録
   marked.use(markedHighlight({
     langPrefix: "hljs language-",
     highlight: highlightCode,
   }));
 
-  // GitHub Flavored Markdown (GFM) サポート
   marked.setOptions({
-    gfm: true, // GFM有効化
-    breaks: true, // 改行をbrタグに変換
+    gfm: true,
+    breaks: true,
   });
 
   initialized = true;
@@ -44,8 +42,6 @@ const initializeMarked = () => {
  * - シンタックスハイライトは marked-highlight 拡張で実行
  */
 export const parseMarkdown = (markdown: string): string => {
-  // 初回のみ marked を初期化
   initializeMarked();
-
   return marked.parse(markdown) as string;
 };

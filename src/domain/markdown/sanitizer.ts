@@ -5,7 +5,6 @@ import xss from "xss";
  * 許可するHTMLタグと属性のホワイトリスト
  */
 const xssOptions = {
-  // 許可するHTMLタグのホワイトリスト
   whiteList: {
     "p": ["class", "id"],
     "br": [],
@@ -39,39 +38,31 @@ const xssOptions = {
     "div": ["class", "id"],
     "span": ["class", "id"], // highlight.js 用
   },
-  // ホワイトリスト外のタグを完全削除
   stripIgnoreTag: true,
-  // script と style タグの中身も削除
   stripIgnoreTagBody: ["script", "style"],
-  // class 属性のワイルドカード対応（highlight.js の hljs-* クラス用）
   onTagAttr: (tag: string, name: string, value: string) => {
-    // highlight.js の hljs-* クラスを許可
-    if (name === "class" && value.includes("hljs")) {
+    // hljs-*とlanguage-*クラスを許可
+    if (
+      name === "class" &&
+      (value.includes("hljs") || value.includes("language-"))
+    ) {
       return `class="${value}"`;
     }
-    // language-* クラスを許可
-    if (name === "class" && value.includes("language-")) {
-      return `class="${value}"`;
-    }
-    // 相対パスのhrefを許可 (xssはデフォルトで相対パスを削除するため)
+    // 相対パスのhrefを許可（xssはデフォルトで削除するため）
     if (tag === "a" && name === "href") {
-      // javascript:, data:, vbscript: などの危険なプロトコルをブロック
       const dangerous = ["javascript:", "data:", "vbscript:", "file:"];
       const lowerValue = value.toLowerCase().trim();
       if (dangerous.some((proto) => lowerValue.startsWith(proto))) {
-        return; // 危険なプロトコルは削除
+        return;
       }
-      // 相対パス、絶対パス、フラグメントを許可
       return `href="${value}"`;
     }
-    // 相対パスのsrcを許可 (ローカル画像表示用)
-    // Note: <a href>ではfile:をブロックするが、<img src>では許可
-    //       ローカル画像を絶対パス(file:///...)で参照するケースがあるため
+    // img srcは file: を許可（ローカル画像参照用）
     if (tag === "img" && name === "src") {
       const dangerous = ["javascript:", "data:", "vbscript:"];
       const lowerValue = value.toLowerCase().trim();
       if (dangerous.some((proto) => lowerValue.startsWith(proto))) {
-        return; // 危険なプロトコルは削除
+        return;
       }
       return `src="${value}"`;
     }

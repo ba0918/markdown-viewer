@@ -21,10 +21,7 @@
  * ```
  */
 export function hasMathExpression(text: string): boolean {
-  // Inline math: $...$ or \(...\)
   const inlinePattern = /(?<!\\)\$[^\$]+\$|\\\(.*?\\\)/s;
-
-  // Display math: $$...$$ or \[...\]
   const displayPattern = /(?<!\\)\$\$[^\$]+\$\$|\\\[.*?\\\]/s;
 
   return inlinePattern.test(text) || displayPattern.test(text);

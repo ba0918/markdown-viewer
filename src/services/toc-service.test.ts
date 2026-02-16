@@ -16,7 +16,6 @@ Deno.test("TocService.generate: 基本的なMarkdownからTOC生成", () => {
 
   const result = service.generate(markdown);
 
-  // ツリー構造: ルート要素が1つ
   assertEquals(result.length, 1);
   assertEquals(result[0].text, "Main Title");
   assertEquals(result[0].children.length, 2);
@@ -59,7 +58,6 @@ More text.
 
   const result = service.generate(markdown);
 
-  // ツリー構造: ルート要素が1つ（Introduction）
   assertEquals(result.length, 1);
   assertEquals(result[0].text, "Introduction");
   assertEquals(result[0].children.length, 3); // Getting Started, Usage, API Reference

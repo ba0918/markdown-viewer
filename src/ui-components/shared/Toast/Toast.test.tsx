@@ -25,11 +25,9 @@ Deno.test("Toast: should render toast message", () => {
   const container = globalThis.document.createElement("div");
   preactRender(h(Toast, { item }), container);
 
-  // メッセージが表示される
   const message = container.querySelector(".toast-message");
   assertEquals(message?.textContent, "Test error message");
 
-  // クリーンアップ
   toasts.value = [];
 });
 
@@ -44,11 +42,9 @@ Deno.test("Toast: should apply type-specific class", () => {
   const container = globalThis.document.createElement("div");
   preactRender(h(Toast, { item }), container);
 
-  // type別のクラスが付与される
   const toast = container.querySelector(".toast");
   assertEquals(toast?.classList.contains("toast-success"), true);
 
-  // クリーンアップ
   toasts.value = [];
 });
 
@@ -63,12 +59,10 @@ Deno.test("Toast: should render close button", () => {
   const container = globalThis.document.createElement("div");
   preactRender(h(Toast, { item }), container);
 
-  // 閉じるボタンが表示される
   const closeButton = container.querySelector(".toast-close");
   assertEquals(closeButton !== null, true);
   assertEquals(closeButton?.getAttribute("aria-label"), "Close");
 
-  // クリーンアップ
   toasts.value = [];
 });
 
@@ -78,11 +72,9 @@ Deno.test("ToastContainer: should render nothing when toasts.value is empty", ()
   const container = globalThis.document.createElement("div");
   preactRender(h(ToastContainer, null), container);
 
-  // 空配列で何も表示しない
   const toastElements = container.querySelectorAll(".toast");
   assertEquals(toastElements.length, 0);
 
-  // クリーンアップ
   toasts.value = [];
 });
 
@@ -95,11 +87,9 @@ Deno.test("ToastContainer: should render multiple toasts", () => {
   const container = globalThis.document.createElement("div");
   preactRender(h(ToastContainer, null), container);
 
-  // 複数でスタック表示
   const toastElements = container.querySelectorAll(".toast");
   assertEquals(toastElements.length, 2);
 
-  // クリーンアップ
   toasts.value = [];
 });
 
@@ -112,9 +102,8 @@ Deno.test({
     assertEquals(toasts.value.length, 1);
     assertEquals(toasts.value[0].type, "info");
     assertEquals(toasts.value[0].message, "Test info");
-    assertEquals(toasts.value[0].duration, 4000); // デフォルト
+    assertEquals(toasts.value[0].duration, 4000);
 
-    // クリーンアップ
     toasts.value = [];
   },
   sanitizeResources: false, // タイマーリークを無視（showToast内部のsetTimeout）
@@ -130,7 +119,6 @@ Deno.test({
     assertEquals(toasts.value.length, 1);
     assertEquals(toasts.value[0].duration, 2000);
 
-    // クリーンアップ
     toasts.value = [];
   },
   sanitizeResources: false, // タイマーリークを無視（showToast内部のsetTimeout）
@@ -152,7 +140,6 @@ Deno.test({
     assertEquals(toasts.value.length, 1);
     assertEquals(toasts.value[0].message, "Success 2");
 
-    // クリーンアップ
     toasts.value = [];
   },
   sanitizeResources: false, // タイマーリークを無視（showToast内部のsetTimeout）
@@ -162,17 +149,11 @@ Deno.test({
 Deno.test("toast-manager: should auto-remove toast after duration", async () => {
   toasts.value = [];
 
-  // 短いdurationでテスト
   showToast({ type: "info", message: "Auto remove", duration: 100 });
-
   assertEquals(toasts.value.length, 1);
 
-  // 150ms待機（durationより長い）
   await new Promise((resolve) => setTimeout(resolve, 150));
-
-  // 自動削除される
   assertEquals(toasts.value.length, 0);
 
-  // クリーンアップ
   toasts.value = [];
 });

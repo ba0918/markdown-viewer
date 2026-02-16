@@ -28,32 +28,23 @@ import { makeUniqueId } from "../../shared/utils/unique-id.ts";
  * @returns ID属性付きHTML
  */
 export const addHeadingIds = (html: string): string => {
-  const idCounts = new Map<string, number>(); // ID重複カウント用
+  const idCounts = new Map<string, number>();
 
-  // H1-H3タグを検出してID付与
   return html.replace(
     /<(h[1-3])([^>]*)>(.*?)<\/\1>/gi,
     (match, tag, attrs, content) => {
-      // 既にid属性がある場合はスキップ
       if (/\sid=/i.test(attrs)) {
         return match;
       }
 
-      // テキストコンテンツからHTMLタグを除去
       const textContent = content.replace(/<[^>]+>/g, "");
-
-      // ベースIDを生成
       const baseId = generateHeadingId(textContent);
 
-      // IDが空の場合はそのまま返す
       if (!baseId) {
         return match;
       }
 
-      // 重複ID検出: 既に同じIDが存在する場合、連番を付与（共通関数使用）
       const id = makeUniqueId(baseId, idCounts);
-
-      // id属性を追加
       return `<${tag}${attrs} id="${id}">${content}</${tag}>`;
     },
   );

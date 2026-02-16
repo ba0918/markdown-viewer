@@ -49,34 +49,26 @@ import type { TocHeading } from "./types.ts";
  * ```
  */
 export function normalizeHeadingLevels(headings: TocHeading[]): TocHeading[] {
-  // 空配列の場合はそのまま返す
   if (headings.length === 0) {
     return [];
   }
 
-  // 過去に出現した「元の(変換前の)」レベルを O(1) でチェックするための Set
-  // ※重要: 変換前の元のレベルを記録することで、正しく親の存在を判定
+  // 変換前の元レベルを記録して親の存在を判定
   const seenOriginalLevels = new Set<number>();
 
-  // 親がいない場合は h2 に変換
   return headings.map((h) => {
-    // 現在の見出しの元のレベルを記録
     seenOriginalLevels.add(h.level);
 
-    // h1 は親不要
     if (h.level === 1) {
       return h;
     }
 
-    // 1レベル上の親が「元の文書」に存在するかチェック
     const parentLevel = h.level - 1;
     const hasParent = seenOriginalLevels.has(parentLevel);
 
     if (hasParent) {
-      // 親が存在する場合はそのまま保持
       return h;
     } else {
-      // 親がいない場合は h2 に変換（最上位は h2）
       return { ...h, level: 2 as 1 | 2 | 3 };
     }
   });

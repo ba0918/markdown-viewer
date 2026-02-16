@@ -73,18 +73,15 @@ const currentTheme = signal<Theme>("light");
 const isMarkdownFile = (): boolean => {
   const url = location.href;
 
-  // ローカルファイルとlocalhostは既存の拡張子判定で動作
   if (url.startsWith("file://") || url.startsWith("http://localhost")) {
     return location.pathname.match(/\.(md|markdown)$/i) !== null;
   }
 
-  // リモートURL: まず拡張子チェック（優先）
   const hasMarkdownExtension = /\.(md|markdown)$/i.test(url);
   if (hasMarkdownExtension) {
     return true;
   }
 
-  // 拡張子なしの場合のみ Content-Type で判定
   const contentType = document.contentType || "";
   return contentType.includes("text/markdown");
 };
@@ -108,7 +105,6 @@ const loadThemeCss = (theme: Theme): void => {
   ) as HTMLLinkElement;
 
   if (!existingLink) {
-    // 初回: <link>タグを作成して<head>に追加
     const linkElement = document.createElement("link");
     linkElement.rel = "stylesheet";
     linkElement.setAttribute("data-markdown-theme", theme);
@@ -116,30 +112,25 @@ const loadThemeCss = (theme: Theme): void => {
     document.head.appendChild(linkElement);
     logger.log(`Theme CSS loaded - ${theme}`);
   } else {
-    // テーマ変更時: 新しい<link>を先に作成してロード完了後に古いのを削除
-    // これにより暗転を防ぐ（スムーズなテーマ切り替え）
+    // 新しい<link>を先にロードして暗転を防ぐ
     const newLink = document.createElement("link");
     newLink.rel = "stylesheet";
     newLink.setAttribute("data-markdown-theme", theme);
     newLink.href = cssUrl;
 
-    // 新しいCSSがロード完了したら古いのを削除
     newLink.onload = () => {
       existingLink.remove();
       logger.log(`Theme CSS updated - ${theme}`);
     };
 
-    // エラー時も古いのを削除（フォールバック）
     newLink.onerror = () => {
       existingLink.remove();
     };
 
-    // 新しい<link>を追加（古いのと並行してロード）
     document.head.appendChild(newLink);
   }
 
-  // bodyにテーマクラスを付与（CSS変数のスコープを全ページに拡大）
-  // 既存のテーマクラスを削除してから新しいテーマクラスを追加
+  // bodyにテーマクラスを付与（CSS変数のスコープ拡大）
   document.body.className = document.body.className
     .split(" ")
     .filter((cls) => !cls.startsWith("markdown-viewer-theme-"))
@@ -153,7 +144,7 @@ const loadThemeCss = (theme: Theme): void => {
  * @param interval - チェック間隔（ミリ秒、最小1000ms）
  */
 const startHotReload = async (interval: number): Promise<void> => {
-  // WSL2ファイルはHot Reload非対応（Chromeセキュリティ制限）
+  // WSL2ファイルはChrome制限でHot Reload非対応
   if (isWslFile(location.href)) {
     logger.log(
       "Hot Reload is not available for WSL2 files (file://wsl.localhost/...). Please use a localhost HTTP server instead.",
@@ -161,54 +152,44 @@ const startHotReload = async (interval: number): Promise<void> => {
     return;
   }
 
-  // 既存のインターバルをクリア
   if (hotReloadInterval !== null) {
     clearInterval(hotReloadInterval);
   }
 
-  // 最小間隔2000ms（2秒）を保証
   const safeInterval = Math.max(interval, 2000);
 
-  // 初回のファイル内容を取得（Background Scriptでfetch）
-  // Note: Windows local files (file:///C:/...) work fine
-  // Note: WSL2 files (file://wsl.localhost/...) are blocked by Chrome security policy
+  // WSL2 files are blocked by Chrome security policy
   try {
     lastFileContent = await sendMessage<string>({
       type: "CHECK_FILE_CHANGE",
       payload: { url: location.href },
     });
   } catch {
-    // Hot Reload not available for this file (silently fail)
     return;
   }
 
   logger.log(`Hot Reload started (interval: ${safeInterval}ms)`);
 
-  // Race Condition対策用フラグ
   let isChecking = false;
 
-  // setIntervalでファイル変更を監視
   hotReloadInterval = globalThis.setInterval(async () => {
-    if (isChecking) return; // 前回のチェックが完了していなければスキップ
+    if (isChecking) return;
 
     isChecking = true;
     try {
-      // Background Scriptでfile://をfetch
       const currentContent = await sendMessage<string>({
         type: "CHECK_FILE_CHANGE",
         payload: { url: location.href },
       });
 
-      // 内容比較
       const changed = currentContent !== lastFileContent;
 
       if (changed) {
         logger.log("File changed detected! Reloading...");
-        // リロード前にintervalとフラグを確実にクリア
         stopHotReload();
         isChecking = false;
         globalThis.location.reload();
-        return; // reload後の処理は不要
+        return;
       }
     } catch (error) {
       logger.warn(
@@ -244,33 +225,24 @@ const stopHotReload = (): void => {
  * Note: メモリリーク防止のため、フラグで重複登録を防止
  */
 const setupRelativeLinkHandler = (): void => {
-  // 既に設定済みの場合はスキップ（メモリリーク防止）
   if (relativeLinkHandlerSetup) return;
   relativeLinkHandlerSetup = true;
 
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
-
-    // <a>タグのクリックのみ処理
     const anchor = target.closest("a");
     if (!anchor) return;
 
     const href = anchor.getAttribute("href");
     if (!href) return;
 
-    // 絶対URL（http://, https://, file://）や同一ページ内リンク（#）はスキップ
     if (!isRelativeLink(href)) return;
 
-    // 相対リンクを絶対パスに変換
     event.preventDefault();
-
     const absoluteUrl = resolveRelativeLink(location.href, href);
-
     logger.log(`Navigating to ${absoluteUrl}`);
-
-    // 同じタブで遷移
     location.href = absoluteUrl;
-  }, true); // キャプチャフェーズで処理
+  }, true);
 
   logger.log("Relative link handler set up");
 };
@@ -290,19 +262,14 @@ const renderMarkdown = async (
   initialTocState?: TocState,
 ) => {
   try {
-    // 1. テーマをSignalに設定
     currentTheme.value = theme;
-
-    // 2. テーマCSSを読み込み
     loadThemeCss(theme);
 
-    // 3. ✅ OK: messaging経由でserviceを利用
     const result = await sendMessage<RenderResult>({
       type: "RENDER_MARKDOWN",
       payload: { markdown, themeId: theme },
     });
 
-    // 4. bodyをクリア（オプション）してMarkdownビューア用のコンテナを作成
     if (clearBody) {
       document.body.innerHTML = "";
     }
@@ -310,25 +277,23 @@ const renderMarkdown = async (
     viewerContainer.id = "markdown-viewer-container";
     document.body.appendChild(viewerContainer);
 
-    // 5. Preactでレンダリング（themeIdはSignalで渡す）
     render(
       h(
         ErrorBoundary,
         null,
         [
           h(MarkdownViewer, {
-            result, // RenderResult全体を渡す（html, rawMarkdown, content, frontmatter）
+            result,
             themeId: currentTheme,
-            initialTocState, // ToC初期状態（CLS削減用）
-            fileUrl: location.href, // ファイルURL（エクスポート用）
+            initialTocState,
+            fileUrl: location.href,
           }),
-          h(ToastContainer, null), // トースト通知コンテナ追加
+          h(ToastContainer, null),
         ],
       ),
       viewerContainer,
     );
 
-    // 6. 相対リンクハンドラを設定（レンダリング後に実行）
     setupRelativeLinkHandler();
 
     logger.log(`Rendering completed with theme '${theme}'`);
@@ -347,18 +312,15 @@ const renderMarkdown = async (
  * 初期化処理
  */
 const init = async () => {
-  // Markdownファイル以外は処理しない
   if (!isMarkdownFile()) return;
 
-  // Markdownコンテンツを保存
   if (!currentMarkdown) {
     currentMarkdown = document.body.textContent || "";
   }
 
-  // bodyをクリア（CLS削減: ここで1回だけクリア）
   document.body.innerHTML = "";
 
-  // ToCの初期状態をChrome Storageから読み込み（CLS削減）
+  // ToC初期状態をChrome Storageから読み込み（CLS削減）
   let initialTocState: TocState | undefined;
   try {
     const result = await chrome.storage.sync.get(["tocState"]);
@@ -366,17 +328,15 @@ const init = async () => {
       initialTocState = result.tocState as TocState;
     }
   } catch {
-    // Storage読み込み失敗時はundefined（デフォルト値使用）
+    // デフォルト値使用
   }
 
-  // 設定を取得してレンダリング
   try {
     const settings = await sendMessage<AppState>({
       type: "GET_SETTINGS",
       payload: {},
     });
 
-    // 初回レンダリング（bodyクリア済み、ToC初期状態を渡す）
     await renderMarkdown(
       currentMarkdown,
       settings.theme,
@@ -384,17 +344,14 @@ const init = async () => {
       initialTocState,
     );
 
-    // Hot Reload設定を反映
     if (settings.hotReload.enabled) {
       await startHotReload(settings.hotReload.interval);
     }
   } catch (error) {
     console.error("Failed to load settings, using default theme:", error);
-    // デフォルトテーマでレンダリング（bodyクリア済み、ToC初期状態を渡す）
     await renderMarkdown(currentMarkdown, "light", false, initialTocState);
   }
 
-  // Chrome Storage変更イベントをリッスン（メモリリーク防止: 重複登録チェック）
   if (storageListenerSetup) return;
   storageListenerSetup = true;
 
@@ -403,13 +360,9 @@ const init = async () => {
       const newState = changes.appState.newValue as AppState;
       logger.log("Settings changed, updating theme:", newState.theme);
 
-      // CSSファイルのみ差し替え（高速・表示が消えない！）
       loadThemeCss(newState.theme);
-
-      // Signalを更新（MarkdownViewerが自動的に再レンダリングされる）
       currentTheme.value = newState.theme;
 
-      // Hot Reload設定の変更を反映
       if (newState.hotReload.enabled) {
         await startHotReload(newState.hotReload.interval);
       } else {

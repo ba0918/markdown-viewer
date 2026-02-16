@@ -11,7 +11,6 @@
  * @returns 相対リンクならtrue
  */
 export const isRelativeLink = (href: string): boolean => {
-  // 絶対URL（http://, https://, file://）や同一ページ内リンク（#）はスキップ
   if (
     href.startsWith("http://") ||
     href.startsWith("https://") ||

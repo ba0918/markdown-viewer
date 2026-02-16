@@ -12,7 +12,6 @@
  */
 
 // @ts-ignore: mermaid types not available in Deno
-// Imported from deno.json dependencies
 import mermaid from "mermaid";
 
 /**
@@ -70,32 +69,28 @@ let initPromise: Promise<void> | null = null;
 async function initializeMermaid(
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<void> {
-  // 既に初期化中の場合は完了を待つ（ロック待機）
+  // 並行初期化を防ぐ
   while (initPromise !== null) {
     await initPromise;
   }
 
-  // テーマが同じで既に初期化済みなら何もしない
   if (currentTheme === theme) {
     return;
   }
 
-  // 新しい初期化を開始（ロック取得）
   initPromise = (async () => {
     try {
       mermaidInstance.initialize({
         theme,
-        startOnLoad: false, // Manual rendering
-        securityLevel: "strict", // XSS protection
+        startOnLoad: false,
+        securityLevel: "strict",
         flowchart: {
           htmlLabels: true,
         },
       });
       currentTheme = theme;
-      // 初期化完了後、少し待機（Mermaidの内部処理完了を待つ）
       await new Promise((resolve) => setTimeout(resolve, 10));
     } finally {
-      // ロック解放
       initPromise = null;
     }
   })();
@@ -123,15 +118,12 @@ export async function renderMermaid(
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<string> {
   try {
-    // Initialize mermaid with theme (await完了を待つ)
     await initializeMermaid(theme);
 
-    // Generate unique ID for this diagram
     const id = `mermaid-diagram-${Date.now()}-${
       Math.random().toString(36).substring(2, 9)
     }`;
 
-    // Render diagram to SVG
     const { svg } = await mermaidInstance.render(id, code);
 
     return svg;
@@ -168,7 +160,6 @@ export async function renderMermaid(
 export function getMermaidTheme(
   appTheme: string,
 ): "default" | "dark" | "forest" | "neutral" | "base" {
-  // Map app themes to Mermaid themes
   const themeMap: Record<
     string,
     "default" | "dark" | "forest" | "neutral" | "base"

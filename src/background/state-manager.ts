@@ -51,12 +51,10 @@ export class StateManager {
         return this.DEFAULT_STATE;
       }
 
-      // バリデーション: theme が valid かチェック
       const theme = VALID_THEMES.includes(stored.theme as Theme)
         ? (stored.theme as Theme)
         : this.DEFAULT_STATE.theme;
 
-      // hotReload設定をマージ（型バリデーション付き）
       const hotReload = {
         enabled: typeof stored.hotReload?.enabled === "boolean"
           ? stored.hotReload.enabled
@@ -72,7 +70,6 @@ export class StateManager {
 
       return { theme, hotReload };
     } catch (_error) {
-      // エラー時はデフォルトを返す
       return this.DEFAULT_STATE;
     }
   }

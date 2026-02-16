@@ -14,7 +14,6 @@ import { exportAsHTML } from "../domain/export/html-exporter.ts";
 import { loadTheme } from "../domain/theme/loader.ts";
 import type { Theme } from "../shared/types/theme.ts";
 
-// Chrome API型定義
 declare const chrome: {
   runtime: {
     getURL: (path: string) => string;
@@ -49,15 +48,11 @@ export class ExportService {
   async generateExportHTML(params: ExportParams): Promise<string> {
     const { html, themeId, title } = params;
 
-    // 1. テーマデータを取得
     const theme = loadTheme(themeId);
-
-    // 2. テーマCSSをfetch（background scriptなのでchrome.runtime.getURL使える）
     const cssUrl = chrome.runtime.getURL(theme.cssPath);
     const response = await fetch(cssUrl);
     const themeCss = await response.text();
 
-    // 3. domain層でスタンドアロンHTML生成
     const exportedHTML = exportAsHTML({
       html,
       themeId,
@@ -69,5 +64,4 @@ export class ExportService {
   }
 }
 
-// Singleton インスタンス
 export const exportService = new ExportService();

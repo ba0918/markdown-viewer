@@ -20,13 +20,10 @@ Deno.test("MarkdownService: 基本的なレンダリング", async () => {
 
   const result = await service.render(markdown, theme);
 
-  // テーマが適用されているか
   assertStringIncludes(result.html, "theme-light");
   assertStringIncludes(result.html, "markdown-body");
-  // Markdown変換されているか
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<strong>bold</strong>");
-  // rawMarkdownが保存されているか
   assertEquals(result.rawMarkdown, markdown);
 });
 
@@ -40,9 +37,7 @@ Deno.test("MarkdownService: XSS防御統合テスト", async () => {
 
   const result = await service.render(malicious, theme);
 
-  // javascript:がサニタイズされているか
   assertEquals(result.html.includes("javascript:"), false);
-  // リンクテキストは保持されているか
   assertStringIncludes(result.html, "Click me");
 });
 
@@ -70,7 +65,6 @@ console.log('code');
 
   const result = await service.render(markdown, theme);
 
-  // 全ての要素が含まれているか
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<h2");
   assertStringIncludes(result.html, "<strong>");
@@ -78,7 +72,6 @@ console.log('code');
   assertStringIncludes(result.html, "<ul");
   assertStringIncludes(result.html, "<code");
   assertStringIncludes(result.html, "https://example.com");
-  // テーマが適用されているか
   assertStringIncludes(result.html, "theme-dark");
 });
 
@@ -92,7 +85,6 @@ Deno.test("MarkdownService: 空文字列処理", async () => {
 
   const result = await service.render(markdown, theme);
 
-  // テーマコンテナは存在するか
   assertStringIncludes(result.html, "markdown-body");
   assertStringIncludes(result.html, "theme-light");
 });
@@ -110,9 +102,7 @@ console.log(hello);
 
   const result = await service.render(markdown, theme);
 
-  // シンタックスハイライトが適用されているか（highlight.jsのクラスが含まれる）
   assertStringIncludes(result.html, "hljs");
-  // コードブロックの内容が保持されているか
   assertStringIncludes(result.html, "hello");
   assertStringIncludes(result.html, "world");
 });
@@ -135,16 +125,12 @@ This is the actual content.`;
 
   const result = await service.render(markdown, theme);
 
-  // HTMLにはFrontmatterが含まれない
   assertEquals(result.html.includes("title: Test Document"), false);
   assertEquals(result.html.includes("---"), false);
-  // Markdownコンテンツのみがレンダリングされる
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "Main Content");
   assertStringIncludes(result.html, "actual content");
-  // rawMarkdownには元のテキスト全文が含まれる
   assertEquals(result.rawMarkdown, markdown);
-  // Frontmatterデータが解析されている
   assertEquals(result.frontmatter.title, "Test Document");
   // @std/yaml は日付を Date オブジェクトに変換する
   assertEquals(result.frontmatter.date instanceof Date, true);
@@ -161,11 +147,8 @@ Deno.test("MarkdownService: Frontmatter統合テスト - Frontmatterなし", asy
 
   const result = await service.render(markdown, theme);
 
-  // HTMLが正しくレンダリングされる
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "No Frontmatter");
-  // rawMarkdownには元のテキストが含まれる
   assertEquals(result.rawMarkdown, markdown);
-  // Frontmatterデータは空オブジェクト
   assertEquals(result.frontmatter, {});
 });

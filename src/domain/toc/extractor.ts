@@ -33,16 +33,11 @@ import { makeUniqueId } from "../../shared/utils/unique-id.ts";
 export const generateHeadingId = (text: string): string => {
   return text
     .trim()
-    // バックティックを除去（Markdown→HTMLで<code>タグに変換されるため、
-    // HTML側のID生成と一致させる必要がある）
+    // HTML側の<code>タグ変換と一致させるため
     .replace(/`/g, "")
-    // 空白とアンダースコアをハイフンに
     .replace(/[\s_]+/g, "-")
-    // 危険な記号のみ削除(/, :, ~, *, ?, ", <, >, |, \, 括弧類)
     .replace(/[/:~*?"<>|\\()[\]{}]+/g, "")
-    // 連続ハイフンを1つに
     .replace(/-+/g, "-")
-    // 先頭/末尾のハイフン削除
     .replace(/^-+|-+$/g, "");
 };
 
@@ -62,20 +57,18 @@ export const generateHeadingId = (text: string): string => {
 export const extractHeadings = (markdown: string): TocHeading[] => {
   const tokens = marked.lexer(markdown);
   const headings: TocHeading[] = [];
-  const idCounts = new Map<string, number>(); // ID重複カウント用
+  const idCounts = new Map<string, number>();
 
   for (const token of tokens) {
     if (token.type === "heading" && token.depth <= 3) {
       const text = token.text;
       const baseId = generateHeadingId(text);
-
-      // 重複ID検出: 既に同じIDが存在する場合、連番を付与（共通関数使用）
       const id = makeUniqueId(baseId, idCounts);
 
       headings.push({
         level: token.depth as 1 | 2 | 3,
-        text, // 表示文言はそのまま(連番なし)
-        id, // IDには必要に応じて連番付き
+        text,
+        id,
       });
     }
   }
