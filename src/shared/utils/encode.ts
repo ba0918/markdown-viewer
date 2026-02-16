@@ -18,7 +18,7 @@
 export const toUrlSafeBase64 = (str: string): string => {
   return btoa(str).replace(
     /[+/=]/g,
-    (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
+    (c) => ({ "+": "-", "/": "_", "=": "" }[c] ?? c),
   );
 };
 
