@@ -25,6 +25,7 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   define: {
     "global": "globalThis",
     "process.env.NODE_ENV": '"production"',
+    "DEBUG": "false",
   },
   jsxFactory: "_h",
   jsxFragment: "_Fragment",

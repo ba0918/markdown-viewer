@@ -163,6 +163,14 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 (js-xss)で`javascript:`/`onerror`等ブロック **テスト**:
 XSS攻撃ベクター13ケース必須（`tests/e2e/xss.spec.ts`） 詳細→`docs/SECURITY.md`
 
+## ログ出力
+
+- ❌ `console.log` / `if (DEBUG)` 直接使用禁止
+- ✅ `import { logger } from "../shared/utils/logger.ts"` → `logger.log()` /
+  `logger.warn()`
+- DEBUGフラグはesbuildのdefineで自動注入（dev=true, build=false）
+- `console.error` はエラーハンドリング用なのでそのまま使用OK
+
 ## 実装フロー
 
 **機能追加**: domain(純粋関数+test) → services(組合せ) → messaging(委譲) → UI

@@ -11,6 +11,11 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   target: "chrome120",
   minify: false, // 開発モードではminify無効化
   sourcemap: true,
+  define: {
+    "global": "globalThis",
+    "process.env.NODE_ENV": '"development"',
+    "DEBUG": "true",
+  },
   jsxFactory: "h",
   jsxFragment: "Fragment",
   jsxImportSource: "preact",
