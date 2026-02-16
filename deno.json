@@ -4,6 +4,7 @@
     "build": "deno run --allow-all scripts/build.ts",
     "build:dev": "deno run --allow-all scripts/build.ts --dev",
     "test": "deno test --allow-all",
+    "test:coverage": "deno test --allow-all --coverage=coverage/ && deno coverage coverage/",
     "test:watch": "deno test --allow-all --watch",
     "test:e2e": "playwright test",
     "test:e2e:wsl2": "xvfb-run --auto-servernum --server-args=\"-screen 0 1280x960x24\" playwright test",

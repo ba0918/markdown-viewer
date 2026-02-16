@@ -54,6 +54,7 @@ Commits形式コミット
 deno task dev               # 開発watch
 deno task build             # ビルド
 deno task test              # Unit (必ずtask経由！deno test直はNG)
+deno task test:coverage     # Unit + カバレッジレポート
 deno task test:e2e:wsl2     # E2E (WSL2: xvfb必須)
 deno task lint/fmt          # Lint/Format
 ```
@@ -141,7 +142,8 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 - **軽量なdomain関数のmessaging直接呼び出し**: `loadTheme()`
   等のルックアップ関数
 - **DOM操作系domainのcontent直接呼び出し**: `renderMath()`, `renderMermaid()`
-  等（ブラウザ専用API）
+  等（ブラウザ専用API）。カスタムフック（`useCopyButtons`, `useMathJax`,
+  `useMermaid`）経由での呼び出しも許容
 - **UIローカル状態のchrome.storage直接**:
   ToC状態永続化等（UIコンポーネント内の状態管理）
 - **chrome.runtime.getURL()**: 静的リソースパス取得（全層で許可）

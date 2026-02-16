@@ -774,6 +774,27 @@ export class ErrorBoundary extends Component {
 
 ---
 
+## カスタムフック分割パターン（ADR-007例外）
+
+Content Script の MarkdownViewer
+コンポーネントでは、DOM操作系domainを直接呼び出すカスタムフックを使用している。
+これはADR-007の例外「DOM操作系domainのcontent直接呼び出し」に該当する。
+
+```
+content/components/hooks/
+├── useCopyButtons.ts   # コードブロックにコピーボタンを動的追加
+├── useMathJax.ts       # MathJax数式レンダリング（domain/math直接呼び出し）
+└── useMermaid.ts       # Mermaidダイアグラムレンダリング（domain/markdown直接呼び出し）
+```
+
+**設計方針:**
+
+- 各フックは独立した依存配列を持ち、必要な時のみ再実行
+- `isMounted` フラグで非同期処理のクリーンアップを保証（useMermaid）
+- MarkdownViewer.tsx専用のため、`content/components/hooks/` に配置
+
+---
+
 ## パフォーマンス最適化
 
 ### Dynamic Import
