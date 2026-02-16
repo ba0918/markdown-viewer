@@ -105,6 +105,34 @@ try {
   await Deno.copyFile("src/settings/options/options.html", "dist/options.html");
   console.log("✅ HTML files copied");
 
+  // Settings CSSファイルをPostCSS経由でビルド
+  console.log("🎨 Building settings CSS...");
+  const settingsCssEntries = [
+    { input: "src/settings/options/options.css", output: "dist/options.css" },
+    { input: "src/settings/popup/popup.css", output: "dist/popup.css" },
+  ];
+
+  for (const entry of settingsCssEntries) {
+    const cssContent = await Deno.readTextFile(entry.input);
+    const result = await postcss([
+      postcssImport({
+        resolve: (id: string, basedir: string) => {
+          const base = basedir.startsWith("/")
+            ? basedir
+            : `${process.cwd()}/${basedir}`;
+          return new URL(id, `file://${base}/`).pathname;
+        },
+        async load(filename: string) {
+          return await Deno.readTextFile(filename);
+        },
+      }),
+    ]).process(cssContent, { from: entry.input });
+
+    await Deno.writeTextFile(entry.output, result.css);
+    console.log(`  ✓ ${entry.output}`);
+  }
+  console.log("✅ Settings CSS built");
+
   // CSSファイルをバンドルしてdist/にコピー (Phase 3: 6テーマ対応 + ToC統合)
   console.log("🎨 Bundling CSS files with ToC styles...");
   await Deno.mkdir("dist/content/styles/themes", { recursive: true });
