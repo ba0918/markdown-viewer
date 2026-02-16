@@ -17,6 +17,7 @@ import type { TocItem } from "../../../domain/toc/types.ts";
 import type { TocState } from "../../../domain/toc/types.ts";
 import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
 import { useResizable } from "./useResizable.ts";
+import { toggleCollapsedItem } from "../../../domain/toc/collapse-manager.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -146,15 +147,11 @@ export const TableOfContents = ({
    * 項目の折りたたみ状態を切り替え
    */
   const toggleCollapse = useCallback((id: string) => {
-    const newSet = new Set(collapsedItems);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
+    const newItems = toggleCollapsedItem(Array.from(collapsedItems), id);
+    const newSet = new Set(newItems);
     setCollapsedItems(newSet);
 
-    const newState = { ...tocState, collapsedItems: Array.from(newSet) };
+    const newState = { ...tocState, collapsedItems: newItems };
     setTocState(newState);
     onTocStateChange?.(newState);
 

@@ -11,6 +11,10 @@ import type { Signal } from "@preact/signals";
 import { sendMessage } from "../../../messaging/client.ts";
 import type { Theme } from "../../../shared/types/theme.ts";
 import { showToast } from "../../shared/Toast/index.ts";
+import {
+  extractFilenameFromUrl,
+  extractTitleFromFilename,
+} from "../../../shared/utils/file-name-parser.ts";
 
 interface Props {
   /** DOM上のレンダリング済みHTMLを取得する関数（Mermaid SVG・MathJax SVG含む） */
@@ -31,22 +35,9 @@ export const ExportMenuItem = ({
 }: Props) => {
   const handleExportHTML = useCallback(async () => {
     try {
-      // ファイル名を取得（URLエンコードされたマルチバイト文字をデコード）
-      // GitHub Gist RAW等では二重エンコード（%25E6...）されている場合があるため、
-      // 変化がなくなるまで繰り返しデコードする
-      const rawFilename = fileUrl.split("/").pop() || "document.md";
-      let filename = rawFilename;
-      try {
-        let decoded = decodeURIComponent(filename);
-        while (decoded !== filename) {
-          filename = decoded;
-          decoded = decodeURIComponent(filename);
-        }
-        filename = decoded;
-      } catch {
-        // decodeURIComponent が失敗する場合はそのまま使用
-      }
-      const title = filename.replace(/\.(md|markdown)$/, "");
+      // ファイル名を取得（URLエンコード・二重エンコード対応）
+      const filename = extractFilenameFromUrl(fileUrl);
+      const title = extractTitleFromFilename(filename);
 
       // DOM上のレンダリング済みHTMLを取得
       // （Mermaid SVG・MathJax SVGが含まれた状態）

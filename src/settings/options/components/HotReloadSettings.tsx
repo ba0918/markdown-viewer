@@ -1,5 +1,6 @@
 import { h as _h } from "preact";
 import { useState } from "preact/hooks";
+import { validateHotReloadInterval } from "../../../shared/utils/validators.ts";
 
 interface HotReloadSettingsProps {
   enabled: boolean;
@@ -35,18 +36,12 @@ export const HotReloadSettings = ({
     const target = e.target as HTMLInputElement;
     const value = parseInt(target.value, 10);
 
-    // Validation
-    if (isNaN(value) || value === 0) {
-      setValidationError("Please enter a value of 1 or greater");
+    const result = validateHotReloadInterval(value);
+    if (!result.valid) {
+      setValidationError(result.error ?? null);
       return;
     }
 
-    if (value < 2000) {
-      setValidationError("Minimum interval is 2000ms (2 seconds)");
-      return;
-    }
-
-    // バリデーションOK
     setValidationError(null);
     setLocalInterval(value);
     onChange(localEnabled, value, localAutoReload);

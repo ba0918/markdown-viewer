@@ -1,6 +1,7 @@
 import { Fragment as _Fragment, h as _h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { getContentScriptId } from "../../../shared/utils/encode.ts";
+import { validateOrigin } from "../../../shared/utils/origin-validator.ts";
 
 interface CustomOrigin {
   origin: string;
@@ -37,39 +38,18 @@ export const RemoteUrlSettings = () => {
     }
   };
 
-  const validateOrigin = (origin: string): string | null => {
-    // 基本的なバリデーション
-    if (!origin.trim()) {
-      return "Origin cannot be empty";
-    }
-
-    // httpsのみ許可（セキュリティ）
-    if (!origin.startsWith("https://")) {
-      return "Origin must start with https://";
-    }
-
-    // ワイルドカードパターンチェック
-    if (!origin.endsWith("/*")) {
-      return "Origin must end with /* (e.g., https://example.com/*)";
-    }
-
-    // 既に追加済みかチェック
-    if (customOrigins.some((o) => o.origin === origin)) {
-      return "This origin is already added";
-    }
-
-    return null;
-  };
-
   const addOrigin = async () => {
     setError(null);
     setIsLoading(true);
 
     const trimmed = inputValue.trim();
-    const validationError = validateOrigin(trimmed);
+    const result = validateOrigin(
+      trimmed,
+      customOrigins.map((o) => o.origin),
+    );
 
-    if (validationError) {
-      setError(validationError);
+    if (!result.valid) {
+      setError(result.error ?? null);
       setIsLoading(false);
       return;
     }

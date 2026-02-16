@@ -10,13 +10,16 @@ import type { Theme } from "../shared/types/theme.ts";
 import type { RenderResult } from "../shared/types/render.ts";
 import type { TocState } from "../domain/toc/types.ts";
 import { isWslFile } from "../shared/utils/wsl-detector.ts";
+import { isLocalUrl } from "../shared/utils/url-validator.ts";
 import {
   isRelativeLink,
   resolveRelativeLink,
 } from "../shared/utils/url-resolver.ts";
 import { logger } from "../shared/utils/logger.ts";
 import { escapeHtml } from "../shared/utils/escape-html.ts";
-import { MARKDOWN_EXTENSION_PATTERN } from "../shared/constants/markdown.ts";
+import { isMarkdownByContext } from "../shared/utils/markdown-detector.ts";
+import { normalizeHotReloadInterval } from "../shared/utils/validators.ts";
+import { getThemeCssPath } from "../shared/constants/themes.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -70,33 +73,21 @@ const contentState = {
 const currentTheme = signal<Theme>("light");
 
 /**
- * Markdownファイル判定（ローカル＋リモートURL対応）
- *
- * - ローカルファイル（file://）とlocalhost: URL拡張子で判定
- * - リモートURL: URL拡張子優先、拡張子なしの場合のみContent-Typeで判定
- * - text/plain は誤検知が多いため、拡張子なしの場合のみ許可
+ * Markdownファイル判定（shared/utils/markdown-detector.tsに委譲）
  */
 const isMarkdownFile = (): boolean => {
-  const url = location.href;
-
-  if (url.startsWith("file://") || url.startsWith("http://localhost")) {
-    return MARKDOWN_EXTENSION_PATTERN.test(location.pathname);
-  }
-
-  const hasMarkdownExtension = MARKDOWN_EXTENSION_PATTERN.test(url);
-  if (hasMarkdownExtension) {
-    return true;
-  }
-
-  const contentType = document.contentType || "";
-  return contentType.includes("text/markdown");
+  return isMarkdownByContext({
+    url: location.href,
+    pathname: location.pathname,
+    contentType: document.contentType || "",
+  });
 };
 
 /**
  * テーマCSSファイルのURLを取得
  */
 const getThemeCssUrl = (theme: Theme): string => {
-  return chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
+  return chrome.runtime.getURL(getThemeCssPath(theme));
 };
 
 /**
@@ -145,34 +136,6 @@ const loadThemeCss = (theme: Theme): void => {
 };
 
 /**
- * ローカルURL判定
- *
- * Hot Reloadの対象をローカルファイル/localhostに制限するために使用。
- * リモートURLへの不必要なポーリングを防止する。
- *
- * 対象: file://, localhost, 127.0.0.1, [::1], ::1
- *
- * @param url - 判定するURL文字列
- * @returns ローカルURLの場合true
- */
-const isLocalUrl = (url: string): boolean => {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol === "file:") return true;
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      const hostname = parsed.hostname;
-      return hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname === "[::1]" ||
-        hostname === "::1";
-    }
-    return false;
-  } catch {
-    return false;
-  }
-};
-
-/**
  * Hot Reloadを開始
  *
  * ローカルファイル（file://）およびlocalhost環境でのみ動作。
@@ -202,7 +165,7 @@ const startHotReload = async (interval: number): Promise<void> => {
     clearInterval(contentState.hotReloadInterval);
   }
 
-  const safeInterval = Math.max(interval, 2000);
+  const safeInterval = normalizeHotReloadInterval(interval);
 
   // 初回ハッシュを取得（background側でSHA-256計算済み）
   try {
