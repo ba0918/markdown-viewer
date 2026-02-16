@@ -8,6 +8,7 @@
 
 import { marked } from "marked";
 import type { TocHeading } from "./types.ts";
+import { makeUniqueId } from "../../shared/utils/unique-id.ts";
 
 /**
  * 見出しテキストからURLフレンドリーなIDを生成
@@ -63,16 +64,9 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
     if (token.type === "heading" && token.depth <= 3) {
       const text = token.text;
       const baseId = generateHeadingId(text);
-      let id = baseId;
 
-      // 重複ID検出: 既に同じIDが存在する場合、連番を付与
-      if (idCounts.has(baseId)) {
-        const count = idCounts.get(baseId)!;
-        id = `${baseId}-${count}`;
-        idCounts.set(baseId, count + 1);
-      } else {
-        idCounts.set(baseId, 1);
-      }
+      // 重複ID検出: 既に同じIDが存在する場合、連番を付与（共通関数使用）
+      const id = makeUniqueId(baseId, idCounts);
 
       headings.push({
         level: token.depth as 1 | 2 | 3,

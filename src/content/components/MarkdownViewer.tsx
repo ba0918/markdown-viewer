@@ -108,7 +108,12 @@ export const MarkdownViewer = (
   // }, [result.html]);
 
   useEffect(() => {
+    // rawモードではコードブロック処理・Mermaidレンダリング不要（パフォーマンス改善）
+    if (viewMode === "raw") return;
     if (!containerRef.current) return;
+
+    // アンマウント後のDOM操作を防ぐフラグ
+    let isMounted = true;
 
     // コードブロックにコピーボタンを追加
     const codeBlocks = containerRef.current.querySelectorAll("pre > code");
@@ -166,44 +171,57 @@ export const MarkdownViewer = (
     const theme = getMermaidTheme(themeId.value);
 
     // 既存のダイアグラムがある場合は再レンダリング（テーマ変更時）
+    // Promise.all()で並列化（パフォーマンス改善）
     if (existingDiagrams && existingDiagrams.length > 0) {
       (async () => {
-        for (const diagram of existingDiagrams) {
-          try {
-            const code = diagram.getAttribute("data-mermaid-code");
-            if (!code) {
-              console.warn(
-                "Mermaid diagram missing data-mermaid-code attribute",
-              );
-              continue;
+        await Promise.all(
+          Array.from(existingDiagrams).map(async (diagram) => {
+            // アンマウント後はスキップ
+            if (!isMounted) return;
+
+            try {
+              const code = diagram.getAttribute("data-mermaid-code");
+              if (!code) {
+                console.warn(
+                  "Mermaid diagram missing data-mermaid-code attribute",
+                );
+                return;
+              }
+              const svg = await renderMermaid(code, theme);
+              if (!isMounted) return; // レンダリング後にも再チェック
+              diagram.innerHTML = svg;
+            } catch (error) {
+              console.error("Mermaid re-rendering failed:", error);
+              // フォールバック: 元のコードブロックを表示
+              if (!isMounted) return;
+              const code = diagram.getAttribute("data-mermaid-code");
+              if (code) {
+                const escaped = code.replace(/</g, "&lt;").replace(
+                  />/g,
+                  "&gt;",
+                );
+                diagram.innerHTML =
+                  `<pre style="padding: 1rem; background: var(--markdown-viewer-code-bg, #f5f5f5); border-radius: 4px; overflow-x: auto;">` +
+                  `<code class="language-mermaid">${escaped}</code></pre>` +
+                  `<p style="color: var(--markdown-viewer-error-color, #c53030); font-size: 0.875rem; margin-top: 0.5rem;">` +
+                  `Failed to render Mermaid diagram</p>`;
+              }
             }
-            const svg = await renderMermaid(code, theme);
-            diagram.innerHTML = svg;
-          } catch (error) {
-            console.error("Mermaid re-rendering failed:", error);
-            // フォールバック: 元のコードブロックを表示
-            const code = diagram.getAttribute("data-mermaid-code");
-            if (code) {
-              const escaped = code.replace(/</g, "&lt;").replace(
-                />/g,
-                "&gt;",
-              );
-              diagram.innerHTML =
-                `<pre style="padding: 1rem; background: var(--markdown-viewer-code-bg, #f5f5f5); border-radius: 4px; overflow-x: auto;">` +
-                `<code class="language-mermaid">${escaped}</code></pre>` +
-                `<p style="color: var(--markdown-viewer-error-color, #c53030); font-size: 0.875rem; margin-top: 0.5rem;">` +
-                `Failed to render Mermaid diagram</p>`;
-            }
-          }
-        }
+          }),
+        );
       })();
     } // 新規レンダリング（初回表示時）
+    // Note: DOM操作の順序依存のため逐次処理を維持
     else if (mermaidBlocks.length > 0) {
       (async () => {
         for (const block of mermaidBlocks) {
+          // アンマウント後はスキップ
+          if (!isMounted) return;
+
           try {
             // SVGをレンダリング
             const svg = await renderMermaid(block.code, theme);
+            if (!isMounted) return; // レンダリング後にも再チェック
 
             // 元のコードブロックを見つける（毎回再取得）
             const codeBlocks = containerRef.current?.querySelectorAll(
@@ -232,6 +250,11 @@ export const MarkdownViewer = (
         }
       })();
     }
+
+    // クリーンアップ: アンマウント時にフラグを更新
+    return () => {
+      isMounted = false;
+    };
   }, [result.html, themeId.value, viewMode]);
 
   return (

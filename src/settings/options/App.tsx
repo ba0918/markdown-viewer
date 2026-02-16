@@ -1,5 +1,5 @@
 import { h as _h } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { sendMessage } from "../../messaging/client.ts";
 import { ThemeSelector } from "./components/ThemeSelector.tsx";
 import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
@@ -21,11 +21,37 @@ export const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  // メモリリーク防止: saveMessageタイマーを管理
+  const saveMessageTimerRef = useRef<
+    ReturnType<typeof globalThis.setTimeout> | null
+  >(null);
 
   // 初期設定の読み込み
   useEffect(() => {
     loadSettings();
   }, []);
+
+  // メモリリーク防止: アンマウント時にタイマーをクリア
+  useEffect(() => {
+    return () => {
+      if (saveMessageTimerRef.current !== null) {
+        globalThis.clearTimeout(saveMessageTimerRef.current);
+      }
+    };
+  }, []);
+
+  // saveMessage表示用のヘルパー関数（タイマー管理付き）
+  const showSaveMessage = (message: string) => {
+    // 既存のタイマーをクリア
+    if (saveMessageTimerRef.current !== null) {
+      globalThis.clearTimeout(saveMessageTimerRef.current);
+    }
+    setSaveMessage(message);
+    saveMessageTimerRef.current = globalThis.setTimeout(
+      () => setSaveMessage(null),
+      2000,
+    );
+  };
 
   const loadSettings = async () => {
     try {
@@ -44,6 +70,7 @@ export const App = () => {
   };
 
   const handleThemeChange = async (theme: Theme) => {
+    if (!settings) return; // nullガード追加
     try {
       setError(null);
       setSaveMessage(null);
@@ -51,9 +78,8 @@ export const App = () => {
         type: "UPDATE_THEME",
         payload: { themeId: theme },
       });
-      setSettings({ ...settings!, theme });
-      setSaveMessage("Theme saved ✓");
-      setTimeout(() => setSaveMessage(null), 2000);
+      setSettings({ ...settings, theme });
+      showSaveMessage("Theme saved ✓");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update theme");
     }
@@ -64,6 +90,7 @@ export const App = () => {
     interval?: number,
     autoReload?: boolean,
   ) => {
+    if (!settings) return; // nullガード追加
     try {
       setError(null);
       setSaveMessage(null);
@@ -73,23 +100,22 @@ export const App = () => {
         type: "UPDATE_HOT_RELOAD",
         payload: {
           enabled,
-          interval: interval ?? settings!.hotReload.interval,
-          autoReload: autoReload ?? settings!.hotReload.autoReload,
+          interval: interval ?? settings.hotReload.interval,
+          autoReload: autoReload ?? settings.hotReload.autoReload,
         },
       });
 
       // ローカル状態を更新
       setSettings({
-        ...settings!,
+        ...settings,
         hotReload: {
           enabled,
-          interval: interval ?? settings!.hotReload.interval,
-          autoReload: autoReload ?? settings!.hotReload.autoReload,
+          interval: interval ?? settings.hotReload.interval,
+          autoReload: autoReload ?? settings.hotReload.autoReload,
         },
       });
 
-      setSaveMessage("Settings saved ✓");
-      setTimeout(() => setSaveMessage(null), 2000);
+      showSaveMessage("Settings saved ✓");
     } catch (err) {
       setError(
         err instanceof Error

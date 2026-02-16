@@ -1,5 +1,6 @@
 import { Fragment as _Fragment, h as _h } from "preact";
 import { useEffect, useState } from "preact/hooks";
+import { getContentScriptId } from "../../../shared/utils/encode.ts";
 
 interface CustomOrigin {
   origin: string;
@@ -85,8 +86,8 @@ export const RemoteUrlSettings = () => {
         return;
       }
 
-      // Content Scriptを動的に登録（getScriptIdで一意のID生成）
-      const scriptId = getScriptId(trimmed);
+      // Content Scriptを動的に登録（共通関数で一意のID生成）
+      const scriptId = getContentScriptId(trimmed);
       await chrome.scripting.registerContentScripts([{
         id: scriptId,
         matches: [trimmed],
@@ -114,22 +115,10 @@ export const RemoteUrlSettings = () => {
     }
   };
 
-  /**
-   * originからContent Script IDを生成（addOriginと同じロジック）
-   */
-  const getScriptId = (origin: string): string => {
-    return `custom-origin-${
-      btoa(origin).replace(
-        /[+/=]/g,
-        (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
-      )
-    }`;
-  };
-
   const removeOrigin = async (origin: string) => {
     try {
-      // 1. 対象のContent Scriptを特定して解除（addOriginと同じID生成ロジック）
-      const scriptId = getScriptId(origin);
+      // 1. 対象のContent Scriptを特定して解除（共通関数でID生成）
+      const scriptId = getContentScriptId(origin);
       try {
         await chrome.scripting.unregisterContentScripts({
           ids: [scriptId],

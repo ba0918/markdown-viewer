@@ -58,6 +58,10 @@ let currentMarkdown = "";
 let hotReloadInterval: ReturnType<typeof globalThis.setInterval> | null = null;
 let lastFileContent: string | null = null;
 
+// メモリリーク防止: リスナー重複登録防止フラグ
+let relativeLinkHandlerSetup = false;
+let storageListenerSetup = false;
+
 // 現在のテーマをSignalで管理（リアクティブ）
 const currentTheme = signal<Theme>("light");
 
@@ -248,8 +252,14 @@ const stopHotReload = (): void => {
  *
  * 責務: messaging I/O のみ、イベントハンドリング
  * ✅ OK: shared/utils/url-resolver.tsの純粋関数を使用
+ *
+ * Note: メモリリーク防止のため、フラグで重複登録を防止
  */
 const setupRelativeLinkHandler = (): void => {
+  // 既に設定済みの場合はスキップ（メモリリーク防止）
+  if (relativeLinkHandlerSetup) return;
+  relativeLinkHandlerSetup = true;
+
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
 
@@ -398,7 +408,10 @@ const init = async () => {
     await renderMarkdown(currentMarkdown, "light", false, initialTocState);
   }
 
-  // Chrome Storage変更イベントをリッスン
+  // Chrome Storage変更イベントをリッスン（メモリリーク防止: 重複登録チェック）
+  if (storageListenerSetup) return;
+  storageListenerSetup = true;
+
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === "sync" && changes.appState) {
       const newState = changes.appState.newValue as AppState;

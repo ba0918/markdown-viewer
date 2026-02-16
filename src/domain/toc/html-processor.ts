@@ -7,6 +7,7 @@
  */
 
 import { generateHeadingId } from "./extractor.ts";
+import { makeUniqueId } from "../../shared/utils/unique-id.ts";
 
 /**
  * HTMLの見出しタグ(H1-H3)にID属性を付与
@@ -49,15 +50,8 @@ export const addHeadingIds = (html: string): string => {
         return match;
       }
 
-      // 重複ID検出: 既に同じIDが存在する場合、連番を付与
-      let id = baseId;
-      if (idCounts.has(baseId)) {
-        const count = idCounts.get(baseId)!;
-        id = `${baseId}-${count}`;
-        idCounts.set(baseId, count + 1);
-      } else {
-        idCounts.set(baseId, 1);
-      }
+      // 重複ID検出: 既に同じIDが存在する場合、連番を付与（共通関数使用）
+      const id = makeUniqueId(baseId, idCounts);
 
       // id属性を追加
       return `<${tag}${attrs} id="${id}">${content}</${tag}>`;

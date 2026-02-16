@@ -186,7 +186,14 @@ export const handleBackgroundMessage = async (
         };
         chrome.downloads.onDeterminingFilename.addListener(listener);
 
-        await chrome.downloads.download({ url: dataUrl });
+        try {
+          await chrome.downloads.download({ url: dataUrl });
+        } finally {
+          // メモリリーク防止: ダウンロード成功/失敗に関わらずリスナーを確実に削除
+          // handledフラグがtrueの場合は既にremoveListenerされているが、
+          // removeListenerは冪等（同じリスナーを複数回削除しても安全）なので問題なし
+          chrome.downloads.onDeterminingFilename.removeListener(listener);
+        }
 
         return { success: true, data: null };
       }

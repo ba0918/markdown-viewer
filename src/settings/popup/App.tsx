@@ -41,13 +41,14 @@ export const App = () => {
   };
 
   const handleThemeChange = async (theme: Theme) => {
+    if (!settings) return; // nullガード追加
     try {
       setError(null);
       await sendMessage({
         type: "UPDATE_THEME",
         payload: { themeId: theme },
       });
-      setSettings({ ...settings!, theme });
+      setSettings({ ...settings, theme });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update theme");
     }

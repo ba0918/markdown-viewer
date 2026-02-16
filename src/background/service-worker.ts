@@ -1,6 +1,7 @@
 /// <reference types="@types/chrome" />
 
 import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
+import { getContentScriptId } from "../shared/utils/encode.ts";
 
 /**
  * Service Worker (Background Script)
@@ -50,13 +51,8 @@ async function reregisterCustomOrigins() {
     // 各カスタムドメインのContent Scriptを登録
     for (const item of customOrigins) {
       try {
-        // IDはドメインをBase64エンコードして一意性を確保（URLセーフ）
-        const scriptId = `custom-origin-${
-          btoa(item.origin).replace(
-            /[+/=]/g,
-            (c) => ({ "+": "-", "/": "_", "=": "" }[c] || c),
-          )
-        }`;
+        // IDは共通関数で生成（URLセーフBase64）
+        const scriptId = getContentScriptId(item.origin);
         await chrome.scripting.registerContentScripts([{
           id: scriptId,
           matches: [item.origin],

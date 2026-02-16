@@ -1,7 +1,7 @@
 /**
  * YAML Frontmatter型定義
  *
- * gray-matterライブラリで解析されるYAML Frontmatterの型定義
+ * @std/yaml で解析される YAML Frontmatter の型定義
  */
 
 /**
@@ -24,18 +24,4 @@ export interface FrontmatterResult {
    * 元のテキスト（Frontmatter含む）
    */
   original: string;
-}
-
-/**
- * 一般的なFrontmatterデータ構造（オプショナル）
- * Jekyll/Hugo等でよく使われるフィールド
- */
-export interface CommonFrontmatterData {
-  title?: string;
-  date?: string | Date;
-  tags?: string[];
-  description?: string;
-  author?: string;
-  draft?: boolean;
-  [key: string]: unknown; // その他のカスタムフィールド
 }

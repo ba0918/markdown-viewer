@@ -59,17 +59,22 @@ function render(component: preact.VNode) {
   return { container };
 }
 
-Deno.test("CopyButton: should render copy button", () => {
-  setupClipboardMock();
+Deno.test({
+  name: "CopyButton: should render copy button",
+  sanitizeResources: false, // useEffectのクリーンアップタイマーを許容
+  sanitizeOps: false,
+  fn() {
+    setupClipboardMock();
 
-  const { container } = render(<CopyButton text="Hello, World!" />);
-  const button = container.querySelector("button");
+    const { container } = render(<CopyButton text="Hello, World!" />);
+    const button = container.querySelector("button");
 
-  assertEquals(button !== null, true);
-  assertEquals(button?.getAttribute("aria-label"), "Copy to clipboard");
-  assertEquals(button?.getAttribute("title"), "Copy to clipboard");
+    assertEquals(button !== null, true);
+    assertEquals(button?.getAttribute("aria-label"), "Copy to clipboard");
+    assertEquals(button?.getAttribute("title"), "Copy to clipboard");
 
-  cleanupGlobals();
+    cleanupGlobals();
+  },
 });
 
 Deno.test({
@@ -162,66 +167,81 @@ Deno.test({
   },
 });
 
-Deno.test("CopyButton: should accept custom className", () => {
-  setupClipboardMock();
+Deno.test({
+  name: "CopyButton: should accept custom className",
+  sanitizeResources: false, // useEffectのクリーンアップタイマーを許容
+  sanitizeOps: false,
+  fn() {
+    setupClipboardMock();
 
-  const { container } = render(
-    <CopyButton text="Test" className="custom-copy-btn" />,
-  );
-  const button = container.querySelector("button");
+    const { container } = render(
+      <CopyButton text="Test" className="custom-copy-btn" />,
+    );
+    const button = container.querySelector("button");
 
-  assertEquals(button?.className, "custom-copy-btn");
+    assertEquals(button?.className, "custom-copy-btn");
 
-  cleanupGlobals();
+    cleanupGlobals();
+  },
 });
 
-Deno.test("CopyButton: should accept custom aria-label and title", () => {
-  setupClipboardMock();
+Deno.test({
+  name: "CopyButton: should accept custom aria-label and title",
+  sanitizeResources: false, // useEffectのクリーンアップタイマーを許容
+  sanitizeOps: false,
+  fn() {
+    setupClipboardMock();
 
-  const { container } = render(
-    <CopyButton
-      text="Test"
-      ariaLabel="カスタムラベル"
-      title="カスタムタイトル"
-    />,
-  );
-  const button = container.querySelector("button");
+    const { container } = render(
+      <CopyButton
+        text="Test"
+        ariaLabel="カスタムラベル"
+        title="カスタムタイトル"
+      />,
+    );
+    const button = container.querySelector("button");
 
-  assertEquals(button?.getAttribute("aria-label"), "カスタムラベル");
-  assertEquals(button?.getAttribute("title"), "カスタムタイトル");
+    assertEquals(button?.getAttribute("aria-label"), "カスタムラベル");
+    assertEquals(button?.getAttribute("title"), "カスタムタイトル");
 
-  cleanupGlobals();
+    cleanupGlobals();
+  },
 });
 
-Deno.test("CopyButton: should handle copy error gracefully", async () => {
-  // エラーを投げるモックを作成
-  // @ts-ignore: navigator.clipboard mock for testing
-  globalThis.navigator = {
-    // @ts-ignore: minimal clipboard mock
-    clipboard: {
-      writeText: () => Promise.reject(new Error("Clipboard access denied")),
-    },
-  };
+Deno.test({
+  name: "CopyButton: should handle copy error gracefully",
+  sanitizeResources: false, // useEffectのクリーンアップタイマーを許容
+  sanitizeOps: false,
+  async fn() {
+    // エラーを投げるモックを作成
+    // @ts-ignore: navigator.clipboard mock for testing
+    globalThis.navigator = {
+      // @ts-ignore: minimal clipboard mock
+      clipboard: {
+        writeText: () => Promise.reject(new Error("Clipboard access denied")),
+      },
+    };
 
-  // console.error のモック
-  const consoleErrors: unknown[] = [];
-  const originalConsoleError = console.error;
-  console.error = (...args: unknown[]) => {
-    consoleErrors.push(args);
-  };
+    // console.error のモック
+    const consoleErrors: unknown[] = [];
+    const originalConsoleError = console.error;
+    console.error = (...args: unknown[]) => {
+      consoleErrors.push(args);
+    };
 
-  const { container } = render(<CopyButton text="Test" />);
-  const button = container.querySelector("button");
+    const { container } = render(<CopyButton text="Test" />);
+    const button = container.querySelector("button");
 
-  // ボタンクリック
-  button?.click();
-  await new Promise((resolve) => setTimeout(resolve, 10));
+    // ボタンクリック
+    button?.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
-  // エラーがconsoleに出力されていることを確認
-  assertEquals(consoleErrors.length > 0, true);
+    // エラーがconsoleに出力されていることを確認
+    assertEquals(consoleErrors.length > 0, true);
 
-  // console.errorを元に戻す
-  console.error = originalConsoleError;
+    // console.errorを元に戻す
+    console.error = originalConsoleError;
 
-  cleanupGlobals();
+    cleanupGlobals();
+  },
 });

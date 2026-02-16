@@ -1,5 +1,5 @@
 import { h as _h } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 /**
  * CopyButton コンポーネント
@@ -29,12 +29,31 @@ export const CopyButton = ({
   title = "Copy to clipboard",
 }: Props) => {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof globalThis.setTimeout> | null>(
+    null,
+  );
+
+  // メモリリーク防止: アンマウント時にタイマーをクリア
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        globalThis.clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+
+      // 既存のタイマーがあればクリア
+      if (timerRef.current !== null) {
+        globalThis.clearTimeout(timerRef.current);
+      }
+
+      // 新しいタイマーを設定
+      timerRef.current = globalThis.setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy text:", error);
     }
