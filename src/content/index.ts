@@ -15,6 +15,8 @@ import {
   resolveRelativeLink,
 } from "../shared/utils/url-resolver.ts";
 import { logger } from "../shared/utils/logger.ts";
+import { escapeHtml } from "../shared/utils/escape-html.ts";
+import { MARKDOWN_EXTENSION_PATTERN } from "../shared/constants/markdown.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
@@ -45,18 +47,24 @@ declare const chrome: {
  * テーマCSS読み込み、Hot Reload、相対リンク解決も担当。
  */
 
-// グローバル変数でMarkdownコンテンツを保持（再レンダリング用）
-let currentMarkdown = "";
-
-// Hot Reload用のグローバル変数
-// Note: setInterval()の戻り値はブラウザ環境ではnumber、Deno環境ではTimeout型
-// ブラウザ実行時の型としてnumberを指定しつつ、Timeout型も許容
-let hotReloadInterval: ReturnType<typeof globalThis.setInterval> | null = null;
-let lastFileContent: string | null = null;
-
-// メモリリーク防止: リスナー重複登録防止フラグ
-let relativeLinkHandlerSetup = false;
-let storageListenerSetup = false;
+/**
+ * Content Script の状態を一箇所に集約
+ *
+ * 散在するグローバル変数を1つのオブジェクトにまとめて管理性を向上。
+ * Content Scriptの制約上（モジュールスコープで状態保持）、クラスは不要。
+ */
+const contentState = {
+  /** 現在のMarkdownコンテンツ（再レンダリング用） */
+  currentMarkdown: "",
+  /** Hot ReloadのインターバルタイマーID */
+  hotReloadInterval: null as ReturnType<typeof globalThis.setInterval> | null,
+  /** 最後に取得したファイルのSHA-256ハッシュ（Hot Reload変更検知用） */
+  lastFileHash: null as string | null,
+  /** 相対リンクハンドラの重複登録防止フラグ */
+  relativeLinkHandlerSetup: false,
+  /** Chrome Storage変更リスナーの重複登録防止フラグ */
+  storageListenerSetup: false,
+};
 
 // 現在のテーマをSignalで管理（リアクティブ）
 const currentTheme = signal<Theme>("light");
@@ -72,10 +80,10 @@ const isMarkdownFile = (): boolean => {
   const url = location.href;
 
   if (url.startsWith("file://") || url.startsWith("http://localhost")) {
-    return location.pathname.match(/\.(md|markdown)$/i) !== null;
+    return MARKDOWN_EXTENSION_PATTERN.test(location.pathname);
   }
 
-  const hasMarkdownExtension = /\.(md|markdown)$/i.test(url);
+  const hasMarkdownExtension = MARKDOWN_EXTENSION_PATTERN.test(url);
   if (hasMarkdownExtension) {
     return true;
   }
@@ -137,11 +145,51 @@ const loadThemeCss = (theme: Theme): void => {
 };
 
 /**
+ * ローカルURL判定
+ *
+ * Hot Reloadの対象をローカルファイル/localhostに制限するために使用。
+ * リモートURLへの不必要なポーリングを防止する。
+ *
+ * 対象: file://, localhost, 127.0.0.1, [::1], ::1
+ *
+ * @param url - 判定するURL文字列
+ * @returns ローカルURLの場合true
+ */
+const isLocalUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "file:") return true;
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      const hostname = parsed.hostname;
+      return hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "[::1]" ||
+        hostname === "::1";
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Hot Reloadを開始
+ *
+ * ローカルファイル（file://）およびlocalhost環境でのみ動作。
+ * リモートURLでは外部サーバーへの不必要な負荷を避けるため無効。
  *
  * @param interval - チェック間隔（ミリ秒、最小1000ms）
  */
 const startHotReload = async (interval: number): Promise<void> => {
+  // ローカルファイル/localhost以外はHot Reload非対応
+  if (!isLocalUrl(location.href)) {
+    logger.log(
+      "Hot Reload is only available for local files (file://) and localhost. " +
+        "Remote URLs are not supported to avoid unnecessary server load.",
+    );
+    return;
+  }
+
   // WSL2ファイルはChrome制限でHot Reload非対応
   if (isWslFile(location.href)) {
     logger.log(
@@ -150,15 +198,15 @@ const startHotReload = async (interval: number): Promise<void> => {
     return;
   }
 
-  if (hotReloadInterval !== null) {
-    clearInterval(hotReloadInterval);
+  if (contentState.hotReloadInterval !== null) {
+    clearInterval(contentState.hotReloadInterval);
   }
 
   const safeInterval = Math.max(interval, 2000);
 
-  // WSL2 files are blocked by Chrome security policy
+  // 初回ハッシュを取得（background側でSHA-256計算済み）
   try {
-    lastFileContent = await sendMessage<string>({
+    contentState.lastFileHash = await sendMessage<string>({
       type: "CHECK_FILE_CHANGE",
       payload: { url: location.href },
     });
@@ -170,17 +218,17 @@ const startHotReload = async (interval: number): Promise<void> => {
 
   let isChecking = false;
 
-  hotReloadInterval = globalThis.setInterval(async () => {
+  contentState.hotReloadInterval = globalThis.setInterval(async () => {
     if (isChecking) return;
 
     isChecking = true;
     try {
-      const currentContent = await sendMessage<string>({
+      const currentHash = await sendMessage<string>({
         type: "CHECK_FILE_CHANGE",
         payload: { url: location.href },
       });
 
-      const changed = currentContent !== lastFileContent;
+      const changed = currentHash !== contentState.lastFileHash;
 
       if (changed) {
         logger.log("File changed detected! Reloading...");
@@ -205,10 +253,10 @@ const startHotReload = async (interval: number): Promise<void> => {
  * Hot Reloadを停止
  */
 const stopHotReload = (): void => {
-  if (hotReloadInterval !== null) {
-    clearInterval(hotReloadInterval);
-    hotReloadInterval = null;
-    lastFileContent = null;
+  if (contentState.hotReloadInterval !== null) {
+    clearInterval(contentState.hotReloadInterval);
+    contentState.hotReloadInterval = null;
+    contentState.lastFileHash = null;
     logger.log("Hot Reload stopped");
   }
 };
@@ -220,8 +268,8 @@ const stopHotReload = (): void => {
  * 絶対URL（例: file://[base-url]/docs/ARCHITECTURE.md）に変換してナビゲートする。
  */
 const setupRelativeLinkHandler = (): void => {
-  if (relativeLinkHandlerSetup) return;
-  relativeLinkHandlerSetup = true;
+  if (contentState.relativeLinkHandlerSetup) return;
+  contentState.relativeLinkHandlerSetup = true;
 
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
@@ -297,7 +345,9 @@ const renderMarkdown = async (
     document.body.innerHTML = `
       <div style="padding: 2rem; background: #fff5f5; color: #c53030;">
         <h1>⚠️ Markdown Viewer Error</h1>
-        <p>${error instanceof Error ? error.message : "Unknown error"}</p>
+        <p>${
+      escapeHtml(error instanceof Error ? error.message : "Unknown error")
+    }</p>
       </div>
     `;
   }
@@ -309,8 +359,8 @@ const renderMarkdown = async (
 const init = async () => {
   if (!isMarkdownFile()) return;
 
-  if (!currentMarkdown) {
-    currentMarkdown = document.body.textContent || "";
+  if (!contentState.currentMarkdown) {
+    contentState.currentMarkdown = document.body.textContent || "";
   }
 
   document.body.innerHTML = "";
@@ -333,7 +383,7 @@ const init = async () => {
     });
 
     await renderMarkdown(
-      currentMarkdown,
+      contentState.currentMarkdown,
       settings.theme,
       false,
       initialTocState,
@@ -344,11 +394,16 @@ const init = async () => {
     }
   } catch (error) {
     console.error("Failed to load settings, using default theme:", error);
-    await renderMarkdown(currentMarkdown, "light", false, initialTocState);
+    await renderMarkdown(
+      contentState.currentMarkdown,
+      "light",
+      false,
+      initialTocState,
+    );
   }
 
-  if (storageListenerSetup) return;
-  storageListenerSetup = true;
+  if (contentState.storageListenerSetup) return;
+  contentState.storageListenerSetup = true;
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area === "sync" && changes.appState) {
