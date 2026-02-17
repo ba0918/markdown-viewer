@@ -1,9 +1,6 @@
 import { h as _h } from "preact";
-import { useEffect, useState } from "preact/hooks";
-import { sendMessage } from "../../messaging/client.ts";
 import { ThemeSelector } from "./components/ThemeSelector.tsx";
-import type { AppState } from "../../shared/types/state.ts";
-import type { Theme } from "../../shared/types/theme.ts";
+import { useSettings } from "../shared/hooks/useSettings.ts";
 
 /**
  * Popup メインコンポーネント
@@ -12,44 +9,8 @@ import type { Theme } from "../../shared/types/theme.ts";
  * messaging経由でテーマ設定の読み込み・保存を行う。
  */
 export const App = () => {
-  const [settings, setSettings] = useState<AppState | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // 初期設定の読み込み
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await sendMessage<AppState>({
-        type: "GET_SETTINGS",
-        payload: {},
-      });
-      setSettings(response);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load settings");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleThemeChange = async (theme: Theme) => {
-    if (!settings) return; // nullガード追加
-    try {
-      setError(null);
-      await sendMessage({
-        type: "UPDATE_THEME",
-        payload: { themeId: theme },
-      });
-      setSettings({ ...settings, theme });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update theme");
-    }
-  };
+  const { settings, loading, error, handleThemeChange, loadSettings } =
+    useSettings();
 
   if (loading) {
     return (

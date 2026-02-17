@@ -4,7 +4,7 @@ import { sendMessage } from "../../messaging/client.ts";
 import { ThemeSelector } from "./components/ThemeSelector.tsx";
 import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
 import { RemoteUrlSettings } from "./components/RemoteUrlSettings.tsx";
-import type { AppState } from "../../shared/types/state.ts";
+import { useSettings } from "../shared/hooks/useSettings.ts";
 import type { Theme } from "../../shared/types/theme.ts";
 
 /**
@@ -14,19 +14,20 @@ import type { Theme } from "../../shared/types/theme.ts";
  * messaging経由で設定の読み込み・保存を行う。
  */
 export const App = () => {
-  const [settings, setSettings] = useState<AppState | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    settings,
+    loading,
+    error,
+    setSettings,
+    setError,
+    handleThemeChange,
+    loadSettings,
+  } = useSettings();
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   // メモリリーク防止: saveMessageタイマーを管理
   const saveMessageTimerRef = useRef<
     ReturnType<typeof globalThis.setTimeout> | null
   >(null);
-
-  // 初期設定の読み込み
-  useEffect(() => {
-    loadSettings();
-  }, []);
 
   // メモリリーク防止: アンマウント時にタイマーをクリア
   useEffect(() => {
@@ -50,36 +51,12 @@ export const App = () => {
     );
   };
 
-  const loadSettings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await sendMessage<AppState>({
-        type: "GET_SETTINGS",
-        payload: {},
-      });
-      setSettings(response);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load settings");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleThemeChange = async (theme: Theme) => {
-    if (!settings) return; // nullガード追加
-    try {
-      setError(null);
-      setSaveMessage(null);
-      await sendMessage({
-        type: "UPDATE_THEME",
-        payload: { themeId: theme },
-      });
-      setSettings({ ...settings, theme });
+  /** テーマ変更ハンドラ（成功時にsaveMessage表示） */
+  const onThemeChange = async (theme: Theme) => {
+    setSaveMessage(null);
+    await handleThemeChange(theme, () => {
       showSaveMessage("Theme saved ✓");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update theme");
-    }
+    });
   };
 
   const handleHotReloadChange = async (
@@ -102,15 +79,19 @@ export const App = () => {
         },
       });
 
-      // ローカル状態を更新
-      setSettings({
-        ...settings,
-        hotReload: {
-          enabled,
-          interval: interval ?? settings.hotReload.interval,
-          autoReload: autoReload ?? settings.hotReload.autoReload,
-        },
-      });
+      // ローカル状態を更新（関数型更新でstale closure回避）
+      setSettings((prev) =>
+        prev
+          ? {
+            ...prev,
+            hotReload: {
+              enabled,
+              interval: interval ?? prev.hotReload.interval,
+              autoReload: autoReload ?? prev.hotReload.autoReload,
+            },
+          }
+          : prev
+      );
 
       showSaveMessage("Settings saved ✓");
     } catch (err) {
@@ -165,7 +146,7 @@ export const App = () => {
           <h2 class="section-title">Appearance</h2>
           <ThemeSelector
             current={settings.theme}
-            onChange={handleThemeChange}
+            onChange={onThemeChange}
           />
         </section>
 
