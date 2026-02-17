@@ -289,37 +289,60 @@ export const TableOfContents = ({
     };
 
     /**
-     * DOMに見出し要素が存在するまでポーリングで待機
+     * DOMに見出し要素が存在するまで待機
      * Chrome拡張環境では、dangerouslySetInnerHTMLによるDOM更新が
      * useEffect実行時にまだ完了していない場合がある
+     *
+     * MutationObserverを使用してDOM変更を効率的に検知する
+     * （以前の50msポーリングより低CPU負荷）
      */
     let scrollCleanup: (() => void) | null = null;
-    const POLL_INTERVAL = 50; // 50ms間隔
-    const MAX_POLL_TIME = 2000; // 最大2秒
-    let elapsed = 0;
+    let mutationObserver: MutationObserver | null = null;
+    const MAX_WAIT_TIME = 2000; // 最大2秒
 
-    const pollForHeadings = () => {
+    const trySetupObserver = () => {
       if (isCleanedUp) return;
-
       const headings = getContentHeadings();
       if (headings.length > 0) {
-        // 見出しが見つかった → Observerセットアップ
         scrollCleanup = setupObserver(headings) || null;
-      } else if (elapsed < MAX_POLL_TIME) {
-        // まだ見出しがない → 再試行
-        elapsed += POLL_INTERVAL;
-        pollingTimer = setTimeout(pollForHeadings, POLL_INTERVAL);
+        // 見出しが見つかったらMutationObserverは不要
+        if (mutationObserver) {
+          mutationObserver.disconnect();
+          mutationObserver = null;
+        }
       }
     };
 
     // 即座に試行（DOMが既に準備できている場合のため）
-    pollForHeadings();
+    trySetupObserver();
+
+    // まだ見出しが見つからない場合、MutationObserverでDOM変更を監視
+    if (!scrollCleanup) {
+      mutationObserver = new MutationObserver(() => {
+        trySetupObserver();
+      });
+      mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+      // タイムアウト: 一定時間後にMutationObserverを停止
+      pollingTimer = setTimeout(() => {
+        if (mutationObserver) {
+          mutationObserver.disconnect();
+          mutationObserver = null;
+        }
+      }, MAX_WAIT_TIME);
+    }
 
     return () => {
       isCleanedUp = true;
       if (observer) observer.disconnect();
       if (pollingTimer) clearTimeout(pollingTimer);
       if (scrollCleanup) scrollCleanup();
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+        mutationObserver = null;
+      }
     };
   }, [items, findLastPassedHeading, getContentHeadings]);
 

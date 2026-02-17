@@ -84,6 +84,17 @@ function setupMocks() {
     }
   };
 
+  // MutationObserver のモック
+  // @ts-ignore: MutationObserver mock for testing
+  globalThis.MutationObserver = class MutationObserver {
+    _callback: () => void;
+    constructor(callback: () => void) {
+      this._callback = callback;
+    }
+    observe() {}
+    disconnect() {}
+  };
+
   // requestAnimationFrame のモック
   // @ts-ignore: requestAnimationFrame mock for testing
   globalThis.requestAnimationFrame = (cb: () => void) => {
@@ -102,6 +113,8 @@ function cleanupMocks() {
   delete globalThis.chrome;
   // @ts-ignore: cleanup test mock
   delete globalThis.IntersectionObserver;
+  // @ts-ignore: cleanup test mock
+  delete globalThis.MutationObserver;
   latestObserverInstance = null;
   chromeStorage = {};
 }
