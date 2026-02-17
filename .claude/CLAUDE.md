@@ -32,11 +32,15 @@ Markdown Viewer Chrome拡張 - セキュリティファーストなローカルM
 
 **⚠️ E2Eは自動実行されない → 手動確認必須**
 
+**⚠️ E2E実行前に `deno task build:dev`
+必須**（古いビルドでテストすると変更が反映されない）
+
 **コミット前必須チェック**:
 
 ```bash
 deno task lint           # Lint 0件
 deno task test           # Unit test全通過
+deno task build:dev      # E2E前に必ずビルド！（忘れると古いコードでテストされる）
 deno task test:e2e:wsl2  # E2E全通過（手動必須！pre-commitで実行されない）
 ```
 
