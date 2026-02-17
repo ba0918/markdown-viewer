@@ -60,9 +60,15 @@ export const createCheckFileChangeAction = (): ActionHandler => {
       try {
         const hash = await computeSHA256(content);
         return { success: true, data: hash };
-      } catch {
-        // フォールバック: ハッシュ計算失敗時はコンテンツ全体を返す
-        return { success: true, data: content };
+      } catch (error) {
+        const errorMsg = error instanceof Error
+          ? error.message
+          : "Unknown error";
+        return {
+          success: false,
+          error:
+            `Hash computation failed: ${errorMsg}. Hot Reload is unavailable in this environment.`,
+        };
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Unknown error";

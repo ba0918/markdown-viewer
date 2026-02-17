@@ -49,3 +49,6 @@ example/
 
 # Implementation plans (internal use)
 .claude/plans/
+
+# Review reports (session artifacts, not part of codebase)
+docs/reviews/

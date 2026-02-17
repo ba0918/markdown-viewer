@@ -15,9 +15,6 @@ import {
   DEFAULT_VIEW_MODE,
   type ViewMode,
 } from "../../shared/types/view-mode.ts";
-// NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
-// import { DocumentHeaderMenu } from "../../ui-components/markdown/DocumentHeaderMenu/DocumentHeaderMenu.tsx";
-// import { ExportMenuItem } from "../../ui-components/markdown/DocumentHeaderMenu/ExportMenuItem.tsx";
 import type { Theme } from "../../shared/types/theme.ts";
 import { useCopyButtons } from "./hooks/useCopyButtons.ts";
 import { useMathJax } from "./hooks/useMathJax.ts";
@@ -34,11 +31,11 @@ interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<Theme>;
   initialTocState?: TocState; // ToC初期状態（CLS削減用）
-  fileUrl: string; // ファイルURL (エクスポート用 + 画像Base64変換の基準URL) ※現在未使用
+  fileUrl: string; // ファイルURL (画像Base64変換の基準URL)
 }
 
 export const MarkdownViewer = (
-  { result, themeId, initialTocState, fileUrl: _fileUrl }: Props,
+  { result, themeId, initialTocState }: Props,
 ) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
@@ -50,7 +47,7 @@ export const MarkdownViewer = (
   const [isLoaded, setIsLoaded] = useState(false); // 初期レイアウト確定フラグ（CLS削減）
 
   // TOC生成（Frontmatter除外済みのcontentを使用）
-  // ADR-007例外: domain純粋関数の直接呼び出し（services層経由不要）
+  // ADR-007例外: TOC生成はdomain純粋関数の直接呼び出し（TocService削除済み、唯一のTOC生成パス）
   useEffect(() => {
     const headings = extractHeadings(result.content);
     const normalized = normalizeHeadingLevels(headings);
@@ -90,19 +87,6 @@ export const MarkdownViewer = (
   // - ToCが非表示の場合: 最小サイドバー幅（40px）
   const marginLeft = isTocVisible ? tocState.width : 40;
 
-  // NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
-  // Export用: DOM上のレンダリング済みHTMLを取得
-  // Mermaid SVG・MathJax SVGが含まれた状態のHTMLを返す
-  // コピーボタン等のUI要素はクリーンアップして除外する
-  // const getRenderedHTML = useCallback((): string => {
-  //   if (!containerRef.current) return result.html;
-  //   const clone = containerRef.current.cloneNode(true) as HTMLElement;
-  //   clone.querySelectorAll(".code-block-copy-button").forEach((btn) => {
-  //     btn.closest("div:not(.code-block-wrapper)")?.remove();
-  //   });
-  //   return clone.innerHTML;
-  // }, [result.html]);
-
   // カスタムフック: コードブロックにコピーボタンを追加
   useCopyButtons(containerRef, viewMode);
 
@@ -130,17 +114,6 @@ export const MarkdownViewer = (
         }}
         themeId={themeId.value}
       >
-        {
-          /* NOTE: Export HTML機能は一時的に無効化。コードは保持（将来の復活用）
-        <DocumentHeaderMenu>
-          <ExportMenuItem
-            getRenderedHTML={getRenderedHTML}
-            themeId={themeId}
-            fileUrl={fileUrl}
-          />
-        </DocumentHeaderMenu>
-        */
-        }
       </DocumentHeader>
       <TableOfContents
         items={tocItems}

@@ -40,13 +40,6 @@ const mockStorage = new Map<string, unknown>();
     onChanged: { addListener: () => {} },
   },
   runtime: { getURL: (path: string) => `chrome-extension://test-id/${path}` },
-  downloads: {
-    download: () => Promise.resolve(1),
-    onDeterminingFilename: {
-      addListener: () => {},
-      removeListener: () => {},
-    },
-  },
 };
 (globalThis as any).DEBUG = false;
 
@@ -58,8 +51,6 @@ const EXPECTED_MESSAGE_TYPES = [
   "CHECK_FILE_CHANGE",
   "GET_SETTINGS",
   "UPDATE_SETTINGS",
-  "GENERATE_EXPORT_HTML",
-  "EXPORT_AND_DOWNLOAD",
 ];
 
 Deno.test("action-registry: 全メッセージタイプが登録されている", () => {

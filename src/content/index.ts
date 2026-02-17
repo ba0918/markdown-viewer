@@ -26,25 +26,6 @@ import { startHotReload, stopHotReload } from "./hot-reload.ts";
 import { setupRelativeLinkHandler } from "./relative-links.ts";
 import { loadThemeCss } from "./theme-loader.ts";
 
-// Chrome API型定義（実行時はグローバルに存在する）
-declare const chrome: {
-  storage: {
-    sync: {
-      get: (
-        keys: string | string[],
-      ) => Promise<Record<string, unknown>>;
-    };
-    onChanged: {
-      addListener: (
-        callback: (
-          changes: Record<string, { newValue?: unknown; oldValue?: unknown }>,
-          area: string,
-        ) => void,
-      ) => void;
-    };
-  };
-};
-
 /**
  * Content Script の状態を一箇所に集約
  *

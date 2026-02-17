@@ -19,16 +19,6 @@ import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
 import { useResizable } from "./useResizable.ts";
 import { toggleCollapsedItem } from "../../../domain/toc/collapse-manager.ts";
 
-// Chrome API型定義（実行時はグローバルに存在する）
-declare const chrome: {
-  storage: {
-    sync: {
-      get: (keys: string[]) => Promise<Record<string, unknown>>;
-      set: (items: Record<string, unknown>) => Promise<void>;
-    };
-  };
-};
-
 interface Props {
   /** TOCアイテムリスト */
   items: TocItem[];

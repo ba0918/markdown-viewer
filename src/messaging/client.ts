@@ -1,13 +1,5 @@
 import type { Message, MessageResponse } from "./types.ts";
 
-// Chrome API型定義（実行時はグローバルに存在する）
-declare const chrome: {
-  runtime: {
-    // deno-lint-ignore no-explicit-any
-    sendMessage: (message: Message) => Promise<any>;
-  };
-};
-
 /**
  * メッセージ送信ヘルパー
  * chrome.runtime.sendMessage() のラッパー

@@ -121,10 +121,11 @@ export function sanitizeSvg(svgString: string): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgString, "image/svg+xml");
 
-  // パースエラーの場合はそのまま返す（DOMParserはエラー時にparsererrorを返す）
+  // パースエラーの場合は安全に空文字列を返す（悪意のあるSVGのバイパス防止）
   const parserError = doc.querySelector("parsererror");
   if (parserError) {
-    return svgString;
+    console.error("SVG sanitization failed: parse error detected");
+    return "";
   }
 
   // script要素を除去

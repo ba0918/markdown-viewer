@@ -63,9 +63,8 @@ export function parseFrontmatter(markdown: string): FrontmatterResult {
           Object.prototype.hasOwnProperty.call(data, "constructor") ||
           Object.prototype.hasOwnProperty.call(data, "prototype")
         ) {
-          // セキュリティ警告: プロトタイプ汚染攻撃の検出は意図的にconsole.warnを使用
-          // domain層はesbuildのDEBUG定数に依存するloggerを使用しない（テスト互換性のため）
-          console.warn(
+          // セキュリティ警告: console.errorはエラーハンドリング用として許可（CLAUDE.mdルール準拠）
+          console.error(
             "Frontmatter: Prototype pollution attempt detected, ignoring data",
           );
           data = {};
@@ -80,8 +79,8 @@ export function parseFrontmatter(markdown: string): FrontmatterResult {
     };
   } catch (error) {
     // エラー時（不正なYAMLフォーマット等）は元のテキストをそのまま返す
-    // domain層はloggerを使用しない（テスト互換性のため）
-    console.warn("Frontmatter parse error:", error);
+    // console.errorはエラーハンドリング用として許可（CLAUDE.mdルール準拠）
+    console.error("Frontmatter parse error:", error);
     return {
       data: {},
       content: markdown,

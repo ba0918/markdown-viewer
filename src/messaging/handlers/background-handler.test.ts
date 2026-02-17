@@ -58,13 +58,6 @@ const mockStorage = new Map<string, unknown>();
   runtime: {
     getURL: (path: string) => `chrome-extension://test-id/${path}`,
   },
-  downloads: {
-    download: () => Promise.resolve(1),
-    onDeterminingFilename: {
-      addListener: () => {},
-      removeListener: () => {},
-    },
-  },
 };
 
 // グローバルDEBUGフラグ設定（logger依存）
@@ -284,43 +277,6 @@ Deno.test("UPDATE_SETTINGS: payloadがnullの場合エラー", async () => {
   if (!result.success) {
     assertEquals(result.error.includes("object required"), true);
   }
-});
-
-// --- GENERATE_EXPORT_HTML バリデーション ---
-
-Deno.test("GENERATE_EXPORT_HTML: htmlが欠損の場合エラー", async () => {
-  const message = {
-    type: "GENERATE_EXPORT_HTML",
-    payload: { html: 123, themeId: "light", filename: "test.md" },
-  } as any as Message;
-  const result = await handleBackgroundMessage(message);
-  assertEquals(result.success, false);
-  if (!result.success) {
-    assertEquals(
-      result.error.includes("html and filename must be strings"),
-      true,
-    );
-  }
-});
-
-Deno.test("GENERATE_EXPORT_HTML: filenameが欠損の場合エラー", async () => {
-  const message = {
-    type: "GENERATE_EXPORT_HTML",
-    payload: { html: "<p>test</p>", themeId: "light", filename: 42 },
-  } as any as Message;
-  const result = await handleBackgroundMessage(message);
-  assertEquals(result.success, false);
-});
-
-// --- EXPORT_AND_DOWNLOAD バリデーション ---
-
-Deno.test("EXPORT_AND_DOWNLOAD: htmlが欠損の場合エラー", async () => {
-  const message = {
-    type: "EXPORT_AND_DOWNLOAD",
-    payload: { html: null, themeId: "light", filename: "test.md" },
-  } as any as Message;
-  const result = await handleBackgroundMessage(message);
-  assertEquals(result.success, false);
 });
 
 // --- 未知のメッセージタイプ ---

@@ -2,18 +2,6 @@ import type { AppState } from "../shared/types/state.ts";
 import type { Theme } from "../shared/types/theme.ts";
 import { DEFAULT_THEME, VALID_THEMES } from "../shared/constants/themes.ts";
 
-// Chrome API型定義（実行時はグローバルに存在する）
-// テスト時はモックで上書きされる
-declare const chrome: {
-  storage: {
-    sync: {
-      get: (keys: string | string[] | null) => Promise<Record<string, unknown>>;
-      set: (items: Record<string, unknown>) => Promise<void>;
-      clear: () => Promise<void>;
-    };
-  };
-};
-
 /**
  * StateManager
  *
@@ -76,9 +64,14 @@ export class StateManager {
   /**
    * 状態を保存する（部分更新）
    *
-   * 既存の状態とマージして保存
+   * 既存の状態とマージして保存。
+   * hotReloadは深くマージされるため、部分的なフィールドのみの更新も可能。
    */
-  async save(partialState: Partial<AppState>): Promise<void> {
+  async save(
+    partialState: Partial<Omit<AppState, "hotReload">> & {
+      hotReload?: Partial<AppState["hotReload"]>;
+    },
+  ): Promise<void> {
     const currentState = await this.load();
     const newState: AppState = {
       ...currentState,
@@ -102,16 +95,13 @@ export class StateManager {
 
   /**
    * HotReload設定のみを更新する
+   *
+   * save()内でload()→マージ→保存を行うため、外側でのload()は不要。
+   * 冗長なload()を排除してレースコンディションリスクを低減。
    */
   async updateHotReload(
     hotReload: Partial<AppState["hotReload"]>,
   ): Promise<void> {
-    const currentState = await this.load();
-    await this.save({
-      hotReload: {
-        ...currentState.hotReload,
-        ...hotReload,
-      },
-    });
+    await this.save({ hotReload });
   }
 }

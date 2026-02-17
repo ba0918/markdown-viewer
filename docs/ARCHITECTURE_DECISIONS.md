@@ -428,8 +428,8 @@ const items = buildTocTree(normalized);
 
 **理由**: TOC生成は`extractHeadings` → `normalizeHeadingLevels` →
 `buildTocTree`の3つの純粋関数の組み合わせ。
-services層（TocService）はこれらを呼ぶだけでビジネスロジックを追加していないため、
-content層から直接呼び出しても判断基準1（副作用がない）を満たす。
+TocServiceは単純ラッパーで利点がなかったため削除済み。
+MarkdownViewer.tsxが唯一のTOC生成パスとなっている。
 
 ### 判断基準
 
@@ -453,7 +453,7 @@ content層から直接呼び出しても判断基準1（副作用がない）を
 
 ---
 
-## ADR-008: Export HTML機能の一時無効化とデッドコード保持
+## ADR-008: Export HTML機能の別ブランチ退避
 
 ### 日付
 
@@ -461,7 +461,7 @@ content層から直接呼び出しても判断基準1（副作用がない）を
 
 ### ステータス
 
-承認済み
+廃止（コード退避済み）
 
 ### コンテキスト
 
@@ -472,15 +472,25 @@ chrome.downloads
 APIを使用する実装になっていた。しかし、ストア公開時の権限削減方針により
 downloads権限を削除した結果、Background
 Script経由のダウンロード方式に変更したが、
-一部エッジケースで不安定なため一時無効化している。
+一部エッジケースで不安定なため一時無効化していた。
+
+コードベースレビュー（82/100）でデッドコードとして指摘されたため、
+メインブランチからの削除を決定。
 
 ### 決定
 
-- **コード保持**: DocumentHeaderMenu.tsx, ExportMenuItem.tsx, export-service.ts,
-  html-exporter.ts, base64-encoder.tsは削除せず保持する
-- **importコメントアウト**: MarkdownViewer.tsxのimportをコメントアウトで無効化
-- **復活条件**: Blob URL問題の代替解決策が見つかった場合
-- **期限**: 次回メジャーバージョンアップ（v2.0）時に削除判断
+- **別ブランチ退避**: `feature/export-html` ブランチにコードを保存
+- **メインから削除**: 以下のファイル群をすべて削除
+  - `src/ui-components/markdown/DocumentHeaderMenu/`
+  - `src/shared/utils/file-name-parser.ts`
+  - `src/services/export-service.ts`
+  - `src/domain/export/`
+  - `src/messaging/handlers/actions/export-and-download.ts`
+  - `src/messaging/handlers/actions/generate-export-html.ts`
+  - `src/styles/components/document-header-menu/`
+  - `tests/e2e/html-export.spec.ts`
+  - messaging types/action-registry からのExport関連エントリ
+- **復活方法**: `feature/export-html` ブランチからチェリーピック
 
 ### 復活時の必須対応
 

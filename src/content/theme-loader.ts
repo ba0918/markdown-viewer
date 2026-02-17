@@ -9,13 +9,6 @@ import type { Theme } from "../shared/types/theme.ts";
 import { getThemeCssPath } from "../shared/constants/themes.ts";
 import { logger } from "../shared/utils/logger.ts";
 
-// Chrome API型定義（実行時はグローバルに存在する）
-declare const chrome: {
-  runtime: {
-    getURL: (path: string) => string;
-  };
-};
-
 /**
  * テーマCSSファイルのURLを取得
  */
