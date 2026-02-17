@@ -19,6 +19,15 @@ import { DEFAULT_TOC_STATE } from "../../../shared/types/toc.ts";
 import { useResizable } from "./useResizable.ts";
 import { toggleSetItem as toggleCollapsedItem } from "../../../shared/utils/toggle-set-item.ts";
 
+/**
+ * chrome.storage.sync が利用可能かチェック
+ * E2Eテスト環境等ではchrome.storageが存在しない場合がある
+ */
+const isStorageAvailable = (): boolean => {
+  return typeof chrome !== "undefined" && !!chrome.storage &&
+    !!chrome.storage.sync;
+};
+
 interface Props {
   /** TOCアイテムリスト */
   items: TocItem[];
@@ -71,7 +80,7 @@ export const TableOfContents = ({
 
     // chrome.storage が利用可能かチェック
     if (
-      typeof chrome === "undefined" || !chrome.storage || !chrome.storage.sync
+      !isStorageAvailable()
     ) {
       // E2E環境などchrome.storageが使えない場合はデフォルト値を使用
       setIsLoaded(true);
@@ -105,10 +114,7 @@ export const TableOfContents = ({
       setTocState(newState);
       onTocStateChange?.(newState);
 
-      // E2E環境などでchrome.storageが使えない場合はスキップ
-      if (
-        typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
-      ) {
+      if (isStorageAvailable()) {
         chrome.storage.sync.set({ tocState: newState }).catch(() => {
           // 保存失敗時は無視
         });
@@ -124,10 +130,7 @@ export const TableOfContents = ({
     setTocState(newState);
     onTocStateChange?.(newState);
 
-    // E2E環境などでchrome.storageが使えない場合はスキップ
-    if (
-      typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
-    ) {
+    if (isStorageAvailable()) {
       chrome.storage.sync.set({ tocState: newState }).catch(() => {
         // 保存失敗時は無視
       });
@@ -146,10 +149,7 @@ export const TableOfContents = ({
     setTocState(newState);
     onTocStateChange?.(newState);
 
-    // E2E環境などでchrome.storageが使えない場合はスキップ
-    if (
-      typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync
-    ) {
+    if (isStorageAvailable()) {
       chrome.storage.sync.set({ tocState: newState }).catch(() => {
         // 保存失敗時は無視
       });
