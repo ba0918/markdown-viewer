@@ -13,8 +13,9 @@ export const createUpdateSettingsAction = (
     if (!payload || typeof payload !== "object") {
       return { success: false, error: "Invalid payload: object required" };
     }
-    await stateManager.save(payload as Record<string, unknown>);
-    const updated = await stateManager.load();
+    const updated = await stateManager.saveAndLoad(
+      payload as Record<string, unknown>,
+    );
     return { success: true, data: updated };
   };
 };
