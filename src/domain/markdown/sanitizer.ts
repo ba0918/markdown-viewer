@@ -61,6 +61,10 @@ const xssOptions = {
       return `href="${safeValue}"`;
     }
     // img srcは file: を許可（ローカル画像参照用）
+    // Note: <a href>ではfile:をブロックするが、<img src>では許可する。
+    // ローカルMarkdownファイル内の画像参照（例: file:///path/to/image.png）を
+    // 表示するために必要。ナビゲーションを伴うリンク（<a>）とは異なり、
+    // 画像読み込みのセキュリティリスクは限定的。
     if (tag === "img" && name === "src") {
       const dangerous = ["javascript:", "data:", "vbscript:"];
       const lowerValue = value.toLowerCase().trim();

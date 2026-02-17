@@ -11,7 +11,7 @@ export interface AppState {
   hotReload: {
     /** Hot Reload有効化 */
     enabled: boolean;
-    /** チェック間隔（秒）。0 = タブフォーカス時のみ */
+    /** チェック間隔（ミリ秒）。0 = タブフォーカス時のみ */
     interval: number;
     /** 自動リロード（通知なし） */
     autoReload: boolean;
