@@ -1,5 +1,5 @@
 import { h as _h } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { validateHotReloadInterval } from "../../../shared/utils/validators.ts";
 
 interface HotReloadSettingsProps {
@@ -25,6 +25,17 @@ export const HotReloadSettings = ({
   const [localInterval, setLocalInterval] = useState(interval);
   const [localAutoReload, setLocalAutoReload] = useState(autoReload);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // 親propsの変更をローカルstateに同期
+  useEffect(() => {
+    setLocalEnabled(enabled);
+  }, [enabled]);
+  useEffect(() => {
+    setLocalInterval(interval);
+  }, [interval]);
+  useEffect(() => {
+    setLocalAutoReload(autoReload);
+  }, [autoReload]);
 
   const handleToggle = () => {
     const newEnabled = !localEnabled;

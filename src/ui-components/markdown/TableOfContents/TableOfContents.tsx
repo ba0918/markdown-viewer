@@ -91,7 +91,8 @@ export const TableOfContents = ({
       // storage取得失敗時はデフォルト値を使用
       setIsLoaded(true);
     });
-  }, [onTocStateChange, initialState]);
+    // deps: onTocStateChangeはコールバック参照のため除外（再レンダリングループ防止）
+  }, [initialState]);
 
   // Resize Hook
   const { width, isResizing, startResize } = useResizable({
