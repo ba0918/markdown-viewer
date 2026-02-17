@@ -46,6 +46,7 @@ test-results/
 
 # Example files (reference implementation)
 example/
+docs/competitor-analysis
 
 # Implementation plans (internal use)
 .claude/plans/
