@@ -59,9 +59,10 @@ jobs:
         uses: codecov/codecov-action@v5
         if: matrix.deno-version == '2.x'
         with:
-          file: ./coverage.lcov
+          files: ./coverage.lcov
           flags: unittests
           name: codecov-umbrella
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
       - name: Setup Playwright
