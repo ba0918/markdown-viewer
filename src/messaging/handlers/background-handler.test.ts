@@ -256,29 +256,6 @@ Deno.test("GET_SETTINGS: 設定を返す", async () => {
   }
 });
 
-// --- UPDATE_SETTINGS バリデーション ---
-
-Deno.test("UPDATE_SETTINGS: 有効なオブジェクトでsuccessを返す", async () => {
-  const message = {
-    type: "UPDATE_SETTINGS",
-    payload: { theme: "dark" },
-  } as any as Message;
-  const result = await handleBackgroundMessage(message);
-  assertEquals(result.success, true);
-});
-
-Deno.test("UPDATE_SETTINGS: payloadがnullの場合エラー", async () => {
-  const message = {
-    type: "UPDATE_SETTINGS",
-    payload: null,
-  } as any as Message;
-  const result = await handleBackgroundMessage(message);
-  assertEquals(result.success, false);
-  if (!result.success) {
-    assertEquals(result.error.includes("object required"), true);
-  }
-});
-
 // --- 未知のメッセージタイプ ---
 
 Deno.test("Unknown message type: エラーを返す", async () => {

@@ -50,7 +50,6 @@ const EXPECTED_MESSAGE_TYPES = [
   "UPDATE_HOT_RELOAD",
   "CHECK_FILE_CHANGE",
   "GET_SETTINGS",
-  "UPDATE_SETTINGS",
 ];
 
 Deno.test("action-registry: 全メッセージタイプが登録されている", () => {

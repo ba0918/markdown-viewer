@@ -6,7 +6,6 @@ import { createUpdateThemeAction } from "./actions/update-theme.ts";
 import { createUpdateHotReloadAction } from "./actions/update-hot-reload.ts";
 import { createCheckFileChangeAction } from "./actions/check-file-change.ts";
 import { createGetSettingsAction } from "./actions/get-settings.ts";
-import { createUpdateSettingsAction } from "./actions/update-settings.ts";
 
 /**
  * メッセージタイプ → アクション関数のレジストリ
@@ -24,6 +23,5 @@ export const createActionRegistry = (): Record<string, ActionHandler> => {
     UPDATE_HOT_RELOAD: createUpdateHotReloadAction(stateManager),
     CHECK_FILE_CHANGE: createCheckFileChangeAction(),
     GET_SETTINGS: createGetSettingsAction(stateManager),
-    UPDATE_SETTINGS: createUpdateSettingsAction(stateManager),
   };
 };

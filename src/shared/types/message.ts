@@ -1,5 +1,4 @@
 import type { Theme } from "./theme.ts";
-import type { AppState } from "./state.ts";
 
 /**
  * メッセージ型定義
@@ -13,8 +12,7 @@ export type Message =
     payload: { enabled: boolean; interval: number; autoReload: boolean };
   }
   | { type: "CHECK_FILE_CHANGE"; payload: { url: string } }
-  | { type: "GET_SETTINGS"; payload: Record<string, never> }
-  | { type: "UPDATE_SETTINGS"; payload: Partial<AppState> };
+  | { type: "GET_SETTINGS"; payload: Record<string, never> };
 
 /**
  * メッセージレスポンス型定義
