@@ -42,7 +42,8 @@ export const useSettings = (): UseSettingsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 初期設定の読み込み
+  // 初期設定の読み込み（マウント時に1回のみ実行）
+  // loadSettingsを依存配列に含めないのは意図的：初回マウント時のみ実行するため
   useEffect(() => {
     loadSettings();
   }, []);

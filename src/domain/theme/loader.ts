@@ -1,6 +1,7 @@
 import type { ThemeData } from "./types.ts";
 import type { Theme } from "../../shared/types/theme.ts";
 import {
+  DEFAULT_THEME,
   getThemeCssPath,
   VALID_THEMES,
 } from "../../shared/constants/themes.ts";
@@ -16,7 +17,9 @@ import {
  * @returns テーマデータ（外部CSSファイルのパスを含む）
  */
 export const loadTheme = (themeId?: Theme): ThemeData => {
-  const theme = themeId && VALID_THEMES.includes(themeId) ? themeId : "light";
+  const theme = themeId && VALID_THEMES.includes(themeId)
+    ? themeId
+    : DEFAULT_THEME;
   return {
     id: theme,
     cssPath: getThemeCssPath(theme),

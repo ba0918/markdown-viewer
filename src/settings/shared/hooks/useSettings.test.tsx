@@ -7,6 +7,7 @@
  * - エラーハンドリング（loadSettings / handleThemeChange）
  * - settings未取得時のhandleThemeChangeのnullガード
  * - handleThemeChangeのonSuccessコールバック
+ * - loadSettings再呼び出しによるエラーからの復帰
  */
 
 import { h as _h } from "preact";
@@ -82,6 +83,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     const mockSettings = createMockSettings();
     setupChromeMock(() =>
       Promise.resolve({ success: true, data: mockSettings })
@@ -103,6 +105,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     setupChromeMock(() =>
       Promise.resolve({ success: false, error: "Connection failed" })
     );
@@ -123,6 +126,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     const mockSettings = createMockSettings({ theme: "light" });
     // deno-lint-ignore no-explicit-any
     const sentMessages: any[] = [];
@@ -157,6 +161,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     const mockSettings = createMockSettings();
     setupChromeMock((message) => {
       if (message.type === "GET_SETTINGS") {
@@ -184,6 +189,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     // GET_SETTINGSがエラーを返す → settingsがnull
     setupChromeMock(() => Promise.resolve({ success: false, error: "Failed" }));
 
@@ -209,6 +215,7 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
     const mockSettings = createMockSettings();
     setupChromeMock((message) => {
       if (message.type === "GET_SETTINGS") {
@@ -233,6 +240,48 @@ Deno.test({
     assertEquals(hookResult!.error, "Theme update failed");
     // settingsは更新されない（元のまま）
     assertEquals(hookResult!.settings?.theme, "light");
+
+    preactRender(null, container);
+  },
+});
+
+Deno.test({
+  name: "useSettings: loadSettings再呼び出しでエラーから復帰する",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    hookResult = null; // テスト間の状態漏洩防止
+    let callCount = 0;
+    const mockSettings = createMockSettings();
+
+    // 初回はエラー、2回目以降は成功を返す
+    setupChromeMock((message) => {
+      if (message.type === "GET_SETTINGS") {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ success: false, error: "Network error" });
+        }
+        return Promise.resolve({ success: true, data: mockSettings });
+      }
+      return Promise.resolve({ success: true, data: null });
+    });
+
+    const { container } = render();
+    await waitForUpdate();
+
+    // 初回はエラー状態
+    assertEquals(hookResult!.error, "Network error");
+    assertEquals(hookResult!.settings, null);
+    assertEquals(hookResult!.loading, false);
+
+    // リトライ（loadSettingsを再呼び出し）
+    await hookResult!.loadSettings();
+    await waitForUpdate();
+
+    // エラーから復帰し、設定が正しく取得される
+    assertEquals(hookResult!.error, null);
+    assertEquals(hookResult!.settings, mockSettings);
+    assertEquals(hookResult!.loading, false);
 
     preactRender(null, container);
   },
