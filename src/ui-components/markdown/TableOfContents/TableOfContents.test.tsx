@@ -37,6 +37,10 @@ let chromeStorage: Record<string, unknown> = {};
 // deno-lint-ignore no-explicit-any
 let latestObserverInstance: any = null;
 
+// MutationObserverのインスタンスを保持（テストからDOM変更をシミュレートするため）
+// deno-lint-ignore no-explicit-any
+let latestMutationObserverInstance: any = null;
+
 function setupMocks() {
   chromeStorage = {};
 
@@ -84,15 +88,20 @@ function setupMocks() {
     }
   };
 
-  // MutationObserver のモック
+  // MutationObserver のモック（コールバックを保存して後からトリガー可能）
   // @ts-ignore: MutationObserver mock for testing
   globalThis.MutationObserver = class MutationObserver {
     _callback: () => void;
     constructor(callback: () => void) {
       this._callback = callback;
+      latestMutationObserverInstance = this;
     }
     observe() {}
     disconnect() {}
+    // テストからDOM変更をシミュレートするためのヘルパー
+    trigger() {
+      this._callback();
+    }
   };
 
   // requestAnimationFrame のモック
@@ -116,6 +125,7 @@ function cleanupMocks() {
   // @ts-ignore: cleanup test mock
   delete globalThis.MutationObserver;
   latestObserverInstance = null;
+  latestMutationObserverInstance = null;
   chromeStorage = {};
 }
 
@@ -582,6 +592,88 @@ Deno.test({
     // クリーンアップ
     document.body.removeChild(h1);
     document.body.removeChild(h2);
+    cleanupMocks();
+  },
+});
+
+Deno.test({
+  name:
+    "TableOfContents: should detect headings via MutationObserver when DOM is not ready initially",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    setupMocks();
+
+    // querySelectorAllのオリジナルを保存
+    const originalQuerySelectorAll = document.querySelectorAll.bind(document);
+    let callCount = 0;
+
+    // 最初の呼び出しでは空の配列を返し、MutationObserverトリガー後は見出しを返す
+    document.querySelectorAll = (selector: string) => {
+      if (selector === "h1, h2, h3") {
+        callCount++;
+        if (callCount <= 2) {
+          // 初回〜2回目: DOM未準備（見出しなし）
+          return [] as unknown as NodeListOf<Element>;
+        }
+      }
+      // 3回目以降: 通常通り返す（DOMに見出しが追加された後）
+      return originalQuerySelectorAll(selector);
+    };
+
+    const items: TocItem[] = [
+      {
+        id: "delayed-heading",
+        text: "Delayed Heading",
+        level: 1,
+        children: [],
+      },
+    ];
+
+    const { container } = render(
+      <TableOfContents items={items} themeId="github" />,
+    );
+
+    // chrome.storage.get の非同期処理を待つ
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // この時点ではDOMに見出しがないため、MutationObserverが設定されているはず
+    // （activeIdはまだ空か最初のフォールバック値）
+
+    // DOMに見出しを追加（実際のDOMに反映）
+    const h1 = document.createElement("h1");
+    h1.id = "delayed-heading";
+    h1.textContent = "Delayed Heading";
+    document.body.appendChild(h1);
+
+    h1.getBoundingClientRect = () =>
+      ({
+        top: 60,
+        bottom: 100,
+        left: 0,
+        right: 100,
+        width: 100,
+        height: 40,
+      }) as DOMRect;
+
+    // querySelectorAllを元に戻す（次の呼び出しから見出しが見つかるようにする）
+    document.querySelectorAll = originalQuerySelectorAll;
+
+    // MutationObserverのコールバックをトリガー（DOM変更検知をシミュレート）
+    if (latestMutationObserverInstance) {
+      latestMutationObserverInstance.trigger();
+    }
+
+    // Observer設定 + requestAnimationFrameの処理を待つ
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // MutationObserverにより見出しが検出され、アクティブに設定される
+    const activeLink = container.querySelector(".toc-link.active");
+    assertEquals(activeLink !== null, true);
+    assertEquals(activeLink?.textContent, "Delayed Heading");
+
+    // クリーンアップ
+    document.body.removeChild(h1);
     cleanupMocks();
   },
 });
