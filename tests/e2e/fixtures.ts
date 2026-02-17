@@ -131,8 +131,8 @@ export const test = base.extend<ExtensionFixtures>({
         const file = await readFile(filePath);
         const ext = path.extname(filePath);
         const contentType = MARKDOWN_EXTENSIONS.has(ext)
-          ? "text/markdown"
-          : "text/plain";
+          ? "text/markdown; charset=utf-8"
+          : "text/plain; charset=utf-8";
 
         res.writeHead(200, { "Content-Type": contentType });
         res.end(file);
