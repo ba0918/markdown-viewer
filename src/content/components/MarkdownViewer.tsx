@@ -2,12 +2,8 @@ import { h as _h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
 import { TableOfContents } from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
-import { extractHeadings } from "../../domain/toc/extractor.ts";
-import { normalizeHeadingLevels } from "../../domain/toc/normalizer.ts";
-import { buildTocTree } from "../../domain/toc/tree-builder.ts";
-import type { TocItem } from "../../domain/toc/types.ts";
-import type { TocState } from "../../domain/toc/types.ts";
-import { DEFAULT_TOC_STATE } from "../../domain/toc/types.ts";
+import type { TocState } from "../../shared/types/toc.ts";
+import { DEFAULT_TOC_STATE } from "../../shared/types/toc.ts";
 import type { RenderResult } from "../../shared/types/render.ts";
 import { DocumentHeader } from "../../ui-components/markdown/DocumentHeader/DocumentHeader.tsx";
 import { RawTextView } from "../../ui-components/markdown/RawTextView/RawTextView.tsx";
@@ -37,7 +33,6 @@ export const MarkdownViewer = (
   { result, themeId, initialTocState }: Props,
 ) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>(DEFAULT_VIEW_MODE);
   const [tocState, setTocState] = useState<TocState>(
     initialTocState || DEFAULT_TOC_STATE,
@@ -45,14 +40,8 @@ export const MarkdownViewer = (
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false); // 初期レイアウト確定フラグ（CLS削減）
 
-  // TOC生成（Frontmatter除外済みのcontentを使用）
-  // ADR-007例外: TOC生成はdomain純粋関数の直接呼び出し（TocService削除済み、唯一のTOC生成パス）
-  useEffect(() => {
-    const headings = extractHeadings(result.content);
-    const normalized = normalizeHeadingLevels(headings);
-    const items = buildTocTree(normalized);
-    setTocItems(items);
-  }, [result.content]);
+  // TOC items は RenderResult から取得（services層で生成済み）
+  const tocItems = result.tocItems;
 
   // 初回レンダリング完了後、transitionを有効化 & 表示（CLS削減）
   useEffect(() => {

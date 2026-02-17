@@ -13,11 +13,11 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import type { TocItem } from "../../../domain/toc/types.ts";
-import type { TocState } from "../../../domain/toc/types.ts";
-import { DEFAULT_TOC_STATE } from "../../../domain/toc/types.ts";
+import type { TocItem } from "../../../shared/types/toc.ts";
+import type { TocState } from "../../../shared/types/toc.ts";
+import { DEFAULT_TOC_STATE } from "../../../shared/types/toc.ts";
 import { useResizable } from "./useResizable.ts";
-import { toggleCollapsedItem } from "../../../domain/toc/collapse-manager.ts";
+import { toggleSetItem as toggleCollapsedItem } from "../../../shared/utils/toggle-set-item.ts";
 
 interface Props {
   /** TOCアイテムリスト */

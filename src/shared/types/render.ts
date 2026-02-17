@@ -2,6 +2,8 @@
  * Markdownレンダリング結果の型定義
  */
 
+import type { TocItem } from "./toc.ts";
+
 /**
  * Markdownレンダリング結果
  *
@@ -31,4 +33,10 @@ export interface RenderResult {
    * 将来的に使う可能性あり（現在は非表示）
    */
   frontmatter: Record<string, unknown>;
+
+  /**
+   * TOCアイテムの階層構造
+   * TocServiceで生成されたMarkdown見出しのツリー
+   */
+  tocItems: TocItem[];
 }

@@ -25,6 +25,9 @@ Deno.test("MarkdownService: 基本的なレンダリング", async () => {
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<strong>bold</strong>");
   assertEquals(result.rawMarkdown, markdown);
+  // TOC: H1見出しが1つ含まれる
+  assertEquals(result.tocItems.length, 1);
+  assertEquals(result.tocItems[0].text, "Hello");
 });
 
 Deno.test("MarkdownService: XSS防御統合テスト", async () => {
@@ -73,6 +76,11 @@ console.log('code');
   assertStringIncludes(result.html, "<code");
   assertStringIncludes(result.html, "https://example.com");
   assertStringIncludes(result.html, "theme-dark");
+  // TOC: H1とH2の2つの見出しから階層構造を生成
+  assertEquals(result.tocItems.length, 1); // H1が1つ
+  assertEquals(result.tocItems[0].text, "Title");
+  assertEquals(result.tocItems[0].children.length, 1); // H2が1つ
+  assertEquals(result.tocItems[0].children[0].text, "Subtitle");
 });
 
 Deno.test("MarkdownService: 空文字列処理", async () => {
@@ -87,6 +95,8 @@ Deno.test("MarkdownService: 空文字列処理", async () => {
 
   assertStringIncludes(result.html, "markdown-body");
   assertStringIncludes(result.html, "theme-light");
+  // TOC: 見出しなし → 空配列
+  assertEquals(result.tocItems, []);
 });
 
 Deno.test("MarkdownService: シンタックスハイライト統合テスト", async () => {

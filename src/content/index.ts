@@ -18,7 +18,7 @@ import { ToastContainer } from "../ui-components/shared/Toast/index.ts";
 import type { AppState } from "../shared/types/state.ts";
 import type { Theme } from "../shared/types/theme.ts";
 import type { RenderResult } from "../shared/types/render.ts";
-import type { TocState } from "../domain/toc/types.ts";
+import type { TocState } from "../shared/types/toc.ts";
 import { logger } from "../shared/utils/logger.ts";
 import { escapeHtml } from "../shared/utils/escape-html.ts";
 import { isMarkdownByContext } from "../shared/utils/markdown-detector.ts";

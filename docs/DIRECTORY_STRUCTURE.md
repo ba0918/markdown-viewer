@@ -402,6 +402,8 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 services/
 ├── markdown-service.ts
 ├── markdown-service.test.ts
+├── toc-service.ts          # TOC生成サービス（domain組み合わせ）
+├── toc-service.test.ts
 ├── theme-service.ts
 ├── theme-service.test.ts
 └── file-watch-service.ts
@@ -707,11 +709,13 @@ shared/
 │   ├── theme.ts              # テーマ型
 │   ├── state.ts              # 状態型
 │   ├── render.ts             # レンダリング結果型
+│   ├── toc.ts                # TOC型定義（TocHeading, TocItem, TocState）
 │   └── view-mode.ts          # 表示モード型
 ├── utils/                     # 汎用ユーティリティ
 │   ├── escape-html.ts        # HTMLエスケープ（XSS対策）
 │   ├── hash.ts               # SHA-256ハッシュ計算
 │   ├── logger.ts             # ログユーティリティ
+│   ├── toggle-set-item.ts    # 配列要素トグル操作
 │   ├── unique-id.ts          # ユニークID生成
 │   ├── url-resolver.ts       # 相対URL解決
 │   └── wsl-detector.ts       # WSL2環境検出

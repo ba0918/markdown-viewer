@@ -417,19 +417,11 @@ const cssUrl = chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
 
 **理由**: 静的リソースパス取得は副作用のないユーティリティ関数と同等。
 
-#### 5. TOC生成domain関数のcontent直接呼び出し
+#### 5. ~~TOC生成domain関数のcontent直接呼び出し~~ （廃止）
 
-```typescript
-// ✅ OK: domain純粋関数の組み合わせは直接呼び出し可
-const headings = extractHeadings(markdown);
-const normalized = normalizeHeadingLevels(headings);
-const items = buildTocTree(normalized);
-```
-
-**理由**: TOC生成は`extractHeadings` → `normalizeHeadingLevels` →
-`buildTocTree`の3つの純粋関数の組み合わせ。
-TocServiceは単純ラッパーで利点がなかったため削除済み。
-MarkdownViewer.tsxが唯一のTOC生成パスとなっている。
+**廃止理由**: TocServiceをservices層に復活し、MarkdownService.render()経由で
+TOCデータを生成するように改善。RenderResult.tocItemsとしてcontent層に渡されるため、
+content層からdomain/toc関数への直接依存は完全に解消された。
 
 ### 判断基準
 

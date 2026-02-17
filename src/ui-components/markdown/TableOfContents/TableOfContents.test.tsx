@@ -13,7 +13,7 @@ import { assertEquals } from "@std/assert";
 import { render as preactRender } from "preact";
 import { parseHTML } from "linkedom";
 import { TableOfContents } from "./TableOfContents.tsx";
-import type { TocItem } from "../../../domain/toc/types.ts";
+import type { TocItem } from "../../../shared/types/toc.ts";
 
 // DOM環境のセットアップ
 const { document, window } = parseHTML(
