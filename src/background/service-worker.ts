@@ -1,5 +1,6 @@
 import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
 import type { Message } from "../shared/types/message.ts";
+import type { CustomOrigin } from "../shared/types/custom-origin.ts";
 import { getContentScriptId } from "../shared/utils/encode.ts";
 import { logger } from "../shared/utils/logger.ts";
 
@@ -17,10 +18,7 @@ import { logger } from "../shared/utils/logger.ts";
 async function reregisterCustomOrigins() {
   try {
     const result = await chrome.storage.sync.get(["customOrigins"]);
-    const customOrigins = result.customOrigins as Array<{
-      origin: string;
-      addedAt: number;
-    }> || [];
+    const customOrigins = (result.customOrigins as CustomOrigin[]) || [];
 
     if (customOrigins.length === 0) {
       return;

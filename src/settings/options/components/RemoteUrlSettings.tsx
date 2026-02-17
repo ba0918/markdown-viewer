@@ -3,11 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { getContentScriptId } from "../../../shared/utils/encode.ts";
 import { validateOrigin } from "../../../shared/utils/origin-validator.ts";
 import { logger } from "../../../shared/utils/logger.ts";
-
-interface CustomOrigin {
-  origin: string;
-  addedAt: number; // timestamp
-}
+import type { CustomOrigin } from "../../../shared/types/custom-origin.ts";
 
 export const RemoteUrlSettings = () => {
   const [customOrigins, setCustomOrigins] = useState<CustomOrigin[]>([]);
