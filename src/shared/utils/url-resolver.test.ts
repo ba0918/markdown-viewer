@@ -257,3 +257,27 @@ Deno.test("resolveRelativeLink: スペース含むパス", () => {
 
   assertEquals(resolveRelativeLink(currentUrl, relativeHref), expected);
 });
+
+/**
+ * 非相対リンク判定テスト（プロトコル付きリンク）
+ */
+
+Deno.test("isRelativeLink: mailto:リンクは相対リンクではない", () => {
+  assertEquals(isRelativeLink("mailto:user@example.com"), false);
+});
+
+Deno.test("isRelativeLink: tel:リンクは相対リンクではない", () => {
+  assertEquals(isRelativeLink("tel:+81-3-1234-5678"), false);
+});
+
+Deno.test("isRelativeLink: javascript:リンクは相対リンクではない", () => {
+  assertEquals(isRelativeLink("javascript:void(0)"), false);
+});
+
+Deno.test("isRelativeLink: data:リンクは相対リンクではない", () => {
+  assertEquals(isRelativeLink("data:text/html,<h1>test</h1>"), false);
+});
+
+Deno.test("isRelativeLink: vbscript:リンクは相対リンクではない", () => {
+  assertEquals(isRelativeLink("vbscript:msgbox"), false);
+});

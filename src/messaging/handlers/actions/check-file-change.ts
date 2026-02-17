@@ -34,7 +34,10 @@ export const createCheckFileChangeAction = (): ActionHandler => {
     }
 
     try {
-      const url = rawUrl + "?preventCache=" + Date.now();
+      // クエリパラメータが既に存在するURLにも対応するため、URL APIを使用
+      const urlObj = new URL(rawUrl);
+      urlObj.searchParams.set("preventCache", String(Date.now()));
+      const url = urlObj.href;
 
       // WSL2ファイルはChrome制限でfetch不可
       if (url.includes("file://wsl.localhost/")) {

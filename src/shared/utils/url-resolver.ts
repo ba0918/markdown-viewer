@@ -14,7 +14,12 @@ export const isRelativeLink = (href: string): boolean => {
     href.startsWith("http://") ||
     href.startsWith("https://") ||
     href.startsWith("file://") ||
-    href.startsWith("#")
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("data:") ||
+    href.startsWith("javascript:") ||
+    href.startsWith("vbscript:")
   ) {
     return false;
   }
