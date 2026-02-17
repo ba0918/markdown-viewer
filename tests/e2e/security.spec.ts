@@ -358,9 +358,9 @@ test.describe("Content Security Policy", () => {
   test.skip("拡張機能のCSPが正しく設定されている", async () => {
     // TODO: CSP検証の実装
     // manifest.jsonのCSP設定を確認
-    // script-src 'self' 'wasm-unsafe-eval'
-    // style-src 'self' 'unsafe-inline'
-    // object-src 'self'
+    // script-src 'self'
+    // style-src 'self'
+    // object-src 'none'
   });
 });
 

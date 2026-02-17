@@ -118,17 +118,29 @@ Deno.test("正常なHTML: 画像", () => {
 ```json
 {
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'"
+    "extension_pages": "script-src 'self'; style-src 'self'; object-src 'none'"
   }
 }
 ```
 
 #### CSP詳細
 
-- **script-src 'self'**: 拡張機能内のスクリプトのみ許可
-- **'wasm-unsafe-eval'**: Mermaid diagram用（WebAssembly使用）
-- **style-src 'self' 'unsafe-inline'**: MathJax用（インラインスタイル必要）
-- **object-src 'self'**: オブジェクト埋め込み制限
+- **script-src 'self'**: 拡張機能内のスクリプトのみ許可（`eval()`, `Function()`,
+  WebAssembly含め外部コード実行を全てブロック）
+- **style-src 'self'**: 外部CSSファイルのみ許可（インラインstyleタグ禁止）
+- **object-src 'none'**: object/embed/appletを完全ブロック（使用箇所なし）
+
+#### CSP適用スコープ
+
+extension_pages CSPは以下にのみ適用される：
+
+- **background.js** (Service Worker)
+- **popup.html** (ポップアップUI)
+- **options.html** (設定ページ)
+
+Content Scripts（Markdownレンダリング）はホストページのCSPに従うため、
+file://プロトコルではCSP制限なし。Mermaid(WebAssembly)やMathJax(インラインスタイル)は
+Content Script内で実行されるため、extension_pages CSPの影響を受けない。
 
 ### 3. Path Traversal対策
 

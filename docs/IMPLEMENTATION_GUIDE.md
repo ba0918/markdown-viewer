@@ -106,7 +106,7 @@ cat > manifest.json <<'EOF'
   ],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'self'"
+    "extension_pages": "script-src 'self'; style-src 'self'; object-src 'none'"
   },
 
   "web_accessible_resources": [{
