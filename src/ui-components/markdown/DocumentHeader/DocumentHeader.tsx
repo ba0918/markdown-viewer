@@ -20,10 +20,6 @@ interface Props {
 export const DocumentHeader = (
   { currentMode, onModeChange, style, themeId, children }: Props,
 ) => {
-  const handleTabClick = (mode: ViewMode) => {
-    onModeChange(mode);
-  };
-
   const handleKeyDown = (event: KeyboardEvent, mode: ViewMode) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -41,7 +37,7 @@ export const DocumentHeader = (
           <button
             type="button"
             class={`tab ${currentMode === "view" ? "active" : ""}`}
-            onClick={() => handleTabClick("view")}
+            onClick={() => onModeChange("view")}
             onKeyDown={(e) => handleKeyDown(e, "view")}
             role="tab"
             aria-selected={currentMode === "view"}
@@ -52,7 +48,7 @@ export const DocumentHeader = (
           <button
             type="button"
             class={`tab ${currentMode === "raw" ? "active" : ""}`}
-            onClick={() => handleTabClick("raw")}
+            onClick={() => onModeChange("raw")}
             onKeyDown={(e) => handleKeyDown(e, "raw")}
             role="tab"
             aria-selected={currentMode === "raw"}

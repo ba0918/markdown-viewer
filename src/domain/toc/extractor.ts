@@ -74,7 +74,3 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
 
   return headings;
 };
-
-// buildTocTree は tree-builder.ts に移動しました
-// 後方互換性のために re-export
-export { buildTocTree } from "./tree-builder.ts";

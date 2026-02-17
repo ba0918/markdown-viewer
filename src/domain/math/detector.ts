@@ -20,9 +20,10 @@
  * hasMathExpression('No math here'); // false
  * ```
  */
-export function hasMathExpression(text: string): boolean {
-  const inlinePattern = /(?<!\\)\$[^\$]+\$|\\\(.*?\\\)/s;
-  const displayPattern = /(?<!\\)\$\$[^\$]+\$\$|\\\[.*?\\\]/s;
+// モジュールスコープで正規表現をキャッシュ（呼び出しごとの再生成を防止）
+const INLINE_PATTERN = /(?<!\\)\$[^\$]+\$|\\\(.*?\\\)/s;
+const DISPLAY_PATTERN = /(?<!\\)\$\$[^\$]+\$\$|\\\[.*?\\\]/s;
 
-  return inlinePattern.test(text) || displayPattern.test(text);
+export function hasMathExpression(text: string): boolean {
+  return INLINE_PATTERN.test(text) || DISPLAY_PATTERN.test(text);
 }

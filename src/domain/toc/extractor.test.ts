@@ -3,11 +3,8 @@
  */
 
 import { assertEquals } from "@std/assert";
-import {
-  buildTocTree,
-  extractHeadings,
-  generateHeadingId,
-} from "./extractor.ts";
+import { extractHeadings, generateHeadingId } from "./extractor.ts";
+import { buildTocTree } from "./tree-builder.ts";
 
 Deno.test("generateHeadingId: 基本的な変換", () => {
   assertEquals(generateHeadingId("Hello World"), "Hello-World");
