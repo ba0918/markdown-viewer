@@ -3,6 +3,13 @@
  *
  * HTML Exportメニュー項目。DOM上のレンダリング済みHTML（Mermaid SVG・MathJax SVG含む）を
  * messaging経由でBackground Scriptに送信し、chrome.downloads APIでダウンロードを実行する。
+ *
+ * ⚠️ 現在無効化中（どこからもimportされていない）。復活計画はADR-008参照。
+ *
+ * TODO: [Layer] Export機能復活時、messaging/client.tsの直接importを
+ * コールバックprops経由に変更し、ui-components層のレイヤー独立性を維持すること。
+ * TODO: [Security] exportAsHTML()の引数htmlにsanitizeHTML()を適用すること。
+ * See: ADR-008 in docs/ARCHITECTURE_DECISIONS.md
  */
 
 import { h as _h } from "preact";

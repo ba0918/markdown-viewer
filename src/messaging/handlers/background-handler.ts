@@ -4,6 +4,9 @@ import { loadTheme } from "../../domain/theme/loader.ts";
 import { StateManager } from "../../background/state-manager.ts";
 import { encodeHtmlToDataUrl } from "../../domain/export/base64-encoder.ts";
 import { computeSHA256 } from "../../shared/utils/hash.ts";
+import { isLocalUrl } from "../../shared/utils/url-validator.ts";
+import { VALID_THEMES } from "../../shared/constants/themes.ts";
+import type { Theme } from "../../shared/types/theme.ts";
 import type { Message, MessageResponse } from "../types.ts";
 
 // Chrome API型定義
@@ -35,10 +38,24 @@ declare const chrome: {
 const stateManager = new StateManager();
 
 /**
+ * ランタイムバリデーション: テーマIDの検証
+ * TypeScriptの型チェックに加え、ランタイムでも不正なテーマIDをブロック
+ */
+const validateThemeId = (themeId: unknown): themeId is Theme => {
+  return typeof themeId === "string" &&
+    VALID_THEMES.includes(themeId as Theme);
+};
+
+/**
  * background層のメッセージハンドラ
  *
  * content scriptからのメッセージを受信し、適切なserviceへルーティングする。
  * このレイヤーでビジネスロジックを記述しないこと。
+ *
+ * ランタイムバリデーション:
+ * - 全ペイロードの型チェック（TypeScript型だけでなくランタイムでも検証）
+ * - URL系はisLocalUrl()でローカル限定チェック（SSRF防止）
+ * - themeIdはVALID_THEMESでバリデーション
  */
 export const handleBackgroundMessage = async (
   message: Message,
@@ -47,6 +64,13 @@ export const handleBackgroundMessage = async (
   try {
     switch (message.type) {
       case "RENDER_MARKDOWN": {
+        // ランタイムバリデーション
+        if (typeof message.payload?.markdown !== "string") {
+          return {
+            success: false,
+            error: "Invalid payload: markdown must be a string",
+          };
+        }
         const theme = loadTheme(message.payload.themeId);
         const result = markdownService.render(
           message.payload.markdown,
@@ -56,27 +80,63 @@ export const handleBackgroundMessage = async (
       }
 
       case "LOAD_THEME": {
+        if (!validateThemeId(message.payload?.themeId)) {
+          return { success: false, error: "Invalid payload: invalid themeId" };
+        }
         const theme = loadTheme(message.payload.themeId);
         return { success: true, data: theme };
       }
 
       case "UPDATE_THEME": {
+        if (!validateThemeId(message.payload?.themeId)) {
+          return { success: false, error: "Invalid payload: invalid themeId" };
+        }
         await stateManager.updateTheme(message.payload.themeId);
         return { success: true, data: null };
       }
 
       case "UPDATE_HOT_RELOAD": {
-        await stateManager.updateHotReload({
-          enabled: message.payload.enabled,
-          interval: message.payload.interval,
-          autoReload: message.payload.autoReload,
-        });
+        const { enabled, interval, autoReload } = message.payload ?? {};
+        if (
+          typeof enabled !== "boolean" ||
+          typeof interval !== "number" ||
+          typeof autoReload !== "boolean"
+        ) {
+          return {
+            success: false,
+            error:
+              "Invalid payload: enabled (boolean), interval (number), autoReload (boolean) required",
+          };
+        }
+        await stateManager.updateHotReload({ enabled, interval, autoReload });
         return { success: true, data: null };
       }
 
       case "CHECK_FILE_CHANGE": {
+        // Note: fetch + hash計算のロジックはmessaging層に残置。
+        // ハッシュ計算はshared/utils/hash.tsに抽出済み。
+        // 残りはfetch実行とエラーハンドリングのみで、services層に移動する利点は薄い。
+        const rawUrl = message.payload?.url;
+
+        // ランタイムバリデーション: URL文字列チェック
+        if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
+          return {
+            success: false,
+            error: "Invalid payload: url must be a non-empty string",
+          };
+        }
+
+        // SSRF防止: ローカルURLのみ許可
+        if (!isLocalUrl(rawUrl)) {
+          return {
+            success: false,
+            error:
+              "Invalid URL: only local URLs (file://, localhost) are allowed",
+          };
+        }
+
         try {
-          const url = message.payload.url + "?preventCache=" + Date.now();
+          const url = rawUrl + "?preventCache=" + Date.now();
 
           // WSL2ファイルはChrome制限でfetch不可
           if (url.includes("file://wsl.localhost/")) {
@@ -124,12 +184,24 @@ export const handleBackgroundMessage = async (
       }
 
       case "UPDATE_SETTINGS": {
+        if (!message.payload || typeof message.payload !== "object") {
+          return { success: false, error: "Invalid payload: object required" };
+        }
         await stateManager.save(message.payload);
         const updated = await stateManager.load();
         return { success: true, data: updated };
       }
 
       case "GENERATE_EXPORT_HTML": {
+        if (
+          typeof message.payload?.html !== "string" ||
+          typeof message.payload?.filename !== "string"
+        ) {
+          return {
+            success: false,
+            error: "Invalid payload: html and filename must be strings",
+          };
+        }
         const exportedHTML = await exportService.generateExportHTML(
           message.payload,
         );
@@ -137,6 +209,15 @@ export const handleBackgroundMessage = async (
       }
 
       case "EXPORT_AND_DOWNLOAD": {
+        if (
+          typeof message.payload?.html !== "string" ||
+          typeof message.payload?.filename !== "string"
+        ) {
+          return {
+            success: false,
+            error: "Invalid payload: html and filename must be strings",
+          };
+        }
         // Content Script (Isolated World) のBlob URLはオリジンがnullで
         // <a download>が効かないため、chrome.downloads APIを使用
         const html = await exportService.generateExportHTML(message.payload);

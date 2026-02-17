@@ -6,6 +6,7 @@ import {
   renderMermaid,
 } from "../../../domain/markdown/mermaid-renderer.ts";
 import { escapeHtml } from "../../../shared/utils/escape-html.ts";
+import { logger } from "../../../shared/utils/logger.ts";
 import type { Theme } from "../../../shared/types/theme.ts";
 import type { ViewMode } from "../../../shared/types/view-mode.ts";
 
@@ -52,7 +53,7 @@ export function useMermaid(
             try {
               const code = diagram.getAttribute("data-mermaid-code");
               if (!code) {
-                console.warn(
+                logger.warn(
                   "Mermaid diagram missing data-mermaid-code attribute",
                 );
                 return;

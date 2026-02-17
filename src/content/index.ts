@@ -1,3 +1,13 @@
+/**
+ * Content Script エントリーポイント
+ *
+ * Markdownファイルを検出し、messaging経由でレンダリング結果を取得してUIを描画する。
+ * 各機能は専用モジュールに分離:
+ * - hot-reload.ts: ファイル変更検知と自動リロード
+ * - relative-links.ts: 相対リンクの絶対パス変換
+ * - theme-loader.ts: テーマCSS読み込みとbodyクラス管理
+ */
+
 import { sendMessage } from "../messaging/client.ts";
 import { render } from "preact";
 import { h } from "preact";
@@ -9,23 +19,15 @@ import type { AppState } from "../shared/types/state.ts";
 import type { Theme } from "../shared/types/theme.ts";
 import type { RenderResult } from "../shared/types/render.ts";
 import type { TocState } from "../domain/toc/types.ts";
-import { isWslFile } from "../shared/utils/wsl-detector.ts";
-import { isLocalUrl } from "../shared/utils/url-validator.ts";
-import {
-  isRelativeLink,
-  resolveRelativeLink,
-} from "../shared/utils/url-resolver.ts";
 import { logger } from "../shared/utils/logger.ts";
 import { escapeHtml } from "../shared/utils/escape-html.ts";
 import { isMarkdownByContext } from "../shared/utils/markdown-detector.ts";
-import { normalizeHotReloadInterval } from "../shared/utils/validators.ts";
-import { getThemeCssPath } from "../shared/constants/themes.ts";
+import { startHotReload, stopHotReload } from "./hot-reload.ts";
+import { setupRelativeLinkHandler } from "./relative-links.ts";
+import { loadThemeCss } from "./theme-loader.ts";
 
 // Chrome API型定義（実行時はグローバルに存在する）
 declare const chrome: {
-  runtime: {
-    getURL: (path: string) => string;
-  };
   storage: {
     sync: {
       get: (
@@ -44,13 +46,6 @@ declare const chrome: {
 };
 
 /**
- * Content Script エントリーポイント
- *
- * Markdownファイルを検出し、messaging経由でレンダリング結果を取得してUIを描画する。
- * テーマCSS読み込み、Hot Reload、相対リンク解決も担当。
- */
-
-/**
  * Content Script の状態を一箇所に集約
  *
  * 散在するグローバル変数を1つのオブジェクトにまとめて管理性を向上。
@@ -59,12 +54,6 @@ declare const chrome: {
 const contentState = {
   /** 現在のMarkdownコンテンツ（再レンダリング用） */
   currentMarkdown: "",
-  /** Hot ReloadのインターバルタイマーID */
-  hotReloadInterval: null as ReturnType<typeof globalThis.setInterval> | null,
-  /** 最後に取得したファイルのSHA-256ハッシュ（Hot Reload変更検知用） */
-  lastFileHash: null as string | null,
-  /** 相対リンクハンドラの重複登録防止フラグ */
-  relativeLinkHandlerSetup: false,
   /** Chrome Storage変更リスナーの重複登録防止フラグ */
   storageListenerSetup: false,
 };
@@ -81,176 +70,6 @@ const isMarkdownFile = (): boolean => {
     pathname: location.pathname,
     contentType: document.contentType || "",
   });
-};
-
-/**
- * テーマCSSファイルのURLを取得
- */
-const getThemeCssUrl = (theme: Theme): string => {
-  return chrome.runtime.getURL(getThemeCssPath(theme));
-};
-
-/**
- * テーマCSSを読み込む
- * <link>タグを<head>に追加（初回）または更新（テーマ変更時）
- * bodyにテーマクラスを付与（CSS変数スコープのため）
- */
-const loadThemeCss = (theme: Theme): void => {
-  const cssUrl = getThemeCssUrl(theme);
-  const existingLink = document.querySelector(
-    "link[data-markdown-theme]",
-  ) as HTMLLinkElement;
-
-  if (!existingLink) {
-    const linkElement = document.createElement("link");
-    linkElement.rel = "stylesheet";
-    linkElement.setAttribute("data-markdown-theme", theme);
-    linkElement.href = cssUrl;
-    document.head.appendChild(linkElement);
-    logger.log(`Theme CSS loaded - ${theme}`);
-  } else {
-    // 新しい<link>を先にロードして暗転を防ぐ
-    const newLink = document.createElement("link");
-    newLink.rel = "stylesheet";
-    newLink.setAttribute("data-markdown-theme", theme);
-    newLink.href = cssUrl;
-
-    newLink.onload = () => {
-      existingLink.remove();
-      logger.log(`Theme CSS updated - ${theme}`);
-    };
-
-    newLink.onerror = () => {
-      existingLink.remove();
-    };
-
-    document.head.appendChild(newLink);
-  }
-
-  // bodyにテーマクラスを付与（CSS変数のスコープ拡大）
-  document.body.className = document.body.className
-    .split(" ")
-    .filter((cls) => !cls.startsWith("markdown-viewer-theme-"))
-    .join(" ");
-  document.body.classList.add(`markdown-viewer-theme-${theme}`);
-};
-
-/**
- * Hot Reloadを開始
- *
- * ローカルファイル（file://）およびlocalhost環境でのみ動作。
- * リモートURLでは外部サーバーへの不必要な負荷を避けるため無効。
- *
- * @param interval - チェック間隔（ミリ秒、最小1000ms）
- */
-const startHotReload = async (interval: number): Promise<void> => {
-  // ローカルファイル/localhost以外はHot Reload非対応
-  if (!isLocalUrl(location.href)) {
-    logger.log(
-      "Hot Reload is only available for local files (file://) and localhost. " +
-        "Remote URLs are not supported to avoid unnecessary server load.",
-    );
-    return;
-  }
-
-  // WSL2ファイルはChrome制限でHot Reload非対応
-  if (isWslFile(location.href)) {
-    logger.log(
-      "Hot Reload is not available for WSL2 files (file://wsl.localhost/...). Please use a localhost HTTP server instead.",
-    );
-    return;
-  }
-
-  if (contentState.hotReloadInterval !== null) {
-    clearInterval(contentState.hotReloadInterval);
-  }
-
-  const safeInterval = normalizeHotReloadInterval(interval);
-
-  // 初回ハッシュを取得（background側でSHA-256計算済み）
-  try {
-    contentState.lastFileHash = await sendMessage<string>({
-      type: "CHECK_FILE_CHANGE",
-      payload: { url: location.href },
-    });
-  } catch {
-    return;
-  }
-
-  logger.log(`Hot Reload started (interval: ${safeInterval}ms)`);
-
-  let isChecking = false;
-
-  contentState.hotReloadInterval = globalThis.setInterval(async () => {
-    if (isChecking) return;
-
-    isChecking = true;
-    try {
-      const currentHash = await sendMessage<string>({
-        type: "CHECK_FILE_CHANGE",
-        payload: { url: location.href },
-      });
-
-      const changed = currentHash !== contentState.lastFileHash;
-
-      if (changed) {
-        logger.log("File changed detected! Reloading...");
-        stopHotReload();
-        isChecking = false;
-        globalThis.location.reload();
-        return;
-      }
-    } catch (error) {
-      logger.warn(
-        "Hot Reload fetch failed, stopping:",
-        error instanceof Error ? error.message : error,
-      );
-      stopHotReload();
-    } finally {
-      isChecking = false;
-    }
-  }, safeInterval);
-};
-
-/**
- * Hot Reloadを停止
- */
-const stopHotReload = (): void => {
-  if (contentState.hotReloadInterval !== null) {
-    clearInterval(contentState.hotReloadInterval);
-    contentState.hotReloadInterval = null;
-    contentState.lastFileHash = null;
-    logger.log("Hot Reload stopped");
-  }
-};
-
-/**
- * 相対リンクを絶対パスに解決するイベントハンドラを設定
- *
- * Markdown内の相対リンク（例: docs/ARCHITECTURE.md）をクリック時に
- * 絶対URL（例: file://[base-url]/docs/ARCHITECTURE.md）に変換してナビゲートする。
- */
-const setupRelativeLinkHandler = (): void => {
-  if (contentState.relativeLinkHandlerSetup) return;
-  contentState.relativeLinkHandlerSetup = true;
-
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    const anchor = target.closest("a");
-    if (!anchor) return;
-
-    const href = anchor.getAttribute("href");
-    if (!href) return;
-
-    if (!isRelativeLink(href)) return;
-
-    event.preventDefault();
-    const absoluteUrl = resolveRelativeLink(location.href, href);
-    logger.log(`Navigating to ${absoluteUrl}`);
-    location.href = absoluteUrl;
-  }, true);
-
-  logger.log("Relative link handler set up");
 };
 
 /**
@@ -365,6 +184,9 @@ const init = async () => {
     );
   }
 
+  // Note: chrome.storage.onChanged.addListenerのremoveは不要。
+  // Content Scriptのライフサイクルはページと同期し、ページ遷移時に自動解除。
+  // 重複登録はフラグで防止。
   if (contentState.storageListenerSetup) return;
   contentState.storageListenerSetup = true;
 

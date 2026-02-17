@@ -2,7 +2,9 @@ import { h as _h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
 import { TableOfContents } from "../../ui-components/markdown/TableOfContents/TableOfContents.tsx";
-import { tocService } from "../../services/toc-service.ts";
+import { extractHeadings } from "../../domain/toc/extractor.ts";
+import { normalizeHeadingLevels } from "../../domain/toc/normalizer.ts";
+import { buildTocTree } from "../../domain/toc/tree-builder.ts";
 import type { TocItem } from "../../domain/toc/types.ts";
 import type { TocState } from "../../domain/toc/types.ts";
 import { DEFAULT_TOC_STATE } from "../../domain/toc/types.ts";
@@ -48,8 +50,11 @@ export const MarkdownViewer = (
   const [isLoaded, setIsLoaded] = useState(false); // 初期レイアウト確定フラグ（CLS削減）
 
   // TOC生成（Frontmatter除外済みのcontentを使用）
+  // ADR-007例外: domain純粋関数の直接呼び出し（services層経由不要）
   useEffect(() => {
-    const items = tocService.generate(result.content);
+    const headings = extractHeadings(result.content);
+    const normalized = normalizeHeadingLevels(headings);
+    const items = buildTocTree(normalized);
     setTocItems(items);
   }, [result.content]);
 

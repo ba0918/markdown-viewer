@@ -74,14 +74,16 @@ jobs:
 
       - name: Run E2E tests
         if: matrix.deno-version == '2.x'
-        run: deno task test:e2e:wsl2 || echo "⚠️ E2E tests failed - continuing build"
+        run: deno task test:e2e:wsl2
         env:
           CI: true
-        continue-on-error: true
+        # NOTE: E2Eテスト失敗はCIをブロック。
+        # セキュリティテスト(xss.spec.ts)を含むため、continue-on-errorは使用しない。
+        # 不安定な場合はplaywright.config.tsのretriesを増やすこと。
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
-        if: failure() && matrix.deno-version == '2.x'
+        if: always() && matrix.deno-version == '2.x'
         with:
           name: playwright-report-${{ github.run_number }}
           path: playwright-report/

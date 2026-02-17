@@ -66,44 +66,55 @@ if (!await exists(outDir)) {
 }
 
 try {
+  // metafileを収集してビルドサイズレポートを出力
+  const metafiles: { name: string; metafile: esbuild.Metafile }[] = [];
+
   // Background Script
   console.log("📦 Building background script...");
-  await esbuild.build({
+  const bgResult = await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/background/service-worker.ts"],
     outfile: `${outDir}/background.js`,
     platform: "browser",
+    metafile: true,
   });
+  metafiles.push({ name: "background.js", metafile: bgResult.metafile! });
   console.log("✅ background.js built");
 
   // Content Script
   console.log("📦 Building content script...");
-  await esbuild.build({
+  const contentResult = await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/content/index.ts"],
     outfile: `${outDir}/content.js`,
     platform: "browser",
+    metafile: true,
   });
+  metafiles.push({ name: "content.js", metafile: contentResult.metafile! });
   console.log("✅ content.js built");
 
   // Popup Script
   console.log("📦 Building popup script...");
-  await esbuild.build({
+  const popupResult = await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/settings/popup/index.tsx"],
     outfile: `${outDir}/popup.js`,
     platform: "browser",
+    metafile: true,
   });
+  metafiles.push({ name: "popup.js", metafile: popupResult.metafile! });
   console.log("✅ popup.js built");
 
   // Options Script
   console.log("📦 Building options script...");
-  await esbuild.build({
+  const optionsResult = await esbuild.build({
     ...commonConfig,
     entryPoints: ["src/settings/options/index.tsx"],
     outfile: `${outDir}/options.js`,
     platform: "browser",
+    metafile: true,
   });
+  metafiles.push({ name: "options.js", metafile: optionsResult.metafile! });
   console.log("✅ options.js built");
 
   // manifest.jsonを出力先にコピー（devモードではlocalhost設定を注入）
@@ -336,6 +347,49 @@ ${jetbrainsFontCss}
   await Deno.copyFile("icons/icon48.png", `${outDir}/icons/icon48.png`);
   await Deno.copyFile("icons/icon128.png", `${outDir}/icons/icon128.png`);
   console.log("✅ Icons copied");
+
+  // バンドルサイズレポート出力
+  console.log("\n📊 Bundle Size Report:");
+  console.log("─".repeat(60));
+  for (const { name, metafile } of metafiles) {
+    const outputs = metafile.outputs;
+    for (const [outputPath, output] of Object.entries(outputs)) {
+      if (outputPath.endsWith(".js")) {
+        const sizeKB = (output.bytes / 1024).toFixed(1);
+        console.log(`\n  ${name}: ${sizeKB} KB`);
+        // 主要依存パッケージのサイズ内訳
+        const inputSizes: { pkg: string; bytes: number }[] = [];
+        for (const [inputPath, input] of Object.entries(output.inputs)) {
+          if (inputPath.includes("node_modules")) {
+            // pnpm/deno形式: node_modules/.deno/pkg@ver/node_modules/pkg/...
+            // または: node_modules/.pnpm/pkg@ver/node_modules/pkg/...
+            // 最後の node_modules/ 以降のパッケージ名を取得（スコープ付き対応）
+            const segments = inputPath.split("node_modules/");
+            const lastSegment = segments[segments.length - 1];
+            // @scope/name または name を抽出
+            const match = lastSegment.match(/^(@[^/]+\/[^/]+|[^/]+)/);
+            if (match) {
+              const pkgName = match[1];
+              const existing = inputSizes.find((s) => s.pkg === pkgName);
+              if (existing) {
+                existing.bytes += input.bytesInOutput;
+              } else {
+                inputSizes.push({ pkg: pkgName, bytes: input.bytesInOutput });
+              }
+            }
+          }
+        }
+        // サイズ降順でトップ5を表示
+        inputSizes.sort((a, b) => b.bytes - a.bytes);
+        for (const dep of inputSizes.slice(0, 5)) {
+          const depKB = (dep.bytes / 1024).toFixed(1);
+          const pct = ((dep.bytes / output.bytes) * 100).toFixed(1);
+          console.log(`    └─ ${dep.pkg}: ${depKB} KB (${pct}%)`);
+        }
+      }
+    }
+  }
+  console.log("\n" + "─".repeat(60));
 
   console.log(
     `\n🎉 Build completed successfully! (${

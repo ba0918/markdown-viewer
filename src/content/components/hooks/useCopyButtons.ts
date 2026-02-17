@@ -1,4 +1,4 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import type { RefObject } from "preact";
 import { h, render } from "preact";
 import { CopyButton } from "../../../ui-components/shared/CopyButton.tsx";
@@ -9,6 +9,7 @@ import type { ViewMode } from "../../../shared/types/view-mode.ts";
  *
  * pre > code 要素を検出し、Preact CopyButtonコンポーネントを動的にレンダリング。
  * Mermaidブロックはスキップ（専用ダイアグラム表示になるため）。
+ * クリーンアップ時にrender(null)でPreactコンポーネントツリーをアンマウント。
  *
  * @param containerRef - Markdownコンテンツのコンテナ要素
  * @param viewMode - 現在のViewMode（rawモードではスキップ）
@@ -17,6 +18,9 @@ export function useCopyButtons(
   containerRef: RefObject<HTMLDivElement>,
   viewMode: ViewMode,
 ): void {
+  // マウント済みコンテナを追跡（メモリリーク防止）
+  const mountedContainersRef = useRef<HTMLElement[]>([]);
+
   useEffect(() => {
     if (viewMode === "raw") return;
     if (!containerRef.current) return;
@@ -55,6 +59,17 @@ export function useCopyButtons(
         }),
         buttonContainer,
       );
+
+      // マウント済みコンテナを記録
+      mountedContainersRef.current.push(buttonContainer);
     });
+
+    // クリーンアップ: 全Preactコンポーネントをアンマウント
+    return () => {
+      mountedContainersRef.current.forEach((container) => {
+        render(null, container);
+      });
+      mountedContainersRef.current = [];
+    };
   }, [viewMode]);
 }

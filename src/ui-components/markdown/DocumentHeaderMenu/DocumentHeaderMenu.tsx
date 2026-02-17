@@ -3,6 +3,9 @@
  *
  * DocumentHeader右側のドロップダウンメニューUI。
  * 汎用的なメニューコンテナとして、ExportMenuItem等の子コンポーネントを受け取って表示する。
+ *
+ * NOTE: 現在未使用（Export HTML機能の一時無効化に伴い）。
+ * 復活計画はADR-008参照。削除判断は次回メジャーバージョンアップ（v2.0）時。
  */
 
 import { type ComponentChildren, h as _h } from "preact";

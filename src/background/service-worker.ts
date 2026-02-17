@@ -2,6 +2,7 @@
 
 import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
 import { getContentScriptId } from "../shared/utils/encode.ts";
+import { logger } from "../shared/utils/logger.ts";
 
 /**
  * Service Worker (Background Script)
@@ -39,7 +40,7 @@ async function reregisterCustomOrigins() {
         });
       }
     } catch (e) {
-      console.warn("Failed to unregister existing scripts:", e);
+      logger.warn("Failed to unregister existing scripts:", e);
     }
 
     for (const item of customOrigins) {

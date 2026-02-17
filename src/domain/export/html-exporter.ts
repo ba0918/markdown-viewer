@@ -7,6 +7,7 @@
 
 import type { ExportOptions } from "./types.ts";
 import { escapeHtml } from "../../shared/utils/escape-html.ts";
+import { DEFAULT_THEME, VALID_THEMES } from "../../shared/constants/themes.ts";
 
 /**
  * スタンドアロンHTMLを生成
@@ -20,11 +21,16 @@ import { escapeHtml } from "../../shared/utils/escape-html.ts";
 export const exportAsHTML = (options: ExportOptions): string => {
   const {
     html,
-    themeId,
+    themeId: rawThemeId,
     themeCss,
     title = "Markdown Document",
     metadata,
   } = options;
+
+  // themeIdバリデーション: 不正な値はデフォルトテーマにフォールバック
+  const themeId = VALID_THEMES.includes(rawThemeId)
+    ? rawThemeId
+    : DEFAULT_THEME;
 
   const escapedTitle = escapeHtml(title);
   const authorMeta = metadata?.author
@@ -33,6 +39,12 @@ export const exportAsHTML = (options: ExportOptions): string => {
   const descriptionMeta = metadata?.description
     ? `<meta name="description" content="${escapeHtml(metadata.description)}">`
     : "";
+
+  // TODO: [Security] Export機能復活時、htmlパラメータにsanitizeHTML()を適用すること。
+  // 現在はContent ScriptのDOM innerHTMLから取得したHTMLが直接テンプレートに埋め込まれるため、
+  // Mermaid SVGやMathJax出力がsanitizeHTML()未通過の状態。
+  // Export機能が無効化中のため、復活時に対応必須。
+  // See: Phase 1-5 in docs/cycles/20260217104826_review-driven-quality-improvement.md
 
   return `<!DOCTYPE html>
 <html lang="en">

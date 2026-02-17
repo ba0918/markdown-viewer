@@ -41,12 +41,15 @@ const xssOptions = {
   stripIgnoreTag: true,
   stripIgnoreTagBody: ["script", "style"],
   onTagAttr: (tag: string, name: string, value: string) => {
+    // 属性値インジェクション防止: ダブルクオートをエスケープ
+    const safeValue = value.replace(/"/g, "&quot;");
+
     // hljs-*とlanguage-*クラスを許可
     if (
       name === "class" &&
       (value.includes("hljs") || value.includes("language-"))
     ) {
-      return `class="${value}"`;
+      return `class="${safeValue}"`;
     }
     // 相対パスのhrefを許可（xssはデフォルトで削除するため）
     if (tag === "a" && name === "href") {
@@ -55,7 +58,7 @@ const xssOptions = {
       if (dangerous.some((proto) => lowerValue.startsWith(proto))) {
         return;
       }
-      return `href="${value}"`;
+      return `href="${safeValue}"`;
     }
     // img srcは file: を許可（ローカル画像参照用）
     if (tag === "img" && name === "src") {
@@ -64,7 +67,7 @@ const xssOptions = {
       if (dangerous.some((proto) => lowerValue.startsWith(proto))) {
         return;
       }
-      return `src="${value}"`;
+      return `src="${safeValue}"`;
     }
   },
 };

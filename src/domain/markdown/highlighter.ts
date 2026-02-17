@@ -2,10 +2,12 @@
  * シンタックスハイライト
  * highlight.js wrapper（純粋関数）
  *
- * 注意:
- * - 全言語サポート版を使用（バンドルサイズは約500KB gzip後）
- * - tree-shaking により実際に使われる言語のみがバンドルされる
- * - Markdownファイルは通常1つずつ読み込まれるため、パフォーマンス影響は小さい
+ * 全言語サポート版（192言語）を使用する設計判断:
+ * - Markdownビューアは「何が来るかわからない」汎用ツール
+ * - Dockerfile, TOML, PowerShell, Scala等は開発者READMEで頻出
+ * - Common版（37言語）では非対応言語がplaintextフォールバックになりUX低下
+ * - highlight.jsはCJS形式のためesbuildのtree-shakingが効かない点に注意
+ * - バンドルサイズはscripts/build.tsのmetafileレポートで監視中
  */
 
 import hljs from "highlight.js";

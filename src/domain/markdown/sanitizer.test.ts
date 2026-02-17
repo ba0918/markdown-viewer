@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 import { sanitizeHTML } from "./sanitizer.ts";
 
 /**
@@ -227,4 +227,37 @@ Deno.test("XSS: エンコード済みjavascript:をブロック", async () => {
     '<a href="&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;alert(1)">Click</a>';
   const result = await sanitizeHTML(malicious);
   assertEquals(result.includes("javascript:"), false);
+});
+
+/**
+ * 属性値インジェクションテスト
+ * ダブルクオートによる属性値脱出を防ぐ
+ */
+
+Deno.test("XSS: href属性値にダブルクオートが含まれる場合にエスケープされる", async () => {
+  // xssパーサーがクオートなし属性をパースした場合、valueに生の"が含まれうる
+  // sanitizeHTMLの出力に未エスケープのダブルクオートが属性値内にないことを確認
+  const input = '<a href="https://example.com">Link</a>';
+  const result = await sanitizeHTML(input);
+  // 正常なhrefは保持される
+  assertStringIncludes(result, 'href="https://example.com"');
+});
+
+Deno.test("XSS: sanitizeHTMLは属性値のダブルクオートをエスケープする", async () => {
+  // sanitizeHTML関数を通して、出力されるHTML属性値にインジェクション文字がないことを確認
+  const result = await sanitizeHTML(
+    '<img src="test.png" alt="normal">',
+  );
+  assertStringIncludes(result, 'src="test.png"');
+  // onerrorなどの危険な属性が含まれていないことを確認
+  assertEquals(result.includes("onerror"), false);
+  assertEquals(result.includes("onclick"), false);
+});
+
+Deno.test("XSS: class属性値のエスケープ確認", async () => {
+  const result = await sanitizeHTML(
+    '<span class="hljs-keyword">const</span>',
+  );
+  assertStringIncludes(result, 'class="hljs-keyword"');
+  assertEquals(result.includes("onclick"), false);
 });

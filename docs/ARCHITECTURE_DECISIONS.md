@@ -411,11 +411,25 @@ ToC幅やトグル状態はUIローカルの表示状態であり、ビジネス
 #### 4. chrome.runtime.getURL()
 
 ```typescript
-// ✅ OK: 全層で許可
+// ✅ OK: 全層で許可（services層を含む）
 const cssUrl = chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
 ```
 
 **理由**: 静的リソースパス取得は副作用のないユーティリティ関数と同等。
+
+#### 5. TOC生成domain関数のcontent直接呼び出し
+
+```typescript
+// ✅ OK: domain純粋関数の組み合わせは直接呼び出し可
+const headings = extractHeadings(markdown);
+const normalized = normalizeHeadingLevels(headings);
+const items = buildTocTree(normalized);
+```
+
+**理由**: TOC生成は`extractHeadings` → `normalizeHeadingLevels` →
+`buildTocTree`の3つの純粋関数の組み合わせ。
+services層（TocService）はこれらを呼ぶだけでビジネスロジックを追加していないため、
+content層から直接呼び出しても判断基準1（副作用がない）を満たす。
 
 ### 判断基準
 
@@ -438,6 +452,41 @@ const cssUrl = chrome.runtime.getURL(`content/styles/themes/${theme}.css`);
 に留めること。判断に迷う場合は、原則に従ってservices/messaging経由にする。
 
 ---
+
+## ADR-008: Export HTML機能の一時無効化とデッドコード保持
+
+### 日付
+
+2026-02-17
+
+### ステータス
+
+承認済み
+
+### コンテキスト
+
+Export HTML機能（DocumentHeaderMenu, ExportMenuItem）はContent ScriptのIsolated
+Worldにおける Blob
+URL問題（オリジンがnullで`<a download>`が機能しない）を回避するため、
+chrome.downloads
+APIを使用する実装になっていた。しかし、ストア公開時の権限削減方針により
+downloads権限を削除した結果、Background
+Script経由のダウンロード方式に変更したが、
+一部エッジケースで不安定なため一時無効化している。
+
+### 決定
+
+- **コード保持**: DocumentHeaderMenu.tsx, ExportMenuItem.tsx, export-service.ts,
+  html-exporter.ts, base64-encoder.tsは削除せず保持する
+- **importコメントアウト**: MarkdownViewer.tsxのimportをコメントアウトで無効化
+- **復活条件**: Blob URL問題の代替解決策が見つかった場合
+- **期限**: 次回メジャーバージョンアップ（v2.0）時に削除判断
+
+### 復活時の必須対応
+
+1. ExportMenuItem.tsxのmessaging直接importをコールバックprops経由に変更（レイヤー違反解消）
+2. exportAsHTML()の引数htmlにsanitizeHTML()を適用（XSS防止）
+3. E2Eテスト（html-export.spec.ts）の有効化と更新
 
 ## 将来的な検討事項
 

@@ -1,5 +1,6 @@
 import { h as _h } from "preact";
 import type { Theme } from "../../../shared/types/theme.ts";
+import { THEME_METADATA } from "../../../shared/constants/themes.ts";
 
 interface ThemeSelectorProps {
   current: Theme;
@@ -7,55 +8,13 @@ interface ThemeSelectorProps {
 }
 
 /**
- * テーマ選択コンポーネント (6テーマ対応版)
+ * テーマ選択コンポーネント (Options版)
  *
- * 6種類のテーマ（Light, Dark, GitHub, Minimal, Solarized Light/Dark）から選択できるUI。
- * 各テーマにはプレビューカラーとアイコンを表示。
+ * 6種類のテーマをグリッド表示で選択。説明文とチェックマーク付き。
+ * テーマメタデータはshared/constants/themes.tsで一元管理。
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
-  const themes: {
-    id: Theme;
-    label: string;
-    emoji: string;
-    description: string;
-  }[] = [
-    {
-      id: "light",
-      label: "Light",
-      emoji: "☀️",
-      description: "Simple light theme",
-    },
-    {
-      id: "dark",
-      label: "Dark",
-      emoji: "🌙",
-      description: "Simple dark theme",
-    },
-    {
-      id: "github",
-      label: "GitHub",
-      emoji: "🐙",
-      description: "GitHub-style theme",
-    },
-    {
-      id: "minimal",
-      label: "Minimal",
-      emoji: "📝",
-      description: "Minimalist design",
-    },
-    {
-      id: "solarized-light",
-      label: "Solarized Light",
-      emoji: "🌅",
-      description: "Solarized light theme",
-    },
-    {
-      id: "solarized-dark",
-      label: "Solarized Dark",
-      emoji: "🌃",
-      description: "Solarized dark theme",
-    },
-  ];
+  const themes = THEME_METADATA;
 
   return (
     <div class="theme-selector">

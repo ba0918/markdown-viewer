@@ -227,6 +227,32 @@ Deno.test("exportAsHTML: Mermaid SVG + MathJax SVG + Base64画像の複合テス
   assertStringIncludes(result, "<title>Full Test</title>");
 });
 
+Deno.test("exportAsHTML: 不正なthemeIdはデフォルトテーマにフォールバック", () => {
+  const options: ExportOptions = {
+    html: "<p>Test</p>",
+    themeId: '<script>alert("XSS")</script>' as never,
+    themeCss: "body { color: black; }",
+  };
+
+  const result = exportAsHTML(options);
+
+  // 不正なthemeIdは使われず、デフォルトの"light"が使われる
+  assertStringIncludes(result, 'class="markdown-viewer-theme-light"');
+  assertEquals(result.includes("<script>"), false);
+});
+
+Deno.test("exportAsHTML: 有効なthemeIdはそのまま使用される", () => {
+  const options: ExportOptions = {
+    html: "<p>Test</p>",
+    themeId: "solarized-dark",
+    themeCss: "body { color: white; }",
+  };
+
+  const result = exportAsHTML(options);
+
+  assertStringIncludes(result, 'class="markdown-viewer-theme-solarized-dark"');
+});
+
 Deno.test("escapeHtml: 基本的なエスケープ", () => {
   assertEquals(escapeHtml("&"), "&amp;");
   assertEquals(escapeHtml("<"), "&lt;");

@@ -1,5 +1,6 @@
 import { h as _h } from "preact";
 import type { Theme } from "../../../shared/types/theme.ts";
+import { THEME_METADATA } from "../../../shared/constants/themes.ts";
 
 interface ThemeSelectorProps {
   current: Theme;
@@ -9,17 +10,10 @@ interface ThemeSelectorProps {
 /**
  * テーマ選択コンポーネント
  *
- * Popup用の簡易テーマ選択UI。6種類のテーマから選択可能。
+ * Popup用の簡易テーマ選択UI。テーマメタデータはshared/constants/themes.tsで一元管理。
  */
 export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
-  const themes: { id: Theme; label: string; emoji: string }[] = [
-    { id: "light", label: "Light", emoji: "☀️" },
-    { id: "dark", label: "Dark", emoji: "🌙" },
-    { id: "github", label: "GitHub", emoji: "🐙" },
-    { id: "minimal", label: "Minimal", emoji: "📝" },
-    { id: "solarized-light", label: "Sol. Light", emoji: "🌅" },
-    { id: "solarized-dark", label: "Sol. Dark", emoji: "🌃" },
-  ];
+  const themes = THEME_METADATA;
 
   return (
     <div class="theme-selector">

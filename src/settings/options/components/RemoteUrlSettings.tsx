@@ -2,6 +2,7 @@ import { Fragment as _Fragment, h as _h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { getContentScriptId } from "../../../shared/utils/encode.ts";
 import { validateOrigin } from "../../../shared/utils/origin-validator.ts";
+import { logger } from "../../../shared/utils/logger.ts";
 
 interface CustomOrigin {
   origin: string;
@@ -105,7 +106,7 @@ export const RemoteUrlSettings = () => {
         });
       } catch (e) {
         // スクリプトが存在しない場合はエラーを無視（既に解除済み等）
-        console.warn(`Failed to unregister content script ${scriptId}:`, e);
+        logger.warn(`Failed to unregister content script ${scriptId}:`, e);
       }
 
       // 2. 権限を削除
