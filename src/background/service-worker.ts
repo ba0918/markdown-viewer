@@ -1,6 +1,5 @@
-/// <reference types="@types/chrome" />
-
 import { handleBackgroundMessage } from "../messaging/handlers/background-handler.ts";
+import type { Message } from "../shared/types/message.ts";
 import { getContentScriptId } from "../shared/utils/encode.ts";
 import { logger } from "../shared/utils/logger.ts";
 
@@ -79,7 +78,7 @@ chrome.runtime.onStartup.addListener(() => {
  * メッセージ受信ハンドラ
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  handleBackgroundMessage(message, sender)
+  handleBackgroundMessage(message as Message, sender)
     .then(sendResponse)
     .catch((error) => sendResponse({ success: false, error: error.message }));
 

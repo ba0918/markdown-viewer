@@ -2,11 +2,10 @@
  * Chrome Extension API 型定義
  *
  * プロジェクト内で使用するChrome APIのサブセットを統一定義。
- * 各ソースファイルでの `declare const chrome` の分散を解消。
+ * 各ソースファイルでの `declare const chrome` や `/// <reference>` の分散を解消。
  *
- * 使用方法: ソースファイル先頭に以下を追加
- *   /// <reference path="../../shared/types/chrome.d.ts" />
- *   （パスは相対位置に応じて調整）
+ * deno.json の compilerOptions.types で自動読み込みされるため、
+ * ソースファイルでの参照記述は不要。
  */
 declare const chrome: {
   runtime: {
@@ -15,6 +14,24 @@ declare const chrome: {
     /** Background Scriptにメッセージを送信 */
     // deno-lint-ignore no-explicit-any
     sendMessage: (message: unknown) => Promise<any>;
+    /** 拡張機能インストール/更新時のイベント */
+    onInstalled: {
+      addListener: (callback: () => void) => void;
+    };
+    /** ブラウザ起動時のイベント */
+    onStartup: {
+      addListener: (callback: () => void) => void;
+    };
+    /** メッセージ受信イベント */
+    onMessage: {
+      addListener: (
+        callback: (
+          message: unknown,
+          sender: { tab?: { id?: number; url?: string }; id?: string },
+          sendResponse: (response: unknown) => void,
+        ) => boolean | void,
+      ) => void;
+    };
   };
   storage: {
     sync: {
@@ -36,5 +53,22 @@ declare const chrome: {
         ) => void,
       ) => void;
     };
+  };
+  scripting: {
+    /** 登録済みContent Scriptを取得 */
+    getRegisteredContentScripts: () => Promise<
+      Array<{ id: string; matches?: string[] }>
+    >;
+    /** Content Scriptを動的に登録 */
+    registerContentScripts: (
+      scripts: Array<{
+        id: string;
+        matches: string[];
+        js: string[];
+        runAt?: string;
+      }>,
+    ) => Promise<void>;
+    /** Content Scriptの登録を解除 */
+    unregisterContentScripts: (filter?: { ids: string[] }) => Promise<void>;
   };
 };
