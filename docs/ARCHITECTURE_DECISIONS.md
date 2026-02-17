@@ -498,6 +498,85 @@ Script経由のダウンロード方式に変更したが、
 2. exportAsHTML()の引数htmlにsanitizeHTML()を適用（XSS防止）
 3. E2Eテスト（html-export.spec.ts）の有効化と更新
 
+## ADR-009: バンドルサイズのトレードオフ（highlight.js / mathjax-full）
+
+### 日付
+
+2026-02-18
+
+### ステータス
+
+承認済み
+
+### コンテキスト
+
+コードベースレビュー（review-20260217-0645,
+review-20260217-1200）で繰り返し以下が指摘されている：
+
+1. **highlight.js全言語バンドル**（192言語、~300-500KB gzip）
+2. **mathjax-full全量バンドル**（~1730KB、content.jsの38.7%）
+
+一般的なWebアプリケーションではcode splittingやdynamic
+importで解決可能だが、Chrome拡張のContent Scriptには固有の技術的制約がある。
+
+### Chrome拡張 Content Scriptの制約
+
+1. **dynamic importが利用不可**: Content Scriptはisolated
+   worldで実行され、`import()`による動的モジュール読み込みがサポートされない
+2. **code splittingが利用不可**: esbuildのcode
+   splitting出力（複数チャンク）はContent
+   Scriptでは読み込めない。manifest.jsonの`content_scripts.js`に指定した単一バンドルとして提供する必要がある
+3. **`chrome-extension://`パス制約**: Content
+   Script内から拡張のリソースにアクセスするには`web_accessible_resources`の設定が必要だが、動的に生成されたチャンクパスの事前登録が困難
+
+### 決定
+
+以下の設計を**意図的なトレードオフ**として承認し、コードベースレビューにおける免責事項とする。
+
+#### highlight.js全言語バンドル
+
+```typescript
+// ✅ 承認: 全言語版を使用
+import hljs from "highlight.js";
+```
+
+**理由**:
+
+- Markdownビューアは**任意の言語のコードブロック**を表示する必要がある。ユーザーがどの言語を使うか事前に予測できない
+- `highlight.js/lib/common`（37言語）では、Rust、Kotlin、Scala、Haskell等の需要のある言語が欠落する
+- Content Scriptの制約上、必要に応じた動的読み込みは不可能
+
+#### mathjax-full全量バンドル
+
+```typescript
+// ✅ 承認: 直接バンドルに含める
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
+```
+
+**理由**:
+
+- 以前はローカルバンドル（1.7MB）+ `web_accessible_resources` +
+  スクリプト動的ロード方式だったが、`chrome-extension://`パス制約による不安定さを解消するため、直接バンドル方式に意図的に移行した経緯がある（docs/cycles/20260208065017参照）
+- Content Script内での直接実行により、パス解決問題を完全に回避
+- `hasMathExpression()`による検出で、数式が存在するページでのみMathJaxを初期化（遅延初期化パターン）し、ランタイムコストは最小化済み
+
+### 将来的な再検討条件
+
+以下の条件が満たされた場合、本決定を再検討する：
+
+1. Chrome拡張のContent Scriptでdynamic importがサポートされた場合
+2. esbuildがContent Script向けのcode splitting出力をサポートした場合
+3. MV4（Manifest V4）で新しいリソース読み込みモデルが導入された場合
+4. バンドルサイズがChrome Web Storeの制限に抵触した場合
+
+### 影響
+
+- コードベースレビューにおいて、highlight.js/mathjax-fullのバンドルサイズ指摘は**info（免責）**として扱う
+- 新たなレビュー時にこの決定を再指摘しないよう、本ADRを参照すること
+
+---
+
 ## 将来的な検討事項
 
 ### usecase層の導入
