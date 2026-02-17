@@ -10,16 +10,17 @@
  * @returns 相対リンクならtrue
  */
 export const isRelativeLink = (href: string): boolean => {
+  const lower = href.toLowerCase();
   if (
-    href.startsWith("http://") ||
-    href.startsWith("https://") ||
-    href.startsWith("file://") ||
-    href.startsWith("#") ||
-    href.startsWith("mailto:") ||
-    href.startsWith("tel:") ||
-    href.startsWith("data:") ||
-    href.startsWith("javascript:") ||
-    href.startsWith("vbscript:")
+    lower.startsWith("http://") ||
+    lower.startsWith("https://") ||
+    lower.startsWith("file://") ||
+    lower.startsWith("#") ||
+    lower.startsWith("mailto:") ||
+    lower.startsWith("tel:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("javascript:") ||
+    lower.startsWith("vbscript:")
   ) {
     return false;
   }

@@ -281,3 +281,31 @@ Deno.test("isRelativeLink: data:リンクは相対リンクではない", () => 
 Deno.test("isRelativeLink: vbscript:リンクは相対リンクではない", () => {
   assertEquals(isRelativeLink("vbscript:msgbox"), false);
 });
+
+/**
+ * 大文字プロトコルの非相対リンク判定テスト（ケースインセンシティブ対応）
+ */
+
+Deno.test("isRelativeLink: JavaScript:(大文字)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("JavaScript:void(0)"), false);
+});
+
+Deno.test("isRelativeLink: MAILTO:(大文字)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("MAILTO:user@example.com"), false);
+});
+
+Deno.test("isRelativeLink: VBScript:(大文字)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("VBScript:MsgBox"), false);
+});
+
+Deno.test("isRelativeLink: HTTP:(大文字)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("HTTP://example.com"), false);
+});
+
+Deno.test("isRelativeLink: FILE:(大文字)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("FILE:///home/user/file.md"), false);
+});
+
+Deno.test("isRelativeLink: Data:(混在ケース)は相対リンクではない", () => {
+  assertEquals(isRelativeLink("Data:text/html,<h1>test</h1>"), false);
+});
