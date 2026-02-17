@@ -1,5 +1,6 @@
 import { markdownService } from "../../../services/markdown-service.ts";
 import { loadTheme } from "../../../domain/theme/loader.ts";
+import { validateThemeId } from "./validate-theme.ts";
 import type { Theme } from "../../../shared/types/theme.ts";
 import type { ActionHandler } from "../action-types.ts";
 
@@ -15,6 +16,13 @@ export const createRenderMarkdownAction = (): ActionHandler => {
       return {
         success: false,
         error: "Invalid payload: markdown must be a string",
+      };
+    }
+    // themeIdが指定された場合はバリデーション（他アクションと一貫性を保つ）
+    if (p.themeId !== undefined && !validateThemeId(p.themeId)) {
+      return {
+        success: false,
+        error: "Invalid payload: invalid themeId",
       };
     }
     const theme = loadTheme(p.themeId as Theme | undefined);
