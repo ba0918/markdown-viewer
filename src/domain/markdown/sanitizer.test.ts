@@ -261,3 +261,47 @@ Deno.test("XSS: class属性値のエスケープ確認", async () => {
   assertStringIncludes(result, 'class="hljs-keyword"');
   assertEquals(result.includes("onclick"), false);
 });
+
+/**
+ * クラス名マッチ厳格化テスト
+ * hljs/language-以外の部分一致クラス名をブロックする
+ */
+
+Deno.test("セキュリティ: hljs接頭辞を含む意図しないクラス名をブロック", async () => {
+  const result = await sanitizeHTML('<span class="hljsmalicious">test</span>');
+  assertEquals(result.includes("hljsmalicious"), false);
+});
+
+Deno.test("セキュリティ: language-接頭辞の正当なクラス名は保持", async () => {
+  const result = await sanitizeHTML(
+    '<code class="language-typescript">code</code>',
+  );
+  assertStringIncludes(result, 'class="language-typescript"');
+});
+
+Deno.test("セキュリティ: hljs-キーワードの正当なクラス名は保持", async () => {
+  const result = await sanitizeHTML(
+    '<span class="hljs-keyword">const</span>',
+  );
+  assertStringIncludes(result, 'class="hljs-keyword"');
+});
+
+Deno.test("セキュリティ: hljsクラス単体は保持", async () => {
+  const result = await sanitizeHTML('<code class="hljs">code block</code>');
+  assertStringIncludes(result, 'class="hljs"');
+});
+
+Deno.test("セキュリティ: 複数の正当なhljsクラスは保持", async () => {
+  const result = await sanitizeHTML(
+    '<span class="hljs-keyword hljs-built_in">test</span>',
+  );
+  assertStringIncludes(result, "hljs-keyword");
+  assertStringIncludes(result, "hljs-built_in");
+});
+
+Deno.test("セキュリティ: 正当なクラスと不正なクラスの混在をブロック", async () => {
+  const result = await sanitizeHTML(
+    '<span class="hljs-keyword evil-class">test</span>',
+  );
+  assertEquals(result.includes("evil-class"), false);
+});

@@ -44,12 +44,19 @@ const xssOptions = {
     // 属性値インジェクション防止: ダブルクオートをエスケープ
     const safeValue = value.replace(/"/g, "&quot;");
 
-    // hljs-*とlanguage-*クラスを許可
-    if (
-      name === "class" &&
-      (value.includes("hljs") || value.includes("language-"))
-    ) {
-      return `class="${safeValue}"`;
+    // hljs-*とlanguage-*クラスのみ許可（クラス名単位で厳格チェック）
+    // 部分一致ではなく、個別クラス名が完全にhljsパターンに合致する場合のみ許可
+    if (name === "class") {
+      const classes = value.split(/\s+/).filter(Boolean);
+      const allAllowed = classes.every((cls) =>
+        cls === "hljs" || cls.startsWith("hljs-") ||
+        cls.startsWith("language-")
+      );
+      if (allAllowed && classes.length > 0) {
+        return `class="${safeValue}"`;
+      }
+      // 不許可クラスを含む場合、class属性を除去（空文字でxssライブラリのデフォルト許可を上書き）
+      return "";
     }
     // 相対パスのhrefを許可（xssはデフォルトで削除するため）
     if (tag === "a" && name === "href") {
