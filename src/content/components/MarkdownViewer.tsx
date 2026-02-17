@@ -31,7 +31,6 @@ interface Props {
   result: RenderResult; // html, rawMarkdown, content, frontmatter
   themeId: Signal<Theme>;
   initialTocState?: TocState; // ToC初期状態（CLS削減用）
-  fileUrl: string; // ファイルURL (画像Base64変換の基準URL)
 }
 
 export const MarkdownViewer = (

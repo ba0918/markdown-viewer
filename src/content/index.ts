@@ -92,7 +92,6 @@ const renderMarkdown = async (
             result,
             themeId: currentTheme,
             initialTocState,
-            fileUrl: location.href,
           }),
           h(ToastContainer, null),
         ],
