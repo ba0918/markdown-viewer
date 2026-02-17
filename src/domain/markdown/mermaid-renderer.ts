@@ -33,6 +33,7 @@ interface MermaidConfig {
   theme?: "default" | "dark" | "forest" | "neutral" | "base";
   startOnLoad?: boolean;
   securityLevel?: "strict" | "loose" | "antiscript";
+  suppressErrorRendering?: boolean;
   flowchart?: {
     curve?: string;
     htmlLabels?: boolean;
@@ -94,6 +95,10 @@ async function initializeMermaid(
         theme,
         startOnLoad: false,
         securityLevel: "strict",
+        // 構文エラー時にMermaid内部で一時要素をクリーンアップしてからthrowさせる
+        // デフォルト(false)ではthrow前にremoveTempElements()が呼ばれないバグあり
+        // （docs/library-research/MERMAID_RENDER_ANALYSIS.md 参照）
+        suppressErrorRendering: true,
         flowchart: {
           htmlLabels: true,
         },
@@ -173,12 +178,12 @@ export async function renderMermaid(
   code: string,
   theme: "default" | "dark" | "forest" | "neutral" | "base" = "default",
 ): Promise<string> {
+  const id = `mermaid-diagram-${Date.now()}-${
+    Math.random().toString(36).substring(2, 9)
+  }`;
+
   try {
     await initializeMermaid(theme);
-
-    const id = `mermaid-diagram-${Date.now()}-${
-      Math.random().toString(36).substring(2, 9)
-    }`;
 
     const { svg } = await mermaidInstance.render(id, code);
 
@@ -192,6 +197,12 @@ export async function renderMermaid(
     // 多層防御: securityLevel: 'strict' + SVGサニタイズ
     return sanitizeSvg(svg);
   } catch (error) {
+    // エラー時も一時要素をDOMから除去（多層防御）
+    // suppressErrorRendering: trueでMermaid側がクリーンアップするが、
+    // 念のため手動でも削除を試みる（docs/MERMAID_RENDER_ANALYSIS.md 参照）
+    document.getElementById(id)?.remove();
+    document.getElementById(`d${id}`)?.remove();
+
     throw new Error(
       `Mermaid rendering failed: ${
         error instanceof Error ? error.message : String(error)

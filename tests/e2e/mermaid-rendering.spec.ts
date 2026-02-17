@@ -8,6 +8,7 @@
  * - Class Diagram
  * - Multiple Diagrams
  * - Dynamic Loading (Mermaidブロックがない場合はロードしない)
+ * - Error Recovery (不正構文ブロックがあっても他ブロックが正しく描画される)
  */
 
 import { expect, test } from "./fixtures.ts";
@@ -163,5 +164,73 @@ test.describe("Mermaid Diagram Rendering", () => {
     // Mermaidダイアグラムコンテナが存在することを確認
     const diagramCount = await page.locator(".mermaid-diagram").count();
     expect(diagramCount).toBeGreaterThanOrEqual(4);
+  });
+});
+
+test.describe("Mermaid Error Recovery", () => {
+  test("不正構文ブロックがあっても他のブロックが正しい位置に描画される", async ({ page, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/mermaid-error-test.md`;
+    await openMarkdownFile(page, testUrl);
+    await expectMarkdownRendered(page);
+
+    // 全3ブロック分の処理が完了するまで待機
+    // 有効2ブロック + エラー1ブロック = 3つの .mermaid-diagram コンテナ
+    await page.waitForFunction(() => {
+      const diagrams = document.querySelectorAll(".mermaid-diagram");
+      return diagrams.length >= 3;
+    }, { timeout: 30000 });
+
+    const allDiagrams = await page.locator(".mermaid-diagram").all();
+    expect(allDiagrams.length).toBe(3);
+
+    // 1番目（Flowchart）: 有効 → SVGが存在
+    const firstDiagram = page.locator(".mermaid-diagram").nth(0);
+    const firstSvg = firstDiagram.locator("svg");
+    await expect(firstSvg).toBeVisible();
+
+    // 2番目（不正構文）: エラーフォールバック表示
+    const secondDiagram = page.locator(".mermaid-diagram").nth(1);
+    // エラーメッセージが含まれることを確認
+    const errorMessage = secondDiagram.locator(
+      'text:has-text("Failed to render")',
+    );
+    const errorMessageAlt = secondDiagram.locator("p");
+    const hasErrorText = (await errorMessage.count() > 0) ||
+      (await errorMessageAlt.count() > 0);
+    expect(hasErrorText).toBe(true);
+
+    // 3番目（Sequence Diagram）: 有効 → SVGが存在
+    const thirdDiagram = page.locator(".mermaid-diagram").nth(2);
+    const thirdSvg = thirdDiagram.locator("svg");
+    await expect(thirdSvg).toBeVisible();
+  });
+
+  test("各ダイアグラムのdata-mermaid-code属性が正しいコードを保持する", async ({ page, testServerUrl }) => {
+    const testUrl = `${testServerUrl}/tests/e2e/fixtures/mermaid-error-test.md`;
+    await openMarkdownFile(page, testUrl);
+    await expectMarkdownRendered(page);
+
+    // 全ブロック処理完了まで待機
+    await page.waitForFunction(() => {
+      const diagrams = document.querySelectorAll(".mermaid-diagram");
+      return diagrams.length >= 3;
+    }, { timeout: 30000 });
+
+    // 1番目: Flowchartのコード
+    const firstCode = await page.locator(".mermaid-diagram").nth(0)
+      .getAttribute("data-mermaid-code");
+    expect(firstCode).toContain("graph TD");
+    expect(firstCode).toContain("A[Start]");
+
+    // 2番目: 不正構文のコード（エラーでもコードは保持される）
+    const secondCode = await page.locator(".mermaid-diagram").nth(1)
+      .getAttribute("data-mermaid-code");
+    expect(secondCode).toContain("not valid mermaid syntax");
+
+    // 3番目: Sequence Diagramのコード
+    const thirdCode = await page.locator(".mermaid-diagram").nth(2)
+      .getAttribute("data-mermaid-code");
+    expect(thirdCode).toContain("sequenceDiagram");
+    expect(thirdCode).toContain("Alice");
   });
 });
