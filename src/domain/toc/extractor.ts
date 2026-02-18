@@ -10,6 +10,30 @@ import type { TocHeading } from "./types.ts";
 import { makeUniqueId } from "../../shared/utils/unique-id.ts";
 
 /**
+ * Markdownインライン記法を除去してプレーンテキストを取得
+ *
+ * marked.lexer()のtoken.textはMarkdown記法を含むため（例: "[link](url)"）、
+ * html-processor側の「HTMLタグ除去後テキスト」と入力を揃える必要がある。
+ *
+ * 処理順序が重要:
+ * 1. 画像を先に除去（インライン `![alt](url)` → ``、参照 `![alt][ref]` → ``）
+ *    ※markedは`<img>`自己閉じタグに変換し、HTMLタグ除去でalt含め全て消えるため空文字
+ * 2. リンク（インライン `[text](url)` → `text`、参照 `[text][ref]` → `text`）
+ * 3. HTMLタグ除去（`<em>text</em>` → `text`）
+ *
+ * @param text marked.lexer()のtoken.text
+ * @returns インライン記法を除去したプレーンテキスト
+ */
+const stripMarkdownInline = (text: string): string => {
+  return text
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "")
+    .replace(/!\[([^\]]*)\]\[[^\]]*\]/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]*)\]\[[^\]]*\]/g, "$1")
+    .replace(/<[^>]+>/g, "");
+};
+
+/**
  * 見出しテキストからURLフレンドリーなIDを生成
  *
  * ルール:
@@ -61,7 +85,9 @@ export const extractHeadings = (markdown: string): TocHeading[] => {
   for (const token of tokens) {
     if (token.type === "heading" && token.depth <= 3) {
       const text = token.text;
-      const baseId = generateHeadingId(text);
+      // html-processor側のID生成（HTMLタグ除去後テキスト）と一致させるため、
+      // Markdownインライン記法を除去してからID生成する
+      const baseId = generateHeadingId(stripMarkdownInline(text));
       const id = makeUniqueId(baseId, idCounts);
 
       headings.push({

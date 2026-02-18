@@ -4,7 +4,9 @@
 
 import { assertEquals } from "@std/assert";
 import { extractHeadings, generateHeadingId } from "./extractor.ts";
+import { addHeadingIds } from "./html-processor.ts";
 import { buildTocTree } from "./tree-builder.ts";
+import { marked } from "marked";
 
 Deno.test("generateHeadingId: 基本的な変換", () => {
   assertEquals(generateHeadingId("Hello World"), "Hello-World");
@@ -168,6 +170,93 @@ Deno.test("extractHeadings: 異なる見出しは連番なし", () => {
   assertEquals(result[0].id, "Introduction");
   assertEquals(result[1].id, "Getting-Started");
   assertEquals(result[2].id, "Prerequisites");
+});
+
+// === extractHeadingsとaddHeadingIdsのID一致検証 ===
+// ToCリンクからのスクロールが正しく動作するには、両者のIDが一致する必要がある
+
+Deno.test("extractHeadings: リンクを含む見出しのID生成", () => {
+  const markdown = "# [link text](http://example.com)";
+  const result = extractHeadings(markdown);
+  assertEquals(result[0].id, "link-text");
+  // 表示テキストはMarkdown記法を含んだまま
+  assertEquals(result[0].text, "[link text](http://example.com)");
+});
+
+Deno.test("extractHeadings: 画像を含む見出しのID生成", () => {
+  const markdown = "# image ![alt](img.png) here";
+  const result = extractHeadings(markdown);
+  // markedは![alt](url)を<img>自己閉じタグに変換し、HTMLタグ除去でalt含め消えるため空文字
+  assertEquals(result[0].id, "image-here");
+});
+
+Deno.test("extractHeadings: HTMLタグを含む見出しのID生成", () => {
+  const markdown = "# text with <em>html</em>";
+  const result = extractHeadings(markdown);
+  assertEquals(result[0].id, "text-with-html");
+});
+
+Deno.test("extractHeadings: ボールドリンクを含む見出しのID生成", () => {
+  const markdown = "# [**bold link**](http://example.com)";
+  const result = extractHeadings(markdown);
+  assertEquals(result[0].id, "bold-link");
+});
+
+Deno.test("extractHeadings: 参照リンクを含む見出しのID生成", () => {
+  const markdown = "# [link text][ref]\n\n[ref]: http://example.com";
+  const result = extractHeadings(markdown);
+  assertEquals(result[0].id, "link-text");
+  assertEquals(result[0].text, "[link text][ref]");
+});
+
+Deno.test("extractHeadings: 参照画像を含む見出しのID生成", () => {
+  const markdown =
+    "# image ![alt][ref] here\n\n[ref]: http://example.com/img.png";
+  const result = extractHeadings(markdown);
+  assertEquals(result[0].id, "image-here");
+});
+
+Deno.test("extractHeadingsとaddHeadingIdsのID一致検証", async (t) => {
+  const testCases = [
+    { md: "# **bold** text", desc: "ボールド" },
+    { md: "# `inline code`", desc: "インラインコード" },
+    { md: "# ~~strikethrough~~", desc: "取り消し線" },
+    { md: "# ***bold italic*** text", desc: "ボールドイタリック" },
+    { md: "# [link text](http://example.com)", desc: "リンク" },
+    { md: "# image ![alt](img.png) here", desc: "画像" },
+    { md: "# [**bold link**](http://example.com)", desc: "ボールドリンク" },
+    { md: "# 日本語の見出し", desc: "日本語" },
+    { md: "# ADR-001: domain/層の導入", desc: "記号混在" },
+    {
+      md: "# [link text][ref]\n\n[ref]: http://example.com",
+      desc: "参照リンク",
+    },
+    {
+      md: "# image ![alt][ref] here\n\n[ref]: http://example.com/img.png",
+      desc: "参照画像",
+    },
+  ];
+
+  for (const { md, desc } of testCases) {
+    await t.step(desc, () => {
+      // extractor側: Markdown → extractHeadings → ID
+      const headings = extractHeadings(md);
+      const extractorId = headings[0].id;
+
+      // html-processor側: Markdown → HTML → addHeadingIds → ID
+      const html = marked.parse(md) as string;
+      const processed = addHeadingIds(html);
+      const idMatch = processed.match(/id="([^"]*)"/);
+
+      assertEquals(
+        extractorId,
+        idMatch![1],
+        `ID mismatch for "${md}": extractor="${extractorId}", html-processor="${
+          idMatch![1]
+        }"`,
+      );
+    });
+  }
 });
 
 Deno.test("buildTocTree: H1のみ（子要素なし）", () => {
