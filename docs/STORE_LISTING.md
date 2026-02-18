@@ -164,13 +164,13 @@ markdown, viewer, markdown viewer, local files, hot reload, GFM, security, priva
 Chrome Web Store requires **at least 1 screenshot**, recommends **3-5
 screenshots**.
 
-### Recommended Screenshots:
+### Screenshots (store-assets/screenshots/):
 
-1. **Light Theme** - Clean Markdown rendering with Light theme
-2. **Dark Theme** - Same content with Dark theme
-3. **GitHub Theme + ToC** - Table of Contents sidebar with GitHub theme
-4. **Complex content** - Mermaid diagram + Code block + Math equation
-5. **Settings** - Settings panel
+1. `01-github-theme-toc-table.png` - GitHub Theme + ToC + Table
+2. `02-light-theme-mermaid.png` - Light Theme + Mermaid diagram + ToC
+3. `03-dark-theme-code-highlight.png` - Dark Theme + Code block + Config
+4. `04-solarized-dark-math.png` - Solarized Dark + Math equations + Checklist
+5. `05-minimal-theme-math.png` - Minimal Theme + Math equations + Checklist
 
 Screenshot specs:
 
