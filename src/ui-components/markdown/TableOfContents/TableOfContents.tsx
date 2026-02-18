@@ -28,6 +28,15 @@ const isStorageAvailable = (): boolean => {
     !!chrome.storage.sync;
 };
 
+/** tocStateをchrome.storageに永続化（利用可能な場合のみ） */
+const persistTocState = (state: TocState): void => {
+  if (isStorageAvailable()) {
+    chrome.storage.sync.set({ tocState: state }).catch(() => {
+      // 保存失敗時は無視（ストレージエラーでUI操作をブロックしない）
+    });
+  }
+};
+
 interface Props {
   /** TOCアイテムリスト */
   items: TocItem[];
@@ -113,12 +122,7 @@ export const TableOfContents = ({
       const newState = { ...tocState, width: newWidth };
       setTocState(newState);
       onTocStateChange?.(newState);
-
-      if (isStorageAvailable()) {
-        chrome.storage.sync.set({ tocState: newState }).catch(() => {
-          // 保存失敗時は無視
-        });
-      }
+      persistTocState(newState);
     },
   });
 
@@ -129,12 +133,7 @@ export const TableOfContents = ({
     const newState = { ...tocState, visible: !tocState.visible };
     setTocState(newState);
     onTocStateChange?.(newState);
-
-    if (isStorageAvailable()) {
-      chrome.storage.sync.set({ tocState: newState }).catch(() => {
-        // 保存失敗時は無視
-      });
-    }
+    persistTocState(newState);
   }, [tocState, onTocStateChange]);
 
   /**
@@ -148,12 +147,7 @@ export const TableOfContents = ({
     const newState = { ...tocState, collapsedItems: newItems };
     setTocState(newState);
     onTocStateChange?.(newState);
-
-    if (isStorageAvailable()) {
-      chrome.storage.sync.set({ tocState: newState }).catch(() => {
-        // 保存失敗時は無視
-      });
-    }
+    persistTocState(newState);
   }, [collapsedItems, tocState, onTocStateChange]);
 
   /**

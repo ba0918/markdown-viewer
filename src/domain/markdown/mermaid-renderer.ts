@@ -11,7 +11,6 @@
  * ⚠️ This module requires browser environment (document, window)
  */
 
-// @ts-ignore: mermaid types not available in Deno
 import mermaid from "mermaid";
 
 /**
@@ -232,20 +231,21 @@ export async function renderMermaid(
  * getMermaidTheme('solarized-light') // 'forest'
  * ```
  */
+/** アプリテーマ → Mermaidテーマの対応表（不変のためモジュールスコープに配置） */
+const MERMAID_THEME_MAP: Record<
+  string,
+  "default" | "dark" | "forest" | "neutral" | "base"
+> = {
+  "light": "base",
+  "dark": "dark",
+  "github": "neutral",
+  "minimal": "base",
+  "solarized-light": "forest",
+  "solarized-dark": "dark",
+};
+
 export function getMermaidTheme(
   appTheme: string,
 ): "default" | "dark" | "forest" | "neutral" | "base" {
-  const themeMap: Record<
-    string,
-    "default" | "dark" | "forest" | "neutral" | "base"
-  > = {
-    "light": "base",
-    "dark": "dark",
-    "github": "neutral",
-    "minimal": "base",
-    "solarized-light": "forest",
-    "solarized-dark": "dark",
-  };
-
-  return themeMap[appTheme] || "default";
+  return MERMAID_THEME_MAP[appTheme] || "default";
 }

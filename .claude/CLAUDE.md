@@ -167,7 +167,8 @@ import { loadTheme } from "../theme/loader.ts"; // in domain/markdown/
 
 **XSS防御**: 全Markdown描画で`sanitizeHTML()`必須通過、xss
 (js-xss)で`javascript:`/`onerror`等ブロック **テスト**:
-XSS攻撃ベクター13ケース必須（`tests/e2e/xss.spec.ts`） 詳細→`docs/SECURITY.md`
+XSS攻撃ベクター13ケース必須（`tests/e2e/security.spec.ts`）
+詳細→`docs/SECURITY.md`
 
 ## ログ出力
 
