@@ -78,7 +78,7 @@ jobs:
       - name: Create extension package
         run: |
           cd dist/release
-          zip -r "../../ba-markdown-viewer-${{ steps.version.outputs.version }}.zip" .
+          zip -r "../../markdown-viewer-${{ steps.version.outputs.version }}.zip" .
           cd ../..
 
       - name: Generate release notes
@@ -89,12 +89,12 @@ jobs:
             echo "## 🎉 Release ${{ steps.version.outputs.version }}"
             echo ""
             echo "### 📦 Package Information"
-            echo "- **Extension Size**: $(du -sh ba-markdown-viewer-${{ steps.version.outputs.version }}.zip | cut -f1)"
+            echo "- **Extension Size**: $(du -sh markdown-viewer-${{ steps.version.outputs.version }}.zip | cut -f1)"
             echo "- **Build Date**: $(date '+%Y-%m-%d %H:%M:%S UTC')"
             echo "- **Commit**: ${{ github.sha }}"
             echo ""
             echo "### 🔧 Installation"
-            echo "1. Download the \`ba-markdown-viewer-${{ steps.version.outputs.version }}.zip\` file"
+            echo "1. Download the \`markdown-viewer-${{ steps.version.outputs.version }}.zip\` file"
             echo "2. Extract the ZIP file"
             echo "3. Open Chrome and navigate to \`chrome://extensions/\`"
             echo "4. Enable \"Developer mode\""
@@ -122,10 +122,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: "BA Markdown Viewer ${{ steps.version.outputs.version }}"
+          name: "Markdown Viewer ${{ steps.version.outputs.version }}"
           body: ${{ steps.release_notes.outputs.release_notes }}
           files: |
-            ba-markdown-viewer-${{ steps.version.outputs.version }}.zip
+            markdown-viewer-${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: false
         env:
@@ -139,13 +139,13 @@ jobs:
           echo "2. Add CHROME_WEB_STORE_* secrets to GitHub"
           echo "3. Uncomment and configure Chrome Web Store upload action"
           echo ""
-          echo "Package ready for manual upload: ba-markdown-viewer-${{ steps.version.outputs.version }}.zip"
+          echo "Package ready for manual upload: markdown-viewer-${{ steps.version.outputs.version }}.zip"
 
       # Chrome Web Store upload (commented out - requires setup)
       # - name: Upload to Chrome Web Store
       #   uses: mnao305/chrome-extension-upload@v4.0.1
       #   with:
-      #     file-path: ba-markdown-viewer-${{ steps.version.outputs.version }}.zip
+      #     file-path: markdown-viewer-${{ steps.version.outputs.version }}.zip
       #     extension-id: ${{ secrets.CHROME_WEB_STORE_EXTENSION_ID }}
       #     client-id: ${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}
       #     client-secret: ${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}
