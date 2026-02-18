@@ -16,7 +16,7 @@ const initializeMarked = () => {
     highlight: highlightCode,
   }));
 
-  marked.setOptions({
+  marked.use({
     gfm: true,
     breaks: true,
   });
