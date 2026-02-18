@@ -1,6 +1,5 @@
 import type { StateManager } from "../../../background/state-manager.ts";
 import { validateThemeId } from "./validate-theme.ts";
-import type { Theme } from "../../../shared/types/theme.ts";
 import type { ActionHandler } from "../action-types.ts";
 
 /**
@@ -17,7 +16,8 @@ export const createUpdateThemeAction = (
     if (!validateThemeId(themeId)) {
       return { success: false, error: "Invalid payload: invalid themeId" };
     }
-    await stateManager.updateTheme(themeId as Theme);
+    // validateThemeId type guardでTheme型に絞り込み済み
+    await stateManager.updateTheme(themeId);
     return { success: true, data: null };
   };
 };

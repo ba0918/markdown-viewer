@@ -1,6 +1,5 @@
 import { loadTheme } from "../../../domain/theme/loader.ts";
 import { validateThemeId } from "./validate-theme.ts";
-import type { Theme } from "../../../shared/types/theme.ts";
 import type { ActionHandler } from "../action-types.ts";
 
 /**
@@ -16,7 +15,7 @@ export const createLoadThemeAction = (): ActionHandler => {
       return { success: false, error: "Invalid payload: invalid themeId" };
     }
     // validateThemeId type guardでTheme型に絞り込み済み
-    const theme = loadTheme(themeId as Theme);
+    const theme = loadTheme(themeId);
     return { success: true, data: theme };
   };
 };
