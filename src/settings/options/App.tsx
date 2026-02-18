@@ -1,10 +1,11 @@
-import { h as _h } from "preact";
+import { Fragment as _Fragment, h as _h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { sendMessage } from "../../messaging/client.ts";
 import { ThemeSelector } from "./components/ThemeSelector.tsx";
 import { HotReloadSettings } from "./components/HotReloadSettings.tsx";
 import { RemoteUrlSettings } from "./components/RemoteUrlSettings.tsx";
 import { useSettings } from "../shared/hooks/useSettings.ts";
+import { SettingsLayout } from "../shared/components/SettingsLayout.tsx";
 import type { Theme } from "../../shared/types/theme.ts";
 
 /**
@@ -103,67 +104,48 @@ export const App = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div class="options">
-        <div class="loading">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div class="options">
-        <div class="error">
-          Error: {error}
-          <button type="button" onClick={loadSettings} class="retry-btn">
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!settings) {
-    return (
-      <div class="options">
-        <div class="error">Failed to load settings</div>
-      </div>
-    );
-  }
-
   return (
-    <div class="options">
-      <header class="header">
-        <h1 class="title">⚙️ Markdown Viewer Settings</h1>
-        <p class="subtitle">Configure your preferences</p>
-      </header>
+    <SettingsLayout
+      className="options"
+      settings={settings}
+      loading={loading}
+      error={error}
+      onRetry={loadSettings}
+    >
+      {(settings) => (
+        <>
+          <header class="header">
+            <h1 class="title">⚙️ Markdown Viewer Settings</h1>
+            <p class="subtitle">Configure your preferences</p>
+          </header>
 
-      <main class="content">
-        {saveMessage && <div class="save-message">{saveMessage}</div>}
+          <main class="content">
+            {saveMessage && <div class="save-message">{saveMessage}</div>}
 
-        <section class="section">
-          <h2 class="section-title">Appearance</h2>
-          <ThemeSelector
-            current={settings.theme}
-            onChange={onThemeChange}
-          />
-        </section>
+            <section class="section">
+              <h2 class="section-title">Appearance</h2>
+              <ThemeSelector
+                current={settings.theme}
+                onChange={onThemeChange}
+              />
+            </section>
 
-        <section class="section">
-          <h2 class="section-title">Developer Tools</h2>
-          <HotReloadSettings
-            enabled={settings.hotReload.enabled}
-            interval={settings.hotReload.interval}
-            autoReload={settings.hotReload.autoReload}
-            onChange={handleHotReloadChange}
-          />
-        </section>
+            <section class="section">
+              <h2 class="section-title">Developer Tools</h2>
+              <HotReloadSettings
+                enabled={settings.hotReload.enabled}
+                interval={settings.hotReload.interval}
+                autoReload={settings.hotReload.autoReload}
+                onChange={handleHotReloadChange}
+              />
+            </section>
 
-        <section class="section">
-          <RemoteUrlSettings />
-        </section>
-      </main>
-    </div>
+            <section class="section">
+              <RemoteUrlSettings />
+            </section>
+          </main>
+        </>
+      )}
+    </SettingsLayout>
   );
 };
