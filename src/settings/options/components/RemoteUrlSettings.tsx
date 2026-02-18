@@ -188,10 +188,6 @@ export const RemoteUrlSettings = () => {
             <span class="hint-label">Format:</span>
             <code class="hint-code">https://example.com/*</code>
           </div>
-          <div class="hint-row">
-            <span class="hint-label">Example:</span>
-            <code class="hint-code">https://raw.githubusercontent.com/*</code>
-          </div>
         </div>
       </div>
 
