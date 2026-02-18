@@ -8,40 +8,42 @@
 src/
 ├── background/        # Service Worker層（messaging専用）
 ├── content/           # Content Script層（UI + messaging専用）
-├── offscreen/         # Offscreen Document層（messaging専用）
 ├── settings/          # 設定画面層
 │   ├── popup/
-│   └── options/
+│   ├── options/
+│   └── shared/
 ├── ui-components/     # UI部品層（全UI層で共有）
 │   ├── markdown/
-│   ├── settings/
 │   └── shared/
 ├── services/          # ドメイン組み合わせ + ビジネスフロー層
 │   ├── markdown-service.ts
-│   ├── theme-service.ts
-│   └── file-watch-service.ts
+│   └── toc-service.ts
 ├── domain/            # ビジネスロジック層（純粋関数）
 │   ├── markdown/
 │   ├── theme/
-│   └── file-watcher/
+│   ├── toc/
+│   ├── math/
+│   └── frontmatter/
 ├── shared/            # 汎用ユーティリティ層（ドメイン非依存）
 └── messaging/         # メッセージング層
     ├── types.ts
-    ├── router.ts
     ├── client.ts
     └── handlers/
+        ├── background-handler.ts
+        ├── action-registry.ts
+        └── actions/
 ```
 
 ## レイヤー構成
 
-| レイヤー               | 責務                                | 例                                                   |
-| ---------------------- | ----------------------------------- | ---------------------------------------------------- |
-| **実行コンテキスト層** | messaging I/O **のみ**              | `background/`, `content/`, `offscreen/`, `settings/` |
-| **UI部品層**           | 再利用可能なUIパーツ                | `ui-components/`                                     |
-| **サービス層**         | ドメイン組み合わせ + ビジネスフロー | `services/`                                          |
-| **ドメイン層**         | 純粋なビジネスロジック              | `domain/`                                            |
-| **メッセージング層**   | ルーティング **のみ**               | `messaging/`                                         |
-| **共通層**             | 汎用処理（ドメイン非依存）          | `shared/`                                            |
+| レイヤー               | 責務                                | 例                                     |
+| ---------------------- | ----------------------------------- | -------------------------------------- |
+| **実行コンテキスト層** | messaging I/O **のみ**              | `background/`, `content/`, `settings/` |
+| **UI部品層**           | 再利用可能なUIパーツ                | `ui-components/`                       |
+| **サービス層**         | ドメイン組み合わせ + ビジネスフロー | `services/`                            |
+| **ドメイン層**         | 純粋なビジネスロジック              | `domain/`                              |
+| **メッセージング層**   | ルーティング **のみ**               | `messaging/`                           |
+| **共通層**             | 汎用処理（ドメイン非依存）          | `shared/`                              |
 
 ---
 
@@ -51,16 +53,16 @@ src/
 
 ```
 ❌ 過去の失敗パターン
-background/content/offscreen に ビジネスロジックを書く
+background/content に ビジネスロジックを書く
 messaging層 に ビジネスロジックを書く
-→ offscreen が絡むと複雑怪奇になり、不具合多発
+→ 複雑怪奇になり、不具合多発
 
 ✅ 成功パターン
-background/content/offscreen: messaging I/O のみ
+background/content: messaging I/O のみ
 messaging/handlers: ルーティングのみ
 services: ビジネスフロー
 domain: 純粋関数
-→ 各層が単一責任、offscreen でも破綻しない
+→ 各層が単一責任
 ```
 
 ---
@@ -115,7 +117,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "RENDER_MARKDOWN") {
     const parsed = marked.parse(message.payload); // ← ダメ！
-    const sanitized = DOMPurify.sanitize(parsed); // ← ダメ！
+    const sanitized = xss(parsed); // ← ダメ！
     sendResponse({ html: sanitized });
   }
 });
@@ -134,7 +136,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ### ✅ 許可される処理
 
 - DOM操作（`document.*`, `window.*`）
-- Preact/Reactコンポーネントのレンダリング
+- Preactコンポーネントのレンダリング
 - `chrome.runtime.sendMessage()` によるメッセージ送信
 - `ui-components/` の使用
 - イベントリスナー登録
@@ -152,16 +154,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 content/
 ├── index.ts                    # エントリーポイント（messaging I/O のみ）
-├── components/                 # UIコンポーネント
-│   ├── MarkdownViewer.tsx
-│   ├── ErrorBoundary.tsx
-│   └── hooks/                 # MarkdownViewer専用カスタムフック（ADR-007例外）
-│       ├── useCopyButtons.ts  # コードブロックコピーボタン
-│       ├── useMathJax.ts      # MathJax数式レンダリング
-│       └── useMermaid.ts      # Mermaidダイアグラムレンダリング
-└── styles/
-    ├── themes/
-    └── markdown.css
+├── hot-reload.ts               # Hot Reload機能
+├── relative-links.ts           # 相対リンク処理
+├── theme-loader.ts             # テーマローダー
+├── components/
+│   ├── MarkdownViewer.tsx      # メインビューアコンポーネント
+│   ├── ErrorBoundary.tsx       # エラーバウンダリ
+│   └── hooks/                  # MarkdownViewer専用カスタムフック（ADR-007例外）
+│       ├── useCopyButtons.ts   # コードブロックコピーボタン
+│       ├── useMathJax.ts       # MathJax数式レンダリング
+│       └── useMermaid.ts       # Mermaidダイアグラムレンダリング
+└── styles/                     # (empty)
 ```
 
 ### 📝 実装例
@@ -180,15 +183,12 @@ const init = async () => {
 
   // background → service に委譲
   const result = await sendMessage({
-    type: "RENDER_MARKDOWN_WITH_HOT_RELOAD",
-    payload: { markdown, fileUrl: location.href, themeId: "github" },
+    type: "RENDER_MARKDOWN",
+    payload: { markdown },
   });
 
   document.body.innerHTML = "";
-  render(
-    <MarkdownViewer html={result.html} watcherId={result.watcherId} />,
-    document.body,
-  );
+  render(<MarkdownViewer html={result.html} />, document.body);
 };
 
 // ❌ NG: domainを直接呼び出す
@@ -198,51 +198,7 @@ const html = parseMarkdown(markdown); // ← ダメ！
 
 ---
 
-## 3. offscreen/ - Offscreen Document層
-
-### 📋 責務
-
-- **messaging とのやり取り"のみ"**
-- Offscreen APIが必要な処理の実行
-
-### ✅ 許可される処理
-
-- `chrome.runtime.onMessage.addListener()` によるメッセージ受信
-- `messaging/handlers/` への委譲
-- Offscreen API使用
-
-### ❌ 絶対禁止
-
-- **ビジネスロジックの実装**
-- **ドメインロジックの実装**
-- `services/` や `domain/` の直接呼び出し（必ず `messaging/handlers/` 経由）
-
-### 📂 内部構造
-
-```
-offscreen/
-├── index.html
-└── index.ts                   # messaging I/O のみ
-```
-
-### 📝 実装例
-
-```typescript
-// offscreen/index.ts
-import { handleOffscreenMessage } from "../messaging/handlers/offscreen-handler.ts";
-
-// ✅ OK: handlerに委譲するだけ
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  handleOffscreenMessage(message)
-    .then(sendResponse)
-    .catch((error) => sendResponse({ success: false, error: error.message }));
-  return true;
-});
-```
-
----
-
-## 4. settings/ - 設定画面層
+## 3. settings/ - 設定画面層
 
 ### 📋 責務
 
@@ -278,41 +234,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 settings/
 ├── popup/
-│   ├── index.tsx              # エントリーポイント（messaging I/O のみ）
-│   ├── components/
-│   │   └── QuickSettings.tsx
-│   └── popup.html
-└── options/
-    ├── index.tsx              # エントリーポイント（messaging I/O のみ）
+│   ├── index.tsx              # エントリーポイント
+│   ├── App.tsx
+│   ├── popup.html
+│   ├── popup.css
+│   └── components/
+│       └── ThemeSelector.tsx
+├── options/
+│   ├── index.tsx              # エントリーポイント
+│   ├── App.tsx
+│   ├── options.html
+│   ├── options.css
+│   └── components/
+│       ├── ThemeSelector.tsx
+│       ├── HotReloadSettings.tsx
+│       └── RemoteUrlSettings.tsx
+└── shared/
     ├── components/
-    │   ├── ThemeSettings.tsx
-    │   └── HotReloadSettings.tsx
-    └── options.html
-```
-
-### 📝 実装例
-
-```typescript
-// settings/popup/components/QuickSettings.tsx
-import { sendMessage } from "../../../messaging/client.ts";
-import { ThemeSelector } from "../../../ui-components/settings/ThemeSelector.tsx";
-
-// ✅ OK: messaging経由で設定変更
-export const QuickSettings = () => {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  const handleThemeChange = async (newTheme: Theme) => {
-    await sendMessage({ type: "UPDATE_THEME", payload: newTheme });
-    setTheme(newTheme);
-  };
-
-  return <ThemeSelector theme={theme} onChange={handleThemeChange} />;
-};
+    │   └── SettingsLayout.tsx
+    └── hooks/
+        └── useSettings.ts
 ```
 
 ---
 
-## 5. ui-components/ - UI部品層
+## 4. ui-components/ - UI部品層
 
 ### 📋 責務
 
@@ -335,44 +281,31 @@ export const QuickSettings = () => {
 
 ```
 ui-components/
-├── markdown/                  # Markdown表示用
-│   ├── CodeBlock.tsx
-│   ├── MermaidDiagram.tsx
-│   └── SyntaxHighlighter.tsx
-├── settings/                  # 設定画面用
-│   ├── ThemeSelector.tsx
-│   ├── HotReloadToggle.tsx
-│   └── SettingsForm.tsx
-└── shared/                    # 汎用UI
-    ├── Button.tsx
-    ├── Select.tsx
-    └── Toggle.tsx
-```
-
-### 📝 実装例
-
-```typescript
-// ui-components/settings/ThemeSelector.tsx
-import type { Theme } from "../../shared/types/theme.ts";
-
-// ✅ OK: 純粋なUIコンポーネント
-export const ThemeSelector = ({ theme, onChange }: Props) => {
-  return (
-    <select
-      value={theme}
-      onChange={(e) => onChange(e.currentTarget.value)}
-    >
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-      <option value="github">GitHub</option>
-    </select>
-  );
-};
+├── markdown/                 # Markdown表示用
+│   ├── DocumentHeader/       # ドキュメントヘッダーメニュー（Export等）
+│   │   └── DocumentHeader.tsx
+│   ├── RawTextView/          # 生テキスト表示切替
+│   │   └── RawTextView.tsx
+│   └── TableOfContents/      # 目次（ToC）
+│       ├── TableOfContents.tsx
+│       ├── TableOfContents.test.tsx
+│       ├── useActiveHeading.ts
+│       └── useResizable.ts
+└── shared/                   # 汎用UI
+    ├── CopyButton.tsx        # コードブロックコピーボタン
+    ├── CopyButton.test.tsx
+    └── Toast/                # トースト通知システム
+        ├── Toast.tsx
+        ├── ToastContainer.tsx
+        ├── toast-manager.ts
+        ├── types.ts
+        ├── Toast.test.tsx
+        └── index.ts
 ```
 
 ---
 
-## 6. services/ - サービス層（ドメイン組み合わせ + ビジネスフロー）
+## 5. services/ - サービス層（ドメイン組み合わせ + ビジネスフロー）
 
 ### 📋 責務
 
@@ -400,13 +333,10 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 
 ```
 services/
-├── markdown-service.ts
+├── markdown-service.ts        # Markdownレンダリングパイプライン
 ├── markdown-service.test.ts
-├── toc-service.ts          # TOC生成サービス（domain組み合わせ）
-├── toc-service.test.ts
-├── theme-service.ts
-├── theme-service.test.ts
-└── file-watch-service.ts
+├── toc-service.ts             # TOC生成サービス（domain組み合わせ）
+└── toc-service.test.ts
 ```
 
 ### 📝 実装例
@@ -415,54 +345,20 @@ services/
 // services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
 import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
-import { highlightCode } from "../domain/markdown/highlighter.ts";
-import { loadTheme } from "../domain/theme/loader.ts";
 import { applyTheme } from "../domain/theme/applier.ts";
-import { FileWatcher } from "../domain/file-watcher/watcher.ts";
+import { addHeadingIds } from "../domain/toc/html-processor.ts";
+import { parseFrontmatter } from "../domain/frontmatter/parser.ts";
+import { tocService } from "./toc-service.ts";
 
-/**
- * Markdownレンダリングサービス
- * 責務: 複数のドメインロジックを組み合わせて1つのビジネスフローを実現
- */
 export class MarkdownService {
-  /**
-   * Markdownを完全にレンダリング
-   * ✅ OK: 複数domainを組み合わせたビジネスフロー
-   */
-  async render(markdown: string, themeId?: string): Promise<string> {
-    // 1. テーマ読み込み（domain/theme）
-    const theme = await loadTheme(themeId);
-
-    // 2. Markdown解析（domain/markdown）
-    const parsed = parseMarkdown(markdown);
-
-    // 3. サニタイズ（domain/markdown）
+  render(markdown: string, theme: ThemeData): RenderResult {
+    const { data: frontmatter, content } = parseFrontmatter(markdown);
+    const parsed = parseMarkdown(content);
     const sanitized = sanitizeHTML(parsed);
-
-    // 4. シンタックスハイライト（domain/markdown）
-    const highlighted = highlightCode(sanitized);
-
-    // 5. テーマ適用（domain/theme）
-    return applyTheme(highlighted, theme);
-  }
-
-  /**
-   * Hot Reload機能付きでレンダリング
-   * ✅ OK: さらに複雑なビジネスフロー
-   */
-  async renderWithHotReload(params: {
-    markdown: string;
-    fileUrl: string;
-    themeId?: string;
-  }): Promise<{ html: string; watcherId: string }> {
-    // 基本レンダリング
-    const html = await this.render(params.markdown, params.themeId);
-
-    // ファイル監視開始（domain/file-watcher）
-    const watcher = new FileWatcher(params.fileUrl);
-    await watcher.start();
-
-    return { html, watcherId: watcher.id };
+    const withHeadingIds = addHeadingIds(sanitized);
+    const html = applyTheme(withHeadingIds, theme);
+    const tocItems = tocService.generateToc(content);
+    return { html, rawMarkdown: markdown, content, frontmatter, tocItems };
   }
 }
 
@@ -471,7 +367,7 @@ export const markdownService = new MarkdownService();
 
 ---
 
-## 7. domain/ - ドメイン層（純粋なビジネスロジック）
+## 6. domain/ - ドメイン層（純粋なビジネスロジック）
 
 ### 📋 責務
 
@@ -502,67 +398,43 @@ domain/
 │   ├── parser.test.ts
 │   ├── sanitizer.ts           # XSS対策（xss (js-xss) wrapper）
 │   ├── sanitizer.test.ts
+│   ├── highlighter.ts         # シンタックスハイライト
+│   ├── highlighter.test.ts
 │   ├── mermaid-detector.ts    # Mermaidブロック検出
-│   └── mermaid-renderer.ts    # Mermaidダイアグラムレンダリング
-├── math/
-│   ├── detector.ts            # 数式表現検出
-│   └── renderer.ts            # MathJaxレンダリング
-├── export/
-│   ├── html-exporter.ts       # HTMLエクスポート
-│   └── base64-encoder.ts      # Base64エンコード（チャンク分割対応）
-├── frontmatter/
-│   └── parser.ts              # YAML Frontmatter解析
-├── toc/
-│   ├── extractor.ts           # 見出し抽出
-│   ├── normalizer.ts          # 見出しレベル正規化
-│   ├── tree-builder.ts        # ツリー構造構築
-│   └── html-processor.ts      # TOC用HTML処理
+│   ├── mermaid-detector.test.ts
+│   ├── mermaid-renderer.ts    # Mermaidダイアグラムレンダリング
+│   └── mermaid-renderer.test.ts
 ├── theme/
 │   ├── loader.ts              # テーマ読み込み
-│   └── applier.ts             # テーマ適用
-└── file-watcher/
-    └── watcher.ts             # ファイル監視ロジック
-```
-
-### 📝 実装例
-
-```typescript
-// domain/markdown/parser.ts
-import { marked } from "marked";
-
-/**
- * Markdown → HTML 変換
- * ✅ OK: 純粋関数、単一責任
- */
-export const parseMarkdown = (markdown: string): string => {
-  marked.setOptions({
-    gfm: true,
-    breaks: true,
-  });
-
-  return marked.parse(markdown) as string;
-};
-
-// domain/theme/applier.ts
-import type { Theme } from "../../shared/types/theme.ts";
-
-/**
- * HTMLにテーマを適用
- * ✅ OK: 純粋関数、単一責任
- */
-export const applyTheme = (html: string, theme: Theme): string => {
-  return `
-    <style>${theme.css}</style>
-    <div class="markdown-body theme-${theme.id}">
-      ${html}
-    </div>
-  `;
-};
+│   ├── loader.test.ts
+│   ├── applier.ts             # テーマ適用
+│   ├── applier.test.ts
+│   └── types.ts               # テーマ型定義
+├── toc/
+│   ├── extractor.ts           # 見出し抽出
+│   ├── extractor.test.ts
+│   ├── normalizer.ts          # 見出しレベル正規化
+│   ├── normalizer.test.ts
+│   ├── tree-builder.ts        # ツリー構造構築
+│   ├── html-processor.ts      # TOC用HTML処理
+│   ├── html-processor.test.ts
+│   ├── collapse-manager.ts    # 折りたたみ状態管理
+│   ├── collapse-manager.test.ts
+│   └── types.ts               # ToC型定義
+├── math/
+│   ├── detector.ts            # 数式検出
+│   ├── detector.test.ts
+│   ├── renderer.ts            # MathJaxレンダリング
+│   └── renderer.test.ts
+└── frontmatter/
+    ├── parser.ts              # YAML Frontmatter解析（プロトタイプ汚染防止付き）
+    ├── parser.test.ts
+    └── types.ts               # Frontmatter型定義
 ```
 
 ---
 
-## 8. messaging/ - メッセージング層
+## 7. messaging/ - メッセージング層
 
 ### 📋 責務
 
@@ -590,94 +462,53 @@ export const applyTheme = (html: string, theme: Theme): string => {
 
 ```
 messaging/
-├── types.ts               # メッセージ型定義
-├── router.ts              # メッセージルーター
-├── client.ts              # クライアント側ヘルパー
-├── guards.ts              # Type Guards
-└── handlers/              # コンテキスト別ハンドラ（ルーティング専用）
-    ├── background-handler.ts
-    ├── content-handler.ts
-    └── offscreen-handler.ts
+├── types.ts                   # メッセージ型定義
+├── client.ts                  # クライアント側ヘルパー
+├── client.test.ts
+└── handlers/
+    ├── background-handler.ts  # バックグラウンドハンドラ（Action Pattern）
+    ├── background-handler.test.ts
+    ├── action-registry.ts     # アクション登録・ルーティング
+    ├── action-types.ts        # アクション型定義
+    └── actions/               # 個別アクション（各serviceに委譲）
+        ├── action-registry.test.ts
+        ├── render-markdown.ts     # Markdownレンダリング
+        ├── render-markdown.test.ts
+        ├── load-theme.ts          # テーマ読込
+        ├── load-theme.test.ts
+        ├── update-theme.ts        # テーマ更新
+        ├── update-theme.test.ts
+        ├── validate-theme.ts      # テーマ検証
+        ├── validate-theme.test.ts
+        ├── get-settings.ts        # 設定取得
+        ├── get-settings.test.ts
+        ├── update-hot-reload.ts   # Hot Reload更新
+        ├── update-hot-reload.test.ts
+        ├── check-file-change.ts   # ファイル変更チェック
+        └── check-file-change.test.ts
 ```
 
 ### 📝 実装例
 
 ```typescript
-// messaging/types.ts
-export type Message =
-  | { type: "RENDER_MARKDOWN"; payload: { markdown: string; themeId?: string } }
-  | {
-    type: "RENDER_MARKDOWN_WITH_HOT_RELOAD";
-    payload: { markdown: string; fileUrl: string; themeId?: string };
-  }
-  | { type: "LOAD_THEME"; payload: { themeId: string } }
-  | { type: "UPDATE_THEME"; payload: Theme };
-
-export type MessageResponse<T = unknown> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
 // messaging/handlers/background-handler.ts
-import { markdownService } from "../../services/markdown-service.ts";
-import { themeService } from "../../services/theme-service.ts";
-import type { Message, MessageResponse } from "../types.ts";
+// Action Patternで各アクションに委譲
+import { actionRegistry } from "./action-registry.ts";
 
-/**
- * background層のメッセージハンドラ
- * ✅ OK: ルーティングのみ、serviceに委譲
- */
 export const handleBackgroundMessage = async (
   message: Message,
 ): Promise<MessageResponse> => {
-  switch (message.type) {
-    case "RENDER_MARKDOWN":
-      // ✅ OK: serviceに委譲するだけ
-      const html = await markdownService.render(
-        message.payload.markdown,
-        message.payload.themeId,
-      );
-      return { success: true, data: html };
-
-    case "LOAD_THEME":
-      // ✅ OK: serviceに委譲するだけ
-      const theme = await themeService.load(message.payload.themeId);
-      return { success: true, data: theme };
-
-    default:
-      return { success: false, error: "Unknown message type" };
+  const action = actionRegistry.get(message.type);
+  if (!action) {
+    return { success: false, error: "Unknown message type" };
   }
-};
-
-// ❌ NG例: messagingでビジネスロジック
-export const handleBackgroundMessageBAD = async (message: Message) => {
-  switch (message.type) {
-    case "RENDER_MARKDOWN":
-      // ❌ ダメ！！！ ここでビジネスロジックを書いてはいけない！
-      const parsed = marked.parse(message.payload.markdown);
-      const sanitized = DOMPurify.sanitize(parsed);
-      const theme = await chrome.storage.sync.get("theme");
-      const styled = applyTheme(sanitized, theme);
-      return { success: true, data: styled };
-  }
-};
-
-// messaging/client.ts
-export const sendMessage = async <T = unknown>(
-  message: Message,
-): Promise<T> => {
-  const response = await chrome.runtime.sendMessage(message);
-
-  if (!response.success) {
-    throw new Error(response.error);
-  }
-
-  return response.data as T;
+  return action(message);
 };
 ```
 
 ---
 
-## 9. shared/ - 汎用ユーティリティ層
+## 8. shared/ - 汎用ユーティリティ層
 
 ### 📋 責務
 
@@ -705,52 +536,30 @@ export const sendMessage = async <T = unknown>(
 ```
 shared/
 ├── types/                     # 型定義（ドメイン非依存）
-│   ├── message.ts            # メッセージ型
-│   ├── theme.ts              # テーマ型
-│   ├── state.ts              # 状態型
-│   ├── render.ts             # レンダリング結果型
-│   ├── toc.ts                # TOC型定義（TocHeading, TocItem, TocState）
-│   └── view-mode.ts          # 表示モード型
+│   ├── chrome.d.ts            # Chrome API型定義
+│   ├── custom-origin.ts       # カスタムオリジン型
+│   ├── message.ts             # メッセージ型
+│   ├── render.ts              # レンダリング結果型
+│   ├── state.ts               # 状態型
+│   ├── theme.ts               # テーマ型
+│   ├── toc.ts                 # TOC型定義
+│   └── view-mode.ts           # 表示モード型
 ├── utils/                     # 汎用ユーティリティ
-│   ├── escape-html.ts        # HTMLエスケープ（XSS対策）
-│   ├── hash.ts               # SHA-256ハッシュ計算
-│   ├── logger.ts             # ログユーティリティ
-│   ├── toggle-set-item.ts    # 配列要素トグル操作
-│   ├── unique-id.ts          # ユニークID生成
-│   ├── url-resolver.ts       # 相対URL解決
-│   └── wsl-detector.ts       # WSL2環境検出
+│   ├── encode.ts              # Base64エンコード
+│   ├── escape-html.ts         # HTMLエスケープ（XSS対策）
+│   ├── hash.ts                # SHA-256ハッシュ計算
+│   ├── logger.ts              # ログユーティリティ（DEBUG連動）
+│   ├── markdown-detector.ts   # Markdown拡張子判定
+│   ├── origin-validator.ts    # カスタムオリジンバリデーション
+│   ├── toggle-set-item.ts     # 配列要素トグル操作
+│   ├── unique-id.ts           # ユニークID生成
+│   ├── url-resolver.ts        # 相対URL解決
+│   ├── url-validator.ts       # ローカルURL判定
+│   ├── validators.ts          # 汎用バリデーション型
+│   └── wsl-detector.ts        # WSL2環境検出
 └── constants/                 # 定数
-    ├── themes.ts             # テーマ定数
-    └── markdown.ts           # Markdown拡張子定義（manifest.jsonと同期必須）
-```
-
-### 📝 実装例
-
-```typescript
-// shared/types/theme.ts
-export type Theme =
-  | "light"
-  | "dark"
-  | "github"
-  | "minimal"
-  | "solarized_light"
-  | "solarized_dark";
-
-// shared/utils/string.ts
-export const truncate = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
-};
-
-// shared/constants/themes.ts
-export const PRESET_THEMES = {
-  light: "Light Theme",
-  dark: "Dark Theme",
-  github: "GitHub Style",
-  minimal: "Minimal",
-  solarized_light: "Solarized Light",
-  solarized_dark: "Solarized Dark",
-} as const;
+    ├── themes.ts              # テーマ定数
+    └── markdown.ts            # Markdown拡張子定義（manifest.jsonと同期必須）
 ```
 
 ---
@@ -759,10 +568,9 @@ export const PRESET_THEMES = {
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│         Complete Message Flow (offscreen対応)              │
+│                 Complete Message Flow                       │
 └────────────────────────────────────────────────────────────┘
 
-Pattern 1: シンプル（background経由）
 ┌─────────┐   ┌──────────────┐   ┌─────────┐   ┌────────┐
 │ content │──→│  background  │──→│messaging│──→│service │
 │         │   │              │   │ handler │   │        │
@@ -772,17 +580,6 @@ Pattern 1: シンプル（background経由）
 └─────────┘   └──────────────┘   └─────────┘   └────────┘
    UI層         messaging送受信      ルーティング   ビジネス
                 のみ                 のみ          ロジック
-
-Pattern 2: 複雑（offscreen経由 - DuckDBケース）
-┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐  ┌────────┐
-│ content │─→│background│─→│offscreen │─→│messaging│─→│service │
-│         │  │          │  │          │  │ handler │  │        │
-│         │  │          │  │          │  │         │  ├────────┤
-│         │  │          │  │          │  │         │  │ domain │
-│         │←─│          │←─│          │←─│         │←─│ domain │
-└─────────┘  └──────────┘  └──────────┘  └─────────┘  └────────┘
-   UI層      messaging     messaging       ルーティング   ビジネス
-            中継のみ      送受信のみ         のみ        ロジック
 ```
 
 ---
@@ -792,7 +589,7 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
 ```
 ┌──────────────────────────────────────────────────────┐
 │              UI Layer (実行コンテキスト)                │
-│  background/ content/ offscreen/ settings/           │
+│  background/ content/ settings/                      │
 │  ❗ messaging とのやり取り"のみ"                       │
 │  ❗ ビジネスロジック禁止                               │
 └────────────────────┬─────────────────────────────────┘
@@ -868,7 +665,7 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
 ### コードレビュー時
 
 1. **レイヤー違反がないか**
-   - background/content/offscreen に ビジネスロジックがないか
+   - background/content に ビジネスロジックがないか
    - messaging層 に ビジネスロジックがないか
    - UIコンポーネントに domain 直接呼び出しがないか
 
@@ -882,95 +679,4 @@ Pattern 2: 複雑（offscreen経由 - DuckDBケース）
 
 ---
 
-## 📖 ベストプラクティス
-
-### 1. 新しい機能を追加するとき
-
-```typescript
-// ❌ NG: コンポーネントに全部詰め込む
-const MarkdownViewer = ({ markdown }: Props) => {
-  // ビジネスロジックをUI層に書いてはいけない
-  const rawHTML = marked.parse(markdown);
-  const cleanHTML = DOMPurify.sanitize(rawHTML);
-  const highlightedHTML = hljs.highlightAuto(cleanHTML).value;
-
-  return <div dangerouslySetInnerHTML={{ __html: highlightedHTML }} />;
-};
-
-// ✅ OK: レイヤー分離
-// 1. domain/markdown/parser.ts
-export const parseMarkdown = (md: string): string => {
-  const raw = marked.parse(md) as string;
-  return sanitizeHTML(raw);
-};
-
-// 2. services/markdown-service.ts
-export class MarkdownService {
-  async render(markdown: string, themeId?: string): Promise<string> {
-    const parsed = parseMarkdown(markdown);
-    const highlighted = highlightCode(parsed);
-    const theme = await loadTheme(themeId);
-    return applyTheme(highlighted, theme);
-  }
-}
-
-// 3. messaging/handlers/background-handler.ts
-case 'RENDER_MARKDOWN':
-  const html = await markdownService.render(
-    message.payload.markdown,
-    message.payload.themeId
-  );
-  return { success: true, data: html };
-
-// 4. content/components/MarkdownViewer.tsx
-const MarkdownViewer = ({ markdown }: Props) => {
-  const [html, setHtml] = useState('');
-
-  useEffect(() => {
-    sendMessage({
-      type: 'RENDER_MARKDOWN',
-      payload: { markdown, themeId: 'github' }
-    }).then(setHtml);
-  }, [markdown]);
-
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
-};
-```
-
-### 2. offscreen を使う場合
-
-```typescript
-// ✅ OK: offscreen でも責務分離を維持
-
-// 1. services/database-service.ts
-export class DatabaseService {
-  async query(sql: string): Promise<QueryResult> {
-    // DuckDB を使ったクエリ実行
-    // （この実装はoffscreenで実行される必要がある）
-  }
-}
-
-// 2. messaging/handlers/offscreen-handler.ts
-case 'EXECUTE_QUERY':
-  const result = await databaseService.query(message.payload.sql);
-  return { success: true, data: result };
-
-// 3. offscreen/index.ts
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  handleOffscreenMessage(message)
-    .then(sendResponse)
-    .catch(error => sendResponse({ success: false, error: error.message }));
-  return true;
-});
-
-// 4. content/index.ts
-const result = await sendMessage({
-  type: 'EXECUTE_QUERY',
-  payload: { sql: 'SELECT * FROM users' }
-});
-```
-
----
-
-このディレクトリ構造と責務定義に従うことで、**offscreen
-を含む複雑なChrome拡張でも保守性が高く、テストしやすく、拡張可能な**コードベースを実現できます。
+このディレクトリ構造と責務定義に従うことで、**保守性が高く、テストしやすく、拡張可能な**コードベースを実現できます。

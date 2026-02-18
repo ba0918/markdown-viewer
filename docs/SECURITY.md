@@ -76,7 +76,7 @@ export const sanitizeHTML = (html: string): string => {
 #### テストケース
 
 ```typescript
-// src/shared/utils/security/sanitizer.test.ts
+// src/domain/markdown/sanitizer.test.ts
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { sanitizeHTML } from "./sanitizer.ts";
 
@@ -142,51 +142,70 @@ Content Scripts（Markdownレンダリング）はホストページのCSPに従
 file://プロトコルではCSP制限なし。Mermaid(WebAssembly)やMathJax(インラインスタイル)は
 Content Script内で実行されるため、extension_pages CSPの影響を受けない。
 
-### 3. Path Traversal対策
+### 3. URL検証とオリジンバリデーション
 
 ```typescript
-// src/shared/utils/security/path-validator.ts
-export const isValidFilePath = (filePath: string): boolean => {
-  // file:// プロトコルチェック
-  if (!filePath.startsWith("file://")) {
+// src/shared/utils/url-validator.ts
+// ローカルURL判定 - Hot Reloadの対象をローカルファイル/localhostに制限
+export const isLocalUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "file:") return true;
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      const hostname = parsed.hostname;
+      return hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "[::1]" ||
+        hostname === "::1";
+    }
+    return false;
+  } catch {
     return false;
   }
-
-  // パストラバーサル検出
-  const normalized = new URL(filePath).pathname;
-  if (normalized.includes("..")) {
-    return false;
-  }
-
-  // Markdownファイル拡張子チェック
-  const validExtensions = [".md", ".markdown", ".mdown", ".mkd"];
-  return validExtensions.some((ext) => normalized.toLowerCase().endsWith(ext));
 };
 ```
 
-### 4. Prototype Pollution対策
+```typescript
+// src/shared/utils/origin-validator.ts
+// リモートURL設定でのカスタムオリジン入力値を検証
+// セキュリティ上、httpsのみ許可しワイルドカードパターンを要求
+export const validateOrigin = (
+  origin: string,
+  existingOrigins: string[] = [],
+): ValidationResult => {
+  if (!origin.trim()) return { valid: false, error: "Origin cannot be empty" };
+  if (!origin.startsWith("https://")) {
+    return { valid: false, error: "Origin must start with https://" };
+  }
+  if (!origin.endsWith("/*")) {
+    return { valid: false, error: "Origin must end with /*" };
+  }
+  if (existingOrigins.includes(origin)) {
+    return { valid: false, error: "This origin is already added" };
+  }
+  return { valid: true };
+};
+```
+
+### 4. Prototype Pollution対策（Frontmatter）
 
 ```typescript
-// src/shared/utils/security/object-utils.ts
-export const safeMerge = <T extends object>(
-  target: T,
-  source: Partial<T>,
-): T => {
-  const result = { ...target };
+// src/domain/frontmatter/parser.ts
+// YAML Frontmatterパース時にプロトタイプ汚染をチェック
+let data = parse(yamlString) || {};
 
-  for (const key in source) {
-    // __proto__, constructor, prototype は除外
-    if (key === "__proto__" || key === "constructor" || key === "prototype") {
-      continue;
-    }
-
-    if (Object.prototype.hasOwnProperty.call(source, key)) {
-      result[key] = source[key]!;
-    }
+if (data && typeof data === "object") {
+  if (
+    Object.prototype.hasOwnProperty.call(data, "__proto__") ||
+    Object.prototype.hasOwnProperty.call(data, "constructor") ||
+    Object.prototype.hasOwnProperty.call(data, "prototype")
+  ) {
+    console.error(
+      "Frontmatter: Prototype pollution attempt detected, ignoring data",
+    );
+    data = {};
   }
-
-  return result;
-};
+}
 ```
 
 ## Permissions設計
@@ -197,10 +216,14 @@ export const safeMerge = <T extends object>(
 {
   "permissions": [
     "storage", // 設定保存
-    "activeTab" // 現在のタブのみアクセス
+    "activeTab", // 現在のタブのみアクセス
+    "scripting" // Content Script動的注入（リモートURL対応）
   ],
   "host_permissions": [
     "file:///*" // ローカルファイルアクセス（ユーザー明示許可必要）
+  ],
+  "optional_host_permissions": [
+    "https://*/*" // リモートURL対応（ユーザーが明示的に許可した場合のみ）
   ]
 }
 ```
@@ -218,13 +241,13 @@ export const safeMerge = <T extends object>(
 
 ```bash
 # セキュリティ関連テスト実行
-deno test src/shared/utils/security/
+deno task test  # sanitizer, url-validator, origin-validator等を含む全テスト
 ```
 
 ### E2Eセキュリティテスト
 
 ```typescript
-// e2e/security.spec.ts
+// tests/e2e/security.spec.ts
 import { expect, test } from "@playwright/test";
 
 test("XSS攻撃の防御", async ({ page }) => {

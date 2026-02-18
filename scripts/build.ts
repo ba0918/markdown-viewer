@@ -30,11 +30,11 @@ const commonConfig: Partial<esbuild.BuildOptions> = {
   target: "chrome120",
   platform: "browser",
   minify: true,
-  sourcemap: true,
+  sourcemap: isDev,
   define: {
     "global": "globalThis",
     "process.env.NODE_ENV": '"production"',
-    "DEBUG": "false",
+    "DEBUG": isDev ? "true" : "false",
   },
   jsxFactory: "_h",
   jsxFragment: "_Fragment",

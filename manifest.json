@@ -27,7 +27,8 @@
       "file://*/*.mkd"
     ],
     "js": ["content.js"],
-    "run_at": "document_start"
+    "run_at": "document_start",
+    "world": "ISOLATED"
   }],
 
   "action": {

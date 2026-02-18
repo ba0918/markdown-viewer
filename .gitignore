@@ -52,3 +52,7 @@ docs/internal/
 
 # Implementation plans (internal use)
 .claude/plans/
+
+# Session management (timestamped-plan skill)
+docs/cycles/
+docs/status.md

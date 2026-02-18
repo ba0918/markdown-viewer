@@ -40,6 +40,9 @@ output_file = sys.argv[2]
 with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zf:
     for root, dirs, files in os.walk(dist_dir):
         for file in sorted(files):
+            # ソースマップファイルを除外（安全策）
+            if file.endswith('.map'):
+                continue
             file_path = os.path.join(root, file)
             arcname = os.path.relpath(file_path, dist_dir)
             zf.write(file_path, arcname)

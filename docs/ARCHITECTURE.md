@@ -9,10 +9,9 @@ Chrome拡張機能のアーキテクチャについて説明します。
 
 1. **責務の厳格な分離**
    - 各層が単一の責務のみを持つ
-   - offscreen を含む複雑なメッセージ経路でも破綻しない設計
+   - メッセージパッシング経由でも破綻しない設計
 
 2. **messagingとビジネスロジックの完全分離**
-   - 過去の失敗（DuckDB + offscreen）から学習
    - messaging層にビジネスロジックを持たせない
 
 3. **テスト容易性**
@@ -70,7 +69,7 @@ Chrome拡張機能は**メッセージパッシングベースの分散アーキ
 ```
 ┌──────────────────────────────────────────────────────┐
 │              UI Layer (実行コンテキスト)                │
-│  background/ content/ offscreen/ settings/           │
+│  background/ content/ settings/                      │
 │  ❗ messaging とのやり取り"のみ"                       │
 │  ❗ ビジネスロジック禁止                               │
 └────────────────────┬─────────────────────────────────┘
@@ -206,39 +205,7 @@ import { parseMarkdown } from "../domain/markdown/parser.ts"; // ← ダメ！
 const html = parseMarkdown(markdown); // ← ダメ！
 ```
 
-### 3. Offscreen Document (offscreen/)
-
-**役割:**
-
-- **messaging I/O のみ**
-- Offscreen APIが必要な処理の実行（DuckDB等）
-
-**制約:**
-
-- background経由でのみ通信
-- DOM APIアクセス可能だが、表示されない
-
-**❌ 絶対禁止:**
-
-- ビジネスロジックの実装
-- services/domain の直接呼び出し
-
-**実装例:**
-
-```typescript
-// src/offscreen/index.ts
-import { handleOffscreenMessage } from "../messaging/handlers/offscreen-handler.ts";
-
-// ✅ OK: handlerに委譲するだけ
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  handleOffscreenMessage(message)
-    .then(sendResponse)
-    .catch((error) => sendResponse({ success: false, error: error.message }));
-  return true;
-});
-```
-
-### 4. Settings (settings/)
+### 3. Settings (settings/)
 
 **役割:**
 
@@ -293,18 +260,26 @@ export const QuickSettings = () => {
 
 ```
 ui-components/
-├── markdown/      # Markdown表示用
-│   ├── CodeBlock.tsx
-│   ├── MermaidDiagram.tsx
-│   └── SyntaxHighlighter.tsx
-├── settings/      # 設定画面用
-│   ├── ThemeSelector.tsx
-│   ├── HotReloadToggle.tsx
-│   └── SettingsForm.tsx
-└── shared/        # 汎用UI
-    ├── Button.tsx
-    ├── Select.tsx
-    └── Toggle.tsx
+├── markdown/                 # Markdown表示用
+│   ├── DocumentHeader/       # ドキュメントヘッダーメニュー
+│   │   └── DocumentHeader.tsx
+│   ├── RawTextView/          # 生テキスト表示切替
+│   │   └── RawTextView.tsx
+│   └── TableOfContents/      # 目次（ToC）
+│       ├── TableOfContents.tsx
+│       ├── TableOfContents.test.tsx
+│       ├── useActiveHeading.ts
+│       └── useResizable.ts
+└── shared/                   # 汎用UI
+    ├── CopyButton.tsx        # コードブロックコピーボタン
+    ├── CopyButton.test.tsx
+    └── Toast/                # トースト通知
+        ├── Toast.tsx
+        ├── ToastContainer.tsx
+        ├── toast-manager.ts
+        ├── types.ts
+        ├── Toast.test.tsx
+        └── index.ts
 ```
 
 **❌ 絶対禁止:**
@@ -350,13 +325,13 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 // src/services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
 import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
-import { highlightCode } from "../domain/markdown/highlighter.ts";
-import { loadTheme } from "../domain/theme/loader.ts";
 import { applyTheme } from "../domain/theme/applier.ts";
-import { FileWatcher } from "../domain/file-watcher/watcher.ts";
+import { addHeadingIds } from "../domain/toc/html-processor.ts";
+import { parseFrontmatter } from "../domain/frontmatter/parser.ts";
+import { tocService } from "./toc-service.ts";
 
 /**
- * Markdownレンダリングサービス
+ * Markdownレンダリングサービス（データフローオーケストレーター）
  * 責務: 複数のドメインロジックを組み合わせて1つのビジネスフローを実現
  */
 export class MarkdownService {
@@ -364,40 +339,21 @@ export class MarkdownService {
    * Markdownを完全にレンダリング
    * ✅ OK: 複数domainを組み合わせたビジネスフロー
    */
-  async render(markdown: string, themeId?: string): Promise<string> {
-    // 1. テーマ読み込み（domain/theme）
-    const theme = await loadTheme(themeId);
-
-    // 2. Markdown解析（domain/markdown）
-    const parsed = parseMarkdown(markdown);
-
-    // 3. サニタイズ（domain/markdown）
+  render(markdown: string, theme: ThemeData): RenderResult {
+    // 0. YAML Frontmatter解析
+    const { data: frontmatter, content } = parseFrontmatter(markdown);
+    // 1. Markdown → HTML変換
+    const parsed = parseMarkdown(content);
+    // 2. XSS対策サニタイズ
     const sanitized = sanitizeHTML(parsed);
+    // 3. 見出しID付与（ToC用）
+    const withHeadingIds = addHeadingIds(sanitized);
+    // 4. テーマ適用
+    const html = applyTheme(withHeadingIds, theme);
+    // 5. TOC生成
+    const tocItems = tocService.generateToc(content);
 
-    // 4. シンタックスハイライト（domain/markdown）
-    const highlighted = highlightCode(sanitized);
-
-    // 5. テーマ適用（domain/theme）
-    return applyTheme(highlighted, theme);
-  }
-
-  /**
-   * Hot Reload機能付きでレンダリング
-   * ✅ OK: さらに複雑なビジネスフロー
-   */
-  async renderWithHotReload(params: {
-    markdown: string;
-    fileUrl: string;
-    themeId?: string;
-  }): Promise<{ html: string; watcherId: string }> {
-    // 基本レンダリング
-    const html = await this.render(params.markdown, params.themeId);
-
-    // ファイル監視開始（domain/file-watcher）
-    const watcher = new FileWatcher(params.fileUrl);
-    await watcher.start();
-
-    return { html, watcherId: watcher.id };
+    return { html, rawMarkdown: markdown, content, frontmatter, tocItems };
   }
 }
 
@@ -419,20 +375,28 @@ export const markdownService = new MarkdownService();
 ```
 domain/
 ├── markdown/
-│   ├── parser.ts          # Markdown→HTML変換
-│   ├── parser.test.ts
-│   ├── sanitizer.ts       # XSS対策（xss (js-xss) wrapper）
-│   ├── sanitizer.test.ts
-│   └── highlighter.ts     # シンタックスハイライト
+│   ├── parser.ts              # Markdown→HTML変換
+│   ├── sanitizer.ts           # XSS対策（xss (js-xss) wrapper）
+│   ├── highlighter.ts         # シンタックスハイライト
+│   ├── mermaid-detector.ts    # Mermaidコードブロック検出
+│   └── mermaid-renderer.ts    # Mermaidダイアグラムレンダリング
 ├── theme/
-│   ├── loader.ts          # テーマ読み込み
-│   ├── applier.ts         # テーマ適用
-│   ├── validator.ts       # テーマバリデーション
-│   └── theme.test.ts
-└── file-watcher/
-    ├── watcher.ts         # ファイル監視ロジック
-    ├── watcher.test.ts
-    └── hash.ts            # ハッシュ計算
+│   ├── loader.ts              # テーマ読み込み
+│   ├── applier.ts             # テーマ適用
+│   └── types.ts               # テーマ型定義
+├── toc/
+│   ├── extractor.ts           # 見出し抽出
+│   ├── tree-builder.ts        # ToC木構造構築
+│   ├── html-processor.ts      # HTML見出しID付与
+│   ├── normalizer.ts          # 見出しレベル正規化
+│   ├── collapse-manager.ts    # 折りたたみ状態管理
+│   └── types.ts               # ToC型定義
+├── math/
+│   ├── detector.ts            # 数式検出
+│   └── renderer.ts            # MathJaxレンダリング
+└── frontmatter/
+    ├── parser.ts              # YAML Frontmatter解析
+    └── types.ts               # Frontmatter型定義
 ```
 
 **実装例:**
@@ -579,10 +543,9 @@ export const handleBackgroundMessage = async (
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│         Complete Message Flow (offscreen対応)              │
+│                 Complete Message Flow                       │
 └────────────────────────────────────────────────────────────┘
 
-Pattern 1: シンプル（background経由）
 ┌─────────┐   ┌──────────────┐   ┌─────────┐   ┌────────┐
 │ content │──→│  background  │──→│messaging│──→│service │
 │         │   │              │   │ handler │   │        │
@@ -593,19 +556,8 @@ Pattern 1: シンプル（background経由）
    UI層         messaging送受信      ルーティング   ビジネス
                 のみ                 のみ          ロジック
 
-Pattern 2: 複雑（offscreen経由 - DuckDBケース）
-┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐  ┌────────┐
-│ content │─→│background│─→│offscreen │─→│messaging│─→│service │
-│         │  │          │  │          │  │ handler │  │        │
-│         │  │          │  │          │  │         │  ├────────┤
-│         │  │          │  │          │  │         │  │ domain │
-│         │←─│          │←─│          │←─│         │←─│ domain │
-└─────────┘  └──────────┘  └──────────┘  └─────────┘  └────────┘
-   UI層      messaging     messaging       ルーティング   ビジネス
-            中継のみ      送受信のみ         のみ        ロジック
-
 ❗ 重要ポイント:
-- background/offscreen は messaging の"中継"のみ
+- background は messaging の"中継"のみ
 - ビジネスロジックは service層 に集約
 - domain層 は純粋関数のみ
 ```

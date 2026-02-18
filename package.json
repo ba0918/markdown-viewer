@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "linkedom": "^0.18.12",
     "mermaid": "^11.12.3"
   },
   "devDependencies": {
+    "linkedom": "^0.18.12",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.2.3",
     "cssnano": "^7.1.2",
