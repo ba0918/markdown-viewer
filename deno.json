@@ -44,5 +44,5 @@
     "@playwright/test": "npm:@playwright/test@^1.40.0",
     "@types/node": "npm:@types/node@^20.0.0"
   },
-  "exclude": ["dist/", "node_modules/", "coverage/"]
+  "exclude": ["dist/", "node_modules/", "coverage/", "example/"]
 }
