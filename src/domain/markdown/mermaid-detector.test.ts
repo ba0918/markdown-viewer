@@ -108,6 +108,46 @@ Deno.test("detectMermaidBlocks: handles mixed case class names", () => {
 
 // hasMermaidBlocks() のテストは削除されました（未使用関数）
 
+Deno.test("detectMermaidBlocks: 空ブロックと有効ブロック混在時にindexがDOM位置と一致する", () => {
+  const html = `
+    <pre><code class="language-mermaid">   </code></pre>
+    <pre><code class="language-mermaid">graph TD
+    A --> B</code></pre>
+    <pre><code class="language-mermaid">sequenceDiagram
+    Alice->>Bob: Hello</code></pre>
+  `;
+
+  const blocks = detectMermaidBlocks(html);
+
+  // 空ブロック(index=0)はスキップされるが、indexはDOM位置を反映する
+  assertEquals(blocks.length, 2);
+  assertEquals(blocks[0].index, 1);
+  assertEquals(blocks[0].code.includes("graph TD"), true);
+  assertEquals(blocks[1].index, 2);
+  assertEquals(blocks[1].code.includes("sequenceDiagram"), true);
+});
+
+Deno.test("detectMermaidBlocks: 先頭と中間に空ブロックがある場合", () => {
+  const html = `
+    <pre><code class="language-mermaid"></code></pre>
+    <pre><code class="language-mermaid">graph LR
+    A --> B</code></pre>
+    <pre><code class="language-mermaid">
+    </code></pre>
+    <pre><code class="language-mermaid">pie
+    "A": 50
+    "B": 50</code></pre>
+  `;
+
+  const blocks = detectMermaidBlocks(html);
+
+  assertEquals(blocks.length, 2);
+  assertEquals(blocks[0].index, 1);
+  assertEquals(blocks[0].code.includes("graph LR"), true);
+  assertEquals(blocks[1].index, 3);
+  assertEquals(blocks[1].code.includes("pie"), true);
+});
+
 Deno.test("detectMermaidBlocks: preserves original code indentation", () => {
   const html = `
     <pre><code class="language-mermaid">  graph TD

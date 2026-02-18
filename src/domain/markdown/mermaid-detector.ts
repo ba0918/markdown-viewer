@@ -13,7 +13,7 @@
 export interface MermaidBlock {
   /** Mermaid diagram code */
   code: string;
-  /** Block index (0-based) */
+  /** Block index (0-based, DOM position corresponding to querySelectorAll result) */
   index: number;
 }
 
@@ -42,6 +42,9 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
   while ((match = pattern.exec(html)) !== null) {
     const rawCode = match[1];
     const code = decodeHTMLEntities(rawCode);
+    // DOM要素との位置対応を保つため、空ブロック含む全マッチでインクリメント
+    const currentIndex = index;
+    index++;
 
     if (code.trim().length === 0) {
       continue;
@@ -49,10 +52,8 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
 
     blocks.push({
       code,
-      index,
+      index: currentIndex,
     });
-
-    index++;
   }
 
   return blocks;
