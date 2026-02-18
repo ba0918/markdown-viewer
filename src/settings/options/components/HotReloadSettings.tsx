@@ -1,5 +1,5 @@
 import { h as _h } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { validateHotReloadInterval } from "../../../shared/utils/validators.ts";
 
 interface HotReloadSettingsProps {
@@ -14,6 +14,9 @@ interface HotReloadSettingsProps {
  *
  * Hot Reload機能の有効/無効、チェック間隔、自動リロード設定を管理するUI。
  * 間隔入力にはバリデーション（最小2000ms）を適用。
+ *
+ * Controlled Component: 状態は親（Options App.tsx）が管理し、
+ * propsを直接参照する。validationErrorのみローカル状態として保持。
  */
 export const HotReloadSettings = ({
   enabled,
@@ -21,26 +24,10 @@ export const HotReloadSettings = ({
   autoReload,
   onChange,
 }: HotReloadSettingsProps) => {
-  const [localEnabled, setLocalEnabled] = useState(enabled);
-  const [localInterval, setLocalInterval] = useState(interval);
-  const [localAutoReload, setLocalAutoReload] = useState(autoReload);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // 親propsの変更をローカルstateに同期
-  useEffect(() => {
-    setLocalEnabled(enabled);
-  }, [enabled]);
-  useEffect(() => {
-    setLocalInterval(interval);
-  }, [interval]);
-  useEffect(() => {
-    setLocalAutoReload(autoReload);
-  }, [autoReload]);
-
   const handleToggle = () => {
-    const newEnabled = !localEnabled;
-    setLocalEnabled(newEnabled);
-    onChange(newEnabled, localInterval, localAutoReload);
+    onChange(!enabled, interval, autoReload);
   };
 
   const handleIntervalChange = (e: Event) => {
@@ -54,14 +41,11 @@ export const HotReloadSettings = ({
     }
 
     setValidationError(null);
-    setLocalInterval(value);
-    onChange(localEnabled, value, localAutoReload);
+    onChange(enabled, value, autoReload);
   };
 
   const handleAutoReloadToggle = () => {
-    const newAutoReload = !localAutoReload;
-    setLocalAutoReload(newAutoReload);
-    onChange(localEnabled, localInterval, newAutoReload);
+    onChange(enabled, interval, !autoReload);
   };
 
   return (
@@ -73,12 +57,10 @@ export const HotReloadSettings = ({
             <span class="badge">Developer</span>
           </label>
           <button
-            class={`toggle-btn ${localEnabled ? "active" : ""}`}
+            class={`toggle-btn ${enabled ? "active" : ""}`}
             onClick={handleToggle}
             type="button"
-            aria-label={localEnabled
-              ? "Disable Hot Reload"
-              : "Enable Hot Reload"}
+            aria-label={enabled ? "Disable Hot Reload" : "Enable Hot Reload"}
           >
             <span class="toggle-slider"></span>
           </button>
@@ -88,19 +70,19 @@ export const HotReloadSettings = ({
         </p>
       </div>
 
-      {localEnabled && (
+      {enabled && (
         <div class="advanced-settings">
           <div class="setting-group">
             <label class="label">
               Check Interval
-              <span class="value">{localInterval}ms</span>
+              <span class="value">{interval}ms</span>
             </label>
             <input
               type="range"
               min="2000"
               max="20000"
               step="2000"
-              value={localInterval}
+              value={interval}
               onInput={handleIntervalChange}
               class="slider"
             />
@@ -113,10 +95,10 @@ export const HotReloadSettings = ({
             <div class="setting-header">
               <label class="label">Auto Reload</label>
               <button
-                class={`toggle-btn small ${localAutoReload ? "active" : ""}`}
+                class={`toggle-btn small ${autoReload ? "active" : ""}`}
                 onClick={handleAutoReloadToggle}
                 type="button"
-                aria-label={localAutoReload
+                aria-label={autoReload
                   ? "Disable Auto Reload"
                   : "Enable Auto Reload"}
               >
