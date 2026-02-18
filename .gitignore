@@ -46,10 +46,9 @@ test-results/
 
 # Example files (reference implementation)
 example/
-docs/competitor-analysis
+
+# Internal development documents (not for public release)
+docs/internal/
 
 # Implementation plans (internal use)
 .claude/plans/
-
-# Review reports (session artifacts, not part of codebase)
-docs/reviews/
