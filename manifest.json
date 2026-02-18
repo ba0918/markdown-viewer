@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Markdown Viewer - Simple & Secure",
   "short_name": "MD Viewer",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Simple, secure local Markdown viewer. XSS-protected, Hot Reload, zero-config. Just works.",
 
   "author": "ba0918",

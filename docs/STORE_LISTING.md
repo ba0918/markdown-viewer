@@ -126,7 +126,7 @@ https://github.com/ba0918/markdown-viewer
 ## Version (Initial Release)
 
 ```
-0.1.3
+0.1.4
 ```
 
 ---
