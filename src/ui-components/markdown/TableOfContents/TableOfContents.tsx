@@ -3,6 +3,9 @@
  *
  * 目次の表示、スクロール追従によるアクティブ状態管理、折りたたみ、Toggle、Resize機能を提供する。
  * chrome.storage経由で状態を永続化し、ページリロード後も設定を維持。
+ *
+ * スクロール追従ロジック（IntersectionObserver/MutationObserver/scrollイベント）は
+ * useActiveHeadingフックに分離。
  */
 
 import { Fragment as _Fragment, h as _h } from "preact";
@@ -17,6 +20,7 @@ import type { TocItem } from "../../../shared/types/toc.ts";
 import type { TocState } from "../../../shared/types/toc.ts";
 import { DEFAULT_TOC_STATE } from "../../../shared/types/toc.ts";
 import { useResizable } from "./useResizable.ts";
+import { useActiveHeading } from "./useActiveHeading.ts";
 import { toggleSetItem as toggleCollapsedItem } from "../../../shared/utils/toggle-set-item.ts";
 
 /**
@@ -66,7 +70,6 @@ export const TableOfContents = ({
   onTocStateChange,
   initialState,
 }: Props) => {
-  const [activeId, setActiveId] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState(false);
   const isUserClickRef = useRef(false); // クリック直後かどうか（useRefで管理し、useEffect再実行を防止）
   const [tocState, setTocState] = useState<TocState>(
@@ -75,6 +78,12 @@ export const TableOfContents = ({
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(
     new Set(initialState?.collapsedItems || []),
   );
+
+  // Active Heading Hook: スクロール追従によるアクティブ見出し検出
+  const { activeId, setActiveId } = useActiveHeading({
+    items,
+    isUserClickRef,
+  });
 
   // 永続化された状態を読み込み（initialStateが指定されている場合はスキップ）
   // useLayoutEffectを使用して、レンダリング前に同期的に親に通知（CLS削減）
@@ -151,196 +160,6 @@ export const TableOfContents = ({
   }, [collapsedItems, tocState, onTocStateChange]);
 
   /**
-   * Markdownコンテンツ内の見出し要素のみを取得（ToCヘッダー等のUI要素を除外）
-   * IDが付与されている見出しのみ = addHeadingIds()で処理されたMarkdown由来の見出し
-   */
-  const getContentHeadings = useCallback((): Element[] => {
-    const allHeadings = document.querySelectorAll("h1, h2, h3");
-    return Array.from(allHeadings).filter((h) => h.id !== "");
-  }, []);
-
-  /**
-   * スクロール位置から最も近い「既に通過した」見出しを検索
-   * ビューポート上部（DocumentHeader下端）より上にある最後の見出しを返す
-   */
-  const findLastPassedHeading = useCallback((): string => {
-    const HEADER_HEIGHT = 56; // DocumentHeaderの高さ(px) - base.cssの.document-headerと一致
-    const headings = getContentHeadings();
-    let lastPassedId = "";
-    for (const heading of headings) {
-      const rect = heading.getBoundingClientRect();
-      if (rect.top < HEADER_HEIGHT) {
-        lastPassedId = heading.id;
-      }
-    }
-    return lastPassedId;
-  }, [getContentHeadings]);
-
-  /**
-   * IntersectionObserverで現在表示中の見出しを検出
-   *
-   * 改善点:
-   * 1. rootMarginを固定値ベースに変更（ビューポートサイズ依存を排除）
-   * 2. フォールバックロジック追加（検出範囲内に見出しがない場合も対応）
-   * 3. 初期アクティブ設定（DOMに見出しが存在するまで待機してから設定）
-   * 4. isUserClickをuseRefで管理（useEffect再実行を防止）
-   * 5. scrollイベントでIntersectionObserverのギャップをカバー
-   *
-   * クリック後は手動スクロールまでIntersectionObserverの更新を無視:
-   * - ユーザーがクリック → クリックした見出しがアクティブ
-   * - スクロール完了後もそのまま維持
-   * - ユーザーが手動スクロール → 自動追従再開
-   */
-  useEffect(() => {
-    if (items.length === 0) return;
-
-    let observer: IntersectionObserver | null = null;
-    let pollingTimer: ReturnType<typeof setTimeout> | null = null;
-    let isCleanedUp = false;
-
-    /**
-     * 現在のスクロール位置に基づいてアクティブな見出しを決定
-     * IntersectionObserverのギャップ（見出しが検出範囲外にある時）をカバー
-     */
-    const updateActiveFromScroll = () => {
-      if (isUserClickRef.current) return;
-      const lastPassedId = findLastPassedHeading();
-      if (lastPassedId) {
-        setActiveId(lastPassedId);
-      } else {
-        // ページ最上部（どの見出しも通過していない）→ 最初のコンテンツ見出しをアクティブに
-        const contentHeadings = getContentHeadings();
-        if (contentHeadings.length > 0) {
-          setActiveId(contentHeadings[0].id);
-        }
-      }
-    };
-
-    /**
-     * IntersectionObserverとscrollイベントリスナーをセットアップ
-     * DOMに見出しが存在することが保証された状態で呼ばれる
-     */
-    const setupObserver = (headings: Element[]) => {
-      if (isCleanedUp) return;
-
-      observer = new IntersectionObserver(
-        (entries) => {
-          // クリック直後は手動スクロールまでIntersectionObserverの更新を無視
-          if (isUserClickRef.current) {
-            return;
-          }
-
-          // 現在画面内にある見出しを収集
-          const visibleHeadings = entries
-            .filter((entry) => entry.isIntersecting)
-            .map((entry) => ({
-              id: entry.target.id,
-              top: entry.boundingClientRect.top,
-            }))
-            .sort((a, b) => a.top - b.top); // 画面上部に近い順にソート
-
-          if (visibleHeadings.length > 0) {
-            // 画面上部に最も近い見出しをアクティブにする
-            setActiveId(visibleHeadings[0].id);
-          } else {
-            // フォールバック: スクロール位置ベースで判定
-            updateActiveFromScroll();
-          }
-        },
-        {
-          // DocumentHeader高さ(56px)分を上部から除外、下部70%を除外
-          // → ビューポート上部30%の領域で見出しを検出
-          rootMargin: "-56px 0px -70% 0px",
-        },
-      );
-
-      // 見出し要素を監視
-      headings.forEach((h) => observer!.observe(h));
-
-      // scrollイベントリスナーでIntersectionObserverのギャップをカバー
-      // 特にページトップ/ボトムでの検出漏れを防止
-      let scrollRAF: number | null = null;
-      const handleScroll = () => {
-        if (isUserClickRef.current) return;
-        // requestAnimationFrameでスロットリング
-        if (scrollRAF) return;
-        scrollRAF = requestAnimationFrame(() => {
-          scrollRAF = null;
-          updateActiveFromScroll();
-        });
-      };
-      globalThis.addEventListener("scroll", handleScroll, { passive: true });
-
-      // 初期アクティブ設定: 見出しが確実にDOMにある状態で設定
-      updateActiveFromScroll();
-
-      // クリーンアップにscrollリスナー解除を追加
-      const originalCleanup = () => {
-        globalThis.removeEventListener("scroll", handleScroll);
-        if (scrollRAF) cancelAnimationFrame(scrollRAF);
-      };
-      return originalCleanup;
-    };
-
-    /**
-     * DOMに見出し要素が存在するまで待機
-     * Chrome拡張環境では、dangerouslySetInnerHTMLによるDOM更新が
-     * useEffect実行時にまだ完了していない場合がある
-     *
-     * MutationObserverを使用してDOM変更を効率的に検知する
-     * （以前の50msポーリングより低CPU負荷）
-     */
-    let scrollCleanup: (() => void) | null = null;
-    let mutationObserver: MutationObserver | null = null;
-    const MAX_WAIT_TIME = 2000; // 最大2秒
-
-    const trySetupObserver = () => {
-      if (isCleanedUp) return;
-      const headings = getContentHeadings();
-      if (headings.length > 0) {
-        scrollCleanup = setupObserver(headings) || null;
-        // 見出しが見つかったらMutationObserverは不要
-        if (mutationObserver) {
-          mutationObserver.disconnect();
-          mutationObserver = null;
-        }
-      }
-    };
-
-    // 即座に試行（DOMが既に準備できている場合のため）
-    trySetupObserver();
-
-    // まだ見出しが見つからない場合、MutationObserverでDOM変更を監視
-    if (!scrollCleanup) {
-      mutationObserver = new MutationObserver(() => {
-        trySetupObserver();
-      });
-      mutationObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-      // タイムアウト: 一定時間後にMutationObserverを停止
-      pollingTimer = setTimeout(() => {
-        if (mutationObserver) {
-          mutationObserver.disconnect();
-          mutationObserver = null;
-        }
-      }, MAX_WAIT_TIME);
-    }
-
-    return () => {
-      isCleanedUp = true;
-      if (observer) observer.disconnect();
-      if (pollingTimer) clearTimeout(pollingTimer);
-      if (scrollCleanup) scrollCleanup();
-      if (mutationObserver) {
-        mutationObserver.disconnect();
-        mutationObserver = null;
-      }
-    };
-  }, [items, findLastPassedHeading, getContentHeadings]);
-
-  /**
    * アクティブ項目が変わったら、ToCコンテナ内でスクロールして表示
    * ユーザーがページをスクロール → 新しい見出しがアクティブ → ToCも自動追従
    *
@@ -383,34 +202,6 @@ export const TableOfContents = ({
 
     return () => clearTimeout(timer);
   }, [tocState.visible]); // visible が変わった時のみ
-
-  /**
-   * ユーザーの手動スクロールを検出
-   * wheelイベント（マウスホイール/トラックパッド）やtouchイベント（スワイプ）で自動追従を再開
-   */
-  useEffect(() => {
-    const handleManualScroll = () => {
-      // 手動スクロール検出 → 自動追従再開
-      // クリック状態でない場合は何もしない
-      if (!isUserClickRef.current) return;
-      isUserClickRef.current = false;
-    };
-
-    // マウスホイール、トラックパッド
-    globalThis.addEventListener("wheel", handleManualScroll, { passive: true });
-    // タッチスワイプ
-    globalThis.addEventListener("touchmove", handleManualScroll, {
-      passive: true,
-    });
-    // キーボードスクロール（↑↓, PageUp/Down, Space）
-    globalThis.addEventListener("keydown", handleManualScroll);
-
-    return () => {
-      globalThis.removeEventListener("wheel", handleManualScroll);
-      globalThis.removeEventListener("touchmove", handleManualScroll);
-      globalThis.removeEventListener("keydown", handleManualScroll);
-    };
-  }, []);
 
   /**
    * TOCアイテムクリック時のハンドラ
