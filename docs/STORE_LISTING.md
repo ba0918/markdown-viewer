@@ -63,8 +63,9 @@ https://github.com/ba0918/markdown-viewer
 
 USAGE
 
-1. Open .md file in Chrome
-2. Done
+1. Enable "Allow access to file URLs" in chrome://extensions
+2. Open .md file in Chrome
+3. Done
 
 Settings: Click toolbar icon to change theme, configure Hot Reload, or add remote domains.
 
