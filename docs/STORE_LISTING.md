@@ -22,7 +22,7 @@ Browser extensions can be sold, hacked, or suddenly request scary permissions. T
 FEATURES
 
 * 6 Clean Themes - Light, Dark, GitHub, Minimal, Solarized Light, Solarized Dark
-* Hot Reload - Auto-detect file changes (1s~ configurable)
+* Hot Reload - Auto-detect file changes (2s~ configurable)
 * GFM Support - Syntax highlight, Mermaid diagrams, Math equations (MathJax), Table of Contents
 * Remote URL Support (Optional) - Add custom domains to render remote Markdown files
 * View Raw Toggle - Switch between rendered and raw Markdown
