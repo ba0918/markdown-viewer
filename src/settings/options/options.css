@@ -619,41 +619,6 @@ body {
   background-size: contain;
 }
 
-/* Format Hint */
-.format-hint {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-}
-
-.hint-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.hint-label {
-  color: #6b7280;
-  font-weight: 500;
-  min-width: 60px;
-}
-
-.hint-code {
-  font-family:
-    "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Courier New", monospace;
-  font-size: 12px;
-  padding: 2px 6px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  color: #3b82f6;
-}
-
 /* Origins Section */
 .origins-section {
   margin-bottom: 28px;

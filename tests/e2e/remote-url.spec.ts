@@ -35,14 +35,12 @@ test.describe("Remote URL Settings", () => {
     await expect(addButton).toBeVisible();
   });
 
-  test("should show help text with format example", async ({ page, extensionId }) => {
+  test("should show placeholder with format example", async ({ page, extensionId }) => {
     await page.goto(`chrome-extension://${extensionId}/options.html`);
 
-    // ヘルプテキストが表示される
-    await expect(page.locator("text=Format:")).toBeVisible();
-    await expect(
-      page.locator('code:has-text("https://example.com/*")'),
-    ).toBeVisible();
+    // プレースホルダーにフォーマット例が表示される
+    const input = page.locator('input[placeholder="https://example.com/*"]');
+    await expect(input).toBeVisible();
   });
 
   test("should show security info box", async ({ page, extensionId }) => {

@@ -182,13 +182,6 @@ export const RemoteUrlSettings = () => {
             {error}
           </div>
         )}
-
-        <div class="format-hint">
-          <div class="hint-row">
-            <span class="hint-label">Format:</span>
-            <code class="hint-code">https://example.com/*</code>
-          </div>
-        </div>
       </div>
 
       {customOrigins.length > 0 && (
