@@ -26,7 +26,6 @@ export const ThemeSelector = ({ current, onChange }: ThemeSelectorProps) => {
             onClick={() => onChange(theme.id)}
             type="button"
           >
-            <span class="emoji">{theme.emoji}</span>
             <span class="text">{theme.label}</span>
           </button>
         ))}

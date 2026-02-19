@@ -36,8 +36,6 @@ export interface ThemeMetadata {
   id: Theme;
   /** テーマ表示名 */
   label: string;
-  /** テーマ絵文字 */
-  emoji: string;
   /** テーマ説明文 */
   description: string;
 }
@@ -52,37 +50,31 @@ export const THEME_METADATA: readonly ThemeMetadata[] = [
   {
     id: "light",
     label: "Light",
-    emoji: "\u2600\uFE0F",
     description: "Simple light theme",
   },
   {
     id: "dark",
     label: "Dark",
-    emoji: "\uD83C\uDF19",
     description: "Simple dark theme",
   },
   {
     id: "github",
     label: "GitHub",
-    emoji: "\uD83D\uDC19",
     description: "GitHub-style theme",
   },
   {
     id: "minimal",
     label: "Minimal",
-    emoji: "\uD83D\uDCDD",
     description: "Minimalist design",
   },
   {
     id: "solarized-light",
     label: "Solarized Light",
-    emoji: "\uD83C\uDF05",
     description: "Solarized light theme",
   },
   {
     id: "solarized-dark",
     label: "Solarized Dark",
-    emoji: "\uD83C\uDF03",
     description: "Solarized dark theme",
   },
 ] as const;
