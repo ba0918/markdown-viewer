@@ -30,7 +30,7 @@ Built to avoid extension malware risks with minimal permissions.
 
 ### From Chrome Web Store
 
-🚧 Coming soon
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/markdown-viewer-simple-se/meacjeaboaldhcicilhghkcgmpljbeog)
 
 ### Manual Install
 

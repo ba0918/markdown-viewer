@@ -30,7 +30,7 @@
 
 ### Chrome Web Storeから
 
-🚧 準備中
+[Chrome Web Storeからインストール](https://chromewebstore.google.com/detail/markdown-viewer-simple-se/meacjeaboaldhcicilhghkcgmpljbeog)
 
 ### 手動インストール
 
