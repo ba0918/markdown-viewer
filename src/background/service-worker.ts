@@ -14,8 +14,24 @@ import { logger } from "../shared/utils/logger.ts";
 /**
  * カスタムドメインのContent Scriptを再登録
  * 拡張リロード時にContent Script登録が消えるため、起動時に再登録する
+ *
+ * onInstalledとonStartupが同時に発火するケース（Chrome更新後の起動等）で
+ * レースコンディションによるDuplicate script IDエラーを防ぐため、
+ * Promise共有パターンで排他制御する
  */
-async function reregisterCustomOrigins() {
+let reregisterPromise: Promise<void> | null = null;
+
+function reregisterCustomOrigins(): Promise<void> {
+  if (reregisterPromise) {
+    return reregisterPromise;
+  }
+  reregisterPromise = reregisterCustomOriginsInternal().finally(() => {
+    reregisterPromise = null;
+  });
+  return reregisterPromise;
+}
+
+async function reregisterCustomOriginsInternal() {
   try {
     const result = await chrome.storage.sync.get(["customOrigins"]);
     const customOrigins = (result.customOrigins as CustomOrigin[]) || [];
