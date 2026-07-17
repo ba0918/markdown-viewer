@@ -44,5 +44,11 @@
     "@playwright/test": "npm:@playwright/test@^1.61.1",
     "@types/node": "npm:@types/node@^25.2.3"
   },
-  "exclude": ["dist/", "node_modules/", "coverage/", "example/"]
+  "exclude": [
+    "dist/",
+    "node_modules/",
+    "coverage/",
+    "example/",
+    "pnpm-lock.yaml"
+  ]
 }
