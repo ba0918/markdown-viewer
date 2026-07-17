@@ -27,7 +27,7 @@
     "@preact/signals": "npm:@preact/signals@^2.0.0",
     "marked": "npm:marked@^17.0.0",
     "marked-highlight": "npm:marked-highlight@^2.2.3",
-    "mermaid": "npm:mermaid@^11.12.3",
+    "mermaid": "npm:mermaid@^11.16.0",
     "xss": "npm:xss@^1.0.15",
     "highlight.js": "npm:highlight.js@^11.11.1",
     "highlight.js/": "npm:highlight.js@11.11.1/",
