@@ -95,9 +95,19 @@ Deno.test("normalize: 英数字が続く &amp はデコードしない（HTML属
 });
 
 Deno.test("normalize: 不正なコードポイントは元の文字列を保持する", () => {
+  // 範囲外（> 0x10FFFF）
   assertEquals(
     normalizeUrlAttributeValue("https://example.com/&#999999999;"),
     "https://example.com/&#999999999;",
+  );
+  // 単独サロゲート（0xD800-0xDFFF）は不正な文字列を生むためデコードしない
+  assertEquals(
+    normalizeUrlAttributeValue("https://example.com/&#xD800;"),
+    "https://example.com/&#xD800;",
+  );
+  assertEquals(
+    normalizeUrlAttributeValue("https://example.com/&#57343;"),
+    "https://example.com/&#57343;",
   );
 });
 

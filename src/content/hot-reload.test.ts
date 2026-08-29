@@ -20,31 +20,45 @@ const createdTimers: number[] = [];
 const clearedTimers: number[] = [];
 let nextTimerId = 1;
 
-(globalThis as any).setInterval = (): number => {
+/** setIntervalに渡されたコールバック（手動で発火させて中身を検証する） */
+let intervalCallback: (() => Promise<void>) | null = null;
+
+(globalThis as any).setInterval = (fn: () => Promise<void>): number => {
   const id = nextTimerId++;
   createdTimers.push(id);
+  intervalCallback = fn;
   return id;
 };
 (globalThis as any).clearInterval = (id: number): void => {
   clearedTimers.push(id);
 };
 
+/** location.reload() の呼び出し回数 */
+let reloadCount = 0;
+
 (globalThis as any).location = {
   href: "http://localhost:8000/doc.md",
-  reload: () => {},
+  reload: () => {
+    reloadCount++;
+  },
 };
 (globalThis as any).DEBUG = false;
 
-/** sendMessage の応答を制御するための解決待ちキュー */
-let pendingResolvers: ((hash: string) => void)[] = [];
+/** sendMessage の応答を制御するための待機キュー */
+interface PendingCall {
+  resolve: (hash: string) => void;
+  reject: (error: Error) => void;
+}
+let pendingResolvers: PendingCall[] = [];
 
 (globalThis as any).chrome = {
   runtime: {
     sendMessage: () =>
-      new Promise((resolve) => {
-        pendingResolvers.push((hash: string) =>
-          resolve({ success: true, data: hash })
-        );
+      new Promise((resolve, reject) => {
+        pendingResolvers.push({
+          resolve: (hash: string) => resolve({ success: true, data: hash }),
+          reject,
+        });
       }),
   },
 };
@@ -57,6 +71,22 @@ const reset = () => {
   createdTimers.length = 0;
   clearedTimers.length = 0;
   pendingResolvers = [];
+  intervalCallback = null;
+  reloadCount = 0;
+};
+
+/** startHotReloadを起動し、初回ハッシュを解決して完了まで待つ */
+const startWithHash = async (hash: string, interval = 2000): Promise<void> => {
+  const started = startHotReload(interval);
+  pendingResolvers.shift()?.resolve(hash);
+  await started;
+};
+
+/** 直近のインターバルコールバックを1回発火し、指定ハッシュで応答する */
+const tickWithHash = async (hash: string): Promise<void> => {
+  const tick = intervalCallback!();
+  pendingResolvers.shift()?.resolve(hash);
+  await tick;
 };
 
 /** 生きているタイマー（生成済みかつ未解除）のID一覧 */
@@ -67,7 +97,7 @@ Deno.test("startHotReload: 単発呼び出しでタイマーが1本だけ動く"
   reset();
 
   const started = startHotReload(2000);
-  pendingResolvers.shift()?.("hash-1");
+  pendingResolvers.shift()?.resolve("hash-1");
   await started;
 
   assertEquals(liveTimers().length, 1);
@@ -85,9 +115,9 @@ Deno.test("startHotReload: 並行呼び出しでもタイマーは1本しか残�
 
   // 3件のsendMessageが待機中。順に解決する
   assertEquals(pendingResolvers.length, 3);
-  pendingResolvers.shift()?.("hash-a");
-  pendingResolvers.shift()?.("hash-b");
-  pendingResolvers.shift()?.("hash-c");
+  pendingResolvers.shift()?.resolve("hash-a");
+  pendingResolvers.shift()?.resolve("hash-b");
+  pendingResolvers.shift()?.resolve("hash-c");
   await Promise.all([a, b, c]);
 
   // 最後の呼び出しの1本だけが生きている
@@ -102,7 +132,7 @@ Deno.test("startHotReload: 待機中にstopHotReloadされたらタイマーを�
   const started = startHotReload(2000);
   // 初回ハッシュ取得の待機中に停止
   stopHotReload();
-  pendingResolvers.shift()?.("hash-1");
+  pendingResolvers.shift()?.resolve("hash-1");
   await started;
 
   assertEquals(liveTimers().length, 0);
@@ -114,12 +144,92 @@ Deno.test("stopHotReload: 実行中のタイマーを解除する", async () => 
   reset();
 
   const started = startHotReload(2000);
-  pendingResolvers.shift()?.("hash-1");
+  pendingResolvers.shift()?.resolve("hash-1");
   await started;
   assertEquals(liveTimers().length, 1);
 
   stopHotReload();
   assertEquals(liveTimers().length, 0);
+
+  reset();
+});
+
+/**
+ * インターバルコールバックの挙動
+ *
+ * タイマーをスタブしているだけでは、変更検知・エラー処理・世代ガードが
+ * 一切実行されない。コールバックを手動発火して中身を検証する。
+ */
+
+Deno.test("インターバル: ハッシュが同じならリロードしない", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  await tickWithHash("hash-1");
+
+  assertEquals(reloadCount, 0);
+  assertEquals(liveTimers().length, 1);
+
+  reset();
+});
+
+Deno.test("インターバル: ハッシュが変わったらリロードして停止する", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  await tickWithHash("hash-2");
+
+  assertEquals(reloadCount, 1);
+  // リロード前にタイマーを解除している
+  assertEquals(liveTimers().length, 0);
+
+  reset();
+});
+
+Deno.test("インターバル: fetch失敗時は停止する（リロードしない）", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  const tick = intervalCallback!();
+  pendingResolvers.shift()?.reject(new Error("fetch failed"));
+  await tick;
+
+  assertEquals(reloadCount, 0);
+  assertEquals(liveTimers().length, 0);
+
+  reset();
+});
+
+Deno.test("インターバル: 応答待ちの間に停止されたらリロードしない", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  // コールバック発火 → 応答が返る前に停止 → 変更ありの応答が届く
+  const tick = intervalCallback!();
+  stopHotReload();
+  pendingResolvers.shift()?.resolve("hash-2");
+  await tick;
+
+  // 世代ガードにより、停止済みの実行結果は破棄される
+  assertEquals(reloadCount, 0);
+  assertEquals(liveTimers().length, 0);
+
+  reset();
+});
+
+Deno.test("インターバル: 応答待ちの間に再起動されたら古い実行結果は破棄される", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  // 古いコールバックを発火 → 応答前に再起動 → 変更ありの応答が届く
+  const staleTick = intervalCallback!();
+  const restarted = startHotReload(2000);
+  pendingResolvers.shift()?.resolve("hash-2"); // 古いtickへの応答
+  pendingResolvers.shift()?.resolve("hash-3"); // 再起動の初回ハッシュ
+  await Promise.all([staleTick, restarted]);
+
+  assertEquals(reloadCount, 0);
+  assertEquals(liveTimers().length, 1);
 
   reset();
 });
