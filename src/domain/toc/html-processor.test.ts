@@ -110,3 +110,37 @@ Deno.test("addHeadingIds: 重複する見出しに連番を付与", () => {
 <h2 id="ステータス-3">ステータス</h2>`,
   );
 });
+
+/**
+ * HTMLエンティティを含む見出しのID生成
+ *
+ * markedは `&` `<` `>` `"` をエスケープするため、デコードしてからIDを生成しないと
+ * 生テキストからIDを作るToC側（extractor.ts）とIDが一致しない。
+ */
+
+Deno.test("addHeadingIds: &amp; をデコードしてIDを生成", () => {
+  const result = addHeadingIds("<h1>Tips &amp; Tricks</h1>");
+
+  assertEquals(result, '<h1 id="Tips-&amp;-Tricks">Tips &amp; Tricks</h1>');
+});
+
+Deno.test("addHeadingIds: &lt; &gt; をデコードしてIDを生成", () => {
+  const result = addHeadingIds("<h2>A &lt; B</h2>");
+
+  // generateHeadingId が < を除去するため "A-B" になる
+  assertEquals(result, '<h2 id="A-B">A &lt; B</h2>');
+});
+
+Deno.test("addHeadingIds: &quot; をデコードしてIDを生成", () => {
+  const result = addHeadingIds("<h3>He said &quot;hi&quot;</h3>");
+
+  assertEquals(result, '<h3 id="He-said-hi">He said &quot;hi&quot;</h3>');
+});
+
+Deno.test("addHeadingIds: ID属性値はHTMLエスケープされる", () => {
+  const result = addHeadingIds("<h1>A &amp; B</h1>");
+
+  // 属性値内に生の & を出力しない
+  assertEquals(result.includes('id="A-&-B"'), false);
+  assertEquals(result.includes('id="A-&amp;-B"'), true);
+});

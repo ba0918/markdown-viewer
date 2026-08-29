@@ -7,6 +7,8 @@
  * Layer: domain/markdown (Pure detection logic)
  */
 
+import { decodeBasicHtmlEntities } from "../../shared/utils/html-entities.ts";
+
 /**
  * Mermaid code block information
  */
@@ -20,7 +22,7 @@ export interface MermaidBlock {
 /**
  * Detects all Mermaid code blocks in HTML
  *
- * @param html - HTML string (sanitized, from marked + DOMPurify)
+ * @param html - HTML string (sanitized, from marked + sanitizeHTML)
  * @returns Array of Mermaid code blocks
  *
  * @example
@@ -41,7 +43,7 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
 
   while ((match = pattern.exec(html)) !== null) {
     const rawCode = match[1];
-    const code = decodeHTMLEntities(rawCode);
+    const code = decodeBasicHtmlEntities(rawCode);
     // DOM要素との位置対応を保つため、空ブロック含む全マッチでインクリメント
     const currentIndex = index;
     index++;
@@ -61,32 +63,3 @@ export function detectMermaidBlocks(html: string): MermaidBlock[] {
 
 // hasMermaidBlocks() は削除されました（未使用関数）
 // 必要な場合は detectMermaidBlocks(html).length > 0 を使用してください
-
-/**
- * Decodes HTML entities in a string
- *
- * @param html - HTML string with entities
- * @returns Decoded string
- *
- * @example
- * ```ts
- * decodeHTMLEntities('A --&gt; B') // 'A --> B'
- * decodeHTMLEntities('&lt;div&gt;') // '<div>'
- * ```
- */
-function decodeHTMLEntities(html: string): string {
-  const entities: Record<string, string> = {
-    "&lt;": "<",
-    "&gt;": ">",
-    "&amp;": "&",
-    "&quot;": '"',
-    "&#39;": "'",
-    "&#x27;": "'",
-    "&apos;": "'",
-  };
-
-  return html.replace(
-    /&(?:lt|gt|amp|quot|#39|#x27|apos);/g,
-    (match) => entities[match] || match,
-  );
-}

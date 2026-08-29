@@ -221,3 +221,73 @@ title: Test
   // 正常なコンテンツは保持
   assertStringIncludes(result.html, "Content");
 });
+
+/**
+ * ToCアンカーの整合性テスト
+ *
+ * TableOfContents は document.getElementById(item.id) で見出しへスクロールする。
+ * ToCアイテムのIDと、HTML内の見出しIDが完全一致しないとナビゲーションが壊れる。
+ */
+
+/** HTML中の見出しid属性を（エンティティをデコードして）収集する */
+const collectHeadingIds = (html: string): string[] => {
+  const ids: string[] = [];
+  const pattern = /<h[1-3][^>]*\sid="([^"]*)"/gi;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) {
+    ids.push(
+      match[1]
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&amp;/g, "&"),
+    );
+  }
+  return ids;
+};
+
+/** ToCツリーを平坦化してIDを収集する */
+const collectTocIds = (
+  items: { id: string; children: unknown[] }[],
+): string[] =>
+  items.flatMap((item) => [
+    item.id,
+    ...collectTocIds(item.children as { id: string; children: unknown[] }[]),
+  ]);
+
+Deno.test("MarkdownService: ToCのIDとHTML見出しIDが一致する（記号を含む見出し）", () => {
+  const service = new MarkdownService();
+  const markdown = [
+    "# Tips & Tricks",
+    "## A < B",
+    '## He said "hi"',
+    "## 100% & more",
+    "## Plain Heading",
+  ].join("\n\n");
+  const theme: ThemeData = {
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
+  };
+
+  const result = service.render(markdown, theme);
+
+  const tocIds = collectTocIds(result.tocItems);
+  const headingIds = collectHeadingIds(result.html);
+
+  assertEquals(tocIds.length, 5);
+  assertEquals(headingIds, tocIds);
+});
+
+Deno.test("MarkdownService: 重複見出しでもToCのIDとHTML見出しIDが一致する", () => {
+  const service = new MarkdownService();
+  const markdown = "## ステータス\n\n## ステータス\n\n## ステータス";
+  const theme: ThemeData = {
+    id: "light",
+    cssPath: "content/styles/themes/light.css",
+  };
+
+  const result = service.render(markdown, theme);
+
+  assertEquals(collectHeadingIds(result.html), collectTocIds(result.tocItems));
+});
