@@ -26,8 +26,15 @@ export interface HeadingIdResult {
 
 /** 見出しタグとその中身を抽出する正規表現 */
 const HEADING_PATTERN = /<(h[1-3])([^>]*)>(.*?)<\/\1>/gi;
-/** 既存のid属性値を取り出す正規表現 */
-const EXISTING_ID_PATTERN = /\sid\s*=\s*"([^"]*)"/i;
+/**
+ * 既存のid属性の有無を判定する正規表現
+ *
+ * 値なしの `<h1 id>` も検出する（サニタイザは値が空のid属性を
+ * `id` 単体として出力しうるため）。`data-id` 等の別属性にはマッチしない。
+ */
+const HAS_ID_PATTERN = /\sid(?![\w-])/i;
+/** 既存のid属性値を取り出す正規表現（"..." / '...' / 引用符なし に対応） */
+const EXISTING_ID_PATTERN = /\sid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
 
 /**
  * 見出しHTMLから表示用のプレーンテキストを取り出す
@@ -66,10 +73,14 @@ export const addHeadingIds = (html: string): HeadingIdResult => {
       const level = Number(tag[1]) as 1 | 2 | 3;
       const text = toPlainText(content);
 
-      const existingId = EXISTING_ID_PATTERN.exec(attrs)?.[1];
-      if (existingId !== undefined) {
-        // 自動採番が既存IDと衝突しないよう予約だけ行う
-        makeUniqueId(decodeBasicHtmlEntities(existingId), idCounts);
+      // 既にid属性がある見出しは上書きしない（id属性の重複出力を防ぐ）
+      if (HAS_ID_PATTERN.test(attrs)) {
+        const captured = EXISTING_ID_PATTERN.exec(attrs);
+        const existingId = captured?.[1] ?? captured?.[2] ?? captured?.[3];
+        if (existingId) {
+          // 自動採番が既存IDと衝突しないよう予約だけ行う
+          makeUniqueId(decodeBasicHtmlEntities(existingId), idCounts);
+        }
         return match;
       }
 

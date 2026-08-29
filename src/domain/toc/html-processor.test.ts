@@ -250,3 +250,42 @@ Deno.test("addHeadingIds: Markdown記法を含む見出しのIDと表示テキ�
     });
   }
 });
+
+/**
+ * 既存id属性の検出（id属性の重複出力防止）
+ *
+ * 引用符の種類や値なしの形式を取りこぼすと id属性が2つ出力され、
+ * ブラウザは先頭を採用するためToCリンクが機能しなくなる。
+ */
+
+Deno.test("addHeadingIds: 既存id属性を全ての記法で検出する", async (t) => {
+  const cases: [string, string][] = [
+    ["ダブルクォート", '<h1 id="Existing">Title</h1>'],
+    ["シングルクォート", "<h1 id='Existing'>Title</h1>"],
+    ["引用符なし", "<h1 id=Existing>Title</h1>"],
+    ["大文字", '<h1 ID="Existing">Title</h1>'],
+    ["値なし", "<h1 id>Title</h1>"],
+    ["空白あり", '<h1 id = "Existing">Title</h1>'],
+  ];
+
+  for (const [desc, html] of cases) {
+    await t.step(desc, () => {
+      const result = addHeadingIds(html);
+
+      // 元のHTMLのまま（id属性を追加しない）
+      assertEquals(result.html, html);
+      assertEquals(result.headings.length, 0);
+    });
+  }
+});
+
+Deno.test("addHeadingIds: id以外の属性は既存idと誤認しない", () => {
+  assertEquals(
+    addHeadingIds('<h1 data-id="x">Title</h1>').html,
+    '<h1 data-id="x" id="Title">Title</h1>',
+  );
+  assertEquals(
+    addHeadingIds('<h1 class="identifier">Title</h1>').html,
+    '<h1 class="identifier" id="Title">Title</h1>',
+  );
+});
