@@ -86,3 +86,42 @@ Deno.test("update-hot-reload: payloadがundefinedの場合エラー", async () =
   const result = await action(undefined);
   assertEquals(result.success, false);
 });
+
+/**
+ * interval の範囲バリデーションテスト
+ *
+ * NaN/Infinity/負値がChrome Storageへ書き込まれると、
+ * 以降のload()が毎回デフォルト値へフォールバックする不整合を招く。
+ */
+
+Deno.test("update-hot-reload: intervalがNaNの場合エラー", async () => {
+  const result = await action({
+    enabled: true,
+    interval: Number.NaN,
+    autoReload: false,
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("update-hot-reload: intervalがInfinityの場合エラー", async () => {
+  const result = await action({
+    enabled: true,
+    interval: Number.POSITIVE_INFINITY,
+    autoReload: false,
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("update-hot-reload: 最小値未満のintervalは2000msへ正規化して保存する", async () => {
+  await stateManager.save({ hotReload: { interval: 5000 } });
+
+  const result = await action({
+    enabled: true,
+    interval: -1,
+    autoReload: false,
+  });
+
+  assertEquals(result.success, true);
+  const saved = await stateManager.load();
+  assertEquals(saved.hotReload.interval, 2000);
+});
