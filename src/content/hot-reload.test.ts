@@ -234,6 +234,56 @@ Deno.test("インターバル: 応答待ちの間に再起動されたら古い�
   reset();
 });
 
+Deno.test("startHotReload: 初回ハッシュ取得に失敗したら起動しない", async () => {
+  reset();
+
+  const started = startHotReload(2000);
+  pendingResolvers.shift()?.reject(new Error("fetch failed"));
+  await started;
+
+  // タイマーを作らずに終了する
+  assertEquals(createdTimers.length, 0);
+
+  reset();
+});
+
+Deno.test("インターバル: 前回の実行が終わる前の発火はスキップする", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  // 1回目を発火（応答待ちのまま保留）
+  const first = intervalCallback!();
+  assertEquals(pendingResolvers.length, 1);
+
+  // 2回目を発火 → isCheckingガードで即returnし、sendMessageを呼ばない
+  await intervalCallback!();
+  assertEquals(pendingResolvers.length, 1);
+
+  pendingResolvers.shift()?.resolve("hash-1");
+  await first;
+
+  assertEquals(reloadCount, 0);
+
+  reset();
+});
+
+Deno.test("インターバル: 停止後に届いたfetch失敗は無視する", async () => {
+  reset();
+  await startWithHash("hash-1");
+
+  // 応答が返る前に停止 → その後にfetch失敗が届く
+  const tick = intervalCallback!();
+  stopHotReload();
+  pendingResolvers.shift()?.reject(new Error("fetch failed"));
+  await tick;
+
+  // 世代ガードにより、停止済みの実行結果は破棄される
+  assertEquals(reloadCount, 0);
+  assertEquals(liveTimers().length, 0);
+
+  reset();
+});
+
 Deno.test("startHotReload: リモートURLでは起動しない", async () => {
   reset();
   (globalThis as any).location.href = "https://example.com/doc.md";
