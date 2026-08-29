@@ -17,6 +17,30 @@ const hotReloadState = {
   intervalId: null as ReturnType<typeof globalThis.setInterval> | null,
   /** 最後に取得したファイルのSHA-256ハッシュ（変更検知用） */
   lastFileHash: null as string | null,
+  /**
+   * 起動世代カウンタ
+   *
+   * startHotReload() は初回ハッシュ取得でawaitを挟むため、その間に別の
+   * start/stopが割り込むと「古い呼び出しがタイマーを登録して取り残される」
+   * 競合が発生する（設定スライダー操作等で複数回連続呼び出しされる）。
+   * 世代が進んでいたら古い呼び出しは何もしない。
+   */
+  generation: 0,
+};
+
+/**
+ * 実行中のHot Reloadを停止し、世代を進めて進行中の起動処理を無効化する
+ *
+ * @returns 新しい世代番号
+ */
+const invalidateCurrentRun = (): number => {
+  if (hotReloadState.intervalId !== null) {
+    clearInterval(hotReloadState.intervalId);
+    hotReloadState.intervalId = null;
+  }
+  hotReloadState.lastFileHash = null;
+  hotReloadState.generation += 1;
+  return hotReloadState.generation;
 };
 
 /**
@@ -25,7 +49,9 @@ const hotReloadState = {
  * ローカルファイル（file://）およびlocalhost環境でのみ動作。
  * リモートURLでは外部サーバーへの不必要な負荷を避けるため無効。
  *
- * @param interval - チェック間隔（ミリ秒、最小1000ms）
+ * 既に実行中の場合は停止してから開始する（多重起動防止）。
+ *
+ * @param interval - チェック間隔（ミリ秒、最小2000ms）
  */
 export const startHotReload = async (interval: number): Promise<void> => {
   if (!isLocalUrl(location.href)) {
@@ -43,21 +69,24 @@ export const startHotReload = async (interval: number): Promise<void> => {
     return;
   }
 
-  if (hotReloadState.intervalId !== null) {
-    clearInterval(hotReloadState.intervalId);
-  }
-
+  const generation = invalidateCurrentRun();
   const safeInterval = normalizeHotReloadInterval(interval);
 
   // 初回ハッシュを取得（background側でSHA-256計算済み）
+  let initialHash: string;
   try {
-    hotReloadState.lastFileHash = await sendMessage<string>({
+    initialHash = await sendMessage<string>({
       type: "CHECK_FILE_CHANGE",
       payload: { url: location.href },
     });
   } catch {
     return;
   }
+
+  // 待機中に別のstart/stopが走っていた場合、この呼び出しは破棄する
+  if (generation !== hotReloadState.generation) return;
+
+  hotReloadState.lastFileHash = initialHash;
 
   logger.log(`Hot Reload started (interval: ${safeInterval}ms)`);
 
@@ -73,6 +102,9 @@ export const startHotReload = async (interval: number): Promise<void> => {
         payload: { url: location.href },
       });
 
+      // 待機中に停止・再起動された場合は結果を捨てる
+      if (generation !== hotReloadState.generation) return;
+
       const changed = currentHash !== hotReloadState.lastFileHash;
 
       if (changed) {
@@ -83,6 +115,7 @@ export const startHotReload = async (interval: number): Promise<void> => {
         return;
       }
     } catch (error) {
+      if (generation !== hotReloadState.generation) return;
       logger.warn(
         "Hot Reload fetch failed, stopping:",
         error instanceof Error ? error.message : error,
@@ -96,12 +129,13 @@ export const startHotReload = async (interval: number): Promise<void> => {
 
 /**
  * Hot Reloadを停止
+ *
+ * 進行中の startHotReload()（初回ハッシュ取得待ち）も無効化する。
  */
 export const stopHotReload = (): void => {
-  if (hotReloadState.intervalId !== null) {
-    clearInterval(hotReloadState.intervalId);
-    hotReloadState.intervalId = null;
-    hotReloadState.lastFileHash = null;
+  const wasRunning = hotReloadState.intervalId !== null;
+  invalidateCurrentRun();
+  if (wasRunning) {
     logger.log("Hot Reload stopped");
   }
 };
