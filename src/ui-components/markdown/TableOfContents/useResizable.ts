@@ -61,6 +61,15 @@ export const useResizable = ({
   // widthの最新値をRefで保持（依存配列から除外するため）
   const widthRef = useRef(initialWidth);
 
+  // onWidthChangeの最新値をRefで保持
+  // 呼び出し側はインライン関数を渡すため毎レンダリングで参照が変わる。
+  // 依存配列に入れるとドラッグ中（setWidthのたび）にリスナーの
+  // 解除・再登録とbodyスタイルのリセットが繰り返される。
+  const onWidthChangeRef = useRef(onWidthChange);
+  useEffect(() => {
+    onWidthChangeRef.current = onWidthChange;
+  }, [onWidthChange]);
+
   /**
    * initialWidthが変更されたら、リサイズ中でない時のみwidthを更新
    * （chrome.storageから読み込んだ値を反映するため）
@@ -115,7 +124,7 @@ export const useResizable = ({
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
       // リサイズ終了時にコールバックを実行（Refから最新の横幅を取得）
-      onWidthChange?.(widthRef.current);
+      onWidthChangeRef.current?.(widthRef.current);
     };
 
     // グローバルイベントリスナーを登録
@@ -130,7 +139,7 @@ export const useResizable = ({
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
     };
-  }, [isResizing, minWidth, maxWidth, onWidthChange]);
+  }, [isResizing, minWidth, maxWidth]);
 
   return { width, isResizing, startResize };
 };
