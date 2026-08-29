@@ -1,9 +1,5 @@
 import { assertEquals } from "@std/assert";
-import {
-  getUrlScheme,
-  hasAllowedUrlScheme,
-  normalizeUrlAttributeValue,
-} from "./url-scheme.ts";
+import { getUrlScheme, normalizeUrlAttributeValue } from "./url-scheme.ts";
 
 const TAB = String.fromCharCode(9);
 const NEWLINE = String.fromCharCode(10);
@@ -131,28 +127,13 @@ Deno.test("getUrlScheme: スキーム構文として不正な文字列はnullを
 });
 
 /**
- * hasAllowedUrlScheme: 許可リスト判定
+ * 難読化されたスキームの検出
+ *
+ * 正規化 → スキーム抽出の組み合わせで、実体参照・制御文字による
+ * javascript: の偽装をすべて検出できることを保証する。
  */
 
-const ALLOWED = ["http:", "https:"] as const;
-
-Deno.test("hasAllowedUrlScheme: 許可スキームはtrue", () => {
-  assertEquals(hasAllowedUrlScheme("https://example.com", ALLOWED), true);
-  assertEquals(hasAllowedUrlScheme("HTTP://example.com", ALLOWED), true);
-});
-
-Deno.test("hasAllowedUrlScheme: 相対URLはtrue", () => {
-  assertEquals(hasAllowedUrlScheme("docs/a.md", ALLOWED), true);
-  assertEquals(hasAllowedUrlScheme("#anchor", ALLOWED), true);
-});
-
-Deno.test("hasAllowedUrlScheme: 未許可スキームはfalse", () => {
-  assertEquals(hasAllowedUrlScheme("javascript:alert(1)", ALLOWED), false);
-  assertEquals(hasAllowedUrlScheme("file:///etc/passwd", ALLOWED), false);
-  assertEquals(hasAllowedUrlScheme("data:text/html,x", ALLOWED), false);
-});
-
-Deno.test("hasAllowedUrlScheme: 難読化されたjavascript:を全てブロックする", () => {
+Deno.test("難読化されたjavascript:を正規化してスキームを検出する", () => {
   const vectors = [
     "java&#115;cript:alert(1)",
     "java&#x73;cript:alert(1)",
@@ -160,18 +141,36 @@ Deno.test("hasAllowedUrlScheme: 難読化されたjavascript:を全てブロッ�
     "&#106;avascript:alert(1)",
     "javascript&colon;alert(1)",
     "&amp;#106;avascript:alert(1)",
+    "java&Tab;script:alert(1)",
+    "java&NewLine;script:alert(1)",
     `java${TAB}script:alert(1)`,
     `java${NEWLINE}script:alert(1)`,
     `${NUL}javascript:alert(1)`,
     "  javascript:alert(1)",
     "JaVaScRiPt:alert(1)",
-    "vbscript:msgbox(1)",
   ];
+
   for (const vector of vectors) {
     assertEquals(
-      hasAllowedUrlScheme(vector, ALLOWED),
-      false,
-      `should block: ${JSON.stringify(vector)}`,
+      getUrlScheme(normalizeUrlAttributeValue(vector)),
+      "javascript:",
+      `should detect javascript: in ${JSON.stringify(vector)}`,
     );
+  }
+});
+
+Deno.test("正常なURLのスキームは正しく抽出される", () => {
+  const cases: [string, string | null][] = [
+    ["https://example.com/?a=1&amp;b=2", "https:"],
+    ["mailto:user@example.com", "mailto:"],
+    ["tel:+81312345678", "tel:"],
+    ["file:///home/user/a.png", "file:"],
+    ["docs/a.md", null],
+    ["./a.md", null],
+    ["#section", null],
+  ];
+
+  for (const [url, expected] of cases) {
+    assertEquals(getUrlScheme(normalizeUrlAttributeValue(url)), expected, url);
   }
 });

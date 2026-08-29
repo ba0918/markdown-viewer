@@ -1,7 +1,7 @@
 import xss from "xss";
 import { escapeHtml } from "../../shared/utils/escape-html.ts";
 import {
-  hasAllowedUrlScheme,
+  getUrlScheme,
   normalizeUrlAttributeValue,
 } from "../../shared/utils/url-scheme.ts";
 
@@ -51,10 +51,14 @@ const buildUrlAttribute = (
   value: string,
   allowedSchemes: readonly string[],
 ): string => {
-  if (!hasAllowedUrlScheme(value, allowedSchemes)) {
+  const normalized = normalizeUrlAttributeValue(value);
+  const scheme = getUrlScheme(normalized);
+
+  // スキームを持たない値（相対パス・`#anchor`・`//host`）は許可する
+  if (scheme !== null && !allowedSchemes.includes(scheme)) {
     return "";
   }
-  return `${name}="${escapeHtml(normalizeUrlAttributeValue(value))}"`;
+  return `${name}="${escapeHtml(normalized)}"`;
 };
 
 /**

@@ -133,21 +133,3 @@ export const getUrlScheme = (normalizedUrl: string): string | null => {
   const match = SCHEME_PATTERN.exec(normalizedUrl);
   return match ? `${match[1].toLowerCase()}:` : null;
 };
-
-/**
- * URL属性値が許可スキームのみを使っているかを判定する
- *
- * スキームを持たない値（相対パス、`#anchor`、`//host`）は許可する。
- * 判定は正規化後の値に対して行うため、実体参照や制御文字による偽装を検出できる。
- *
- * @param value - 生の属性値
- * @param allowedSchemes - 許可するスキーム（例: ["http:", "https:"]）
- * @returns 許可される場合true
- */
-export const hasAllowedUrlScheme = (
-  value: string,
-  allowedSchemes: readonly string[],
-): boolean => {
-  const scheme = getUrlScheme(normalizeUrlAttributeValue(value));
-  return scheme === null || allowedSchemes.includes(scheme);
-};
