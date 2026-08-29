@@ -22,7 +22,7 @@ export class MarkdownService {
    * 0. YAML Frontmatter解析（frontmatter）
    * 1. Markdown → HTML変換（parser）
    * 2. XSS対策サニタイズ（sanitizer）
-   * 3. 見出しID付与（toc/html-processor）
+   * 3. 見出しID付与 + 見出し抽出（toc/html-processor）
    * 4. テーマ適用（theme applier）
    * 5. TOC生成（toc-service）
    *
@@ -35,10 +35,10 @@ export class MarkdownService {
     const parsed = parseMarkdown(content);
     // セキュリティファースト: 全Markdown描画でsanitizeHTML必須
     const sanitized = sanitizeHTML(parsed);
-    const withHeadingIds = addHeadingIds(sanitized);
+    // 見出しIDとToCのIDを同一の走査結果から生成し、両者のズレを防ぐ
+    const { html: withHeadingIds, headings } = addHeadingIds(sanitized);
     const html = applyTheme(withHeadingIds, theme);
-    // TOC生成をTocServiceに委譲（Frontmatter除外済みのcontentを使用）
-    const tocItems = tocService.generateToc(content);
+    const tocItems = tocService.generateToc(headings);
 
     return {
       html,
