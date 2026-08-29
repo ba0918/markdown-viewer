@@ -325,7 +325,6 @@ export const ThemeSelector = ({ theme, onChange }: Props) => {
 // src/services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
 import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
-import { applyTheme } from "../domain/theme/applier.ts";
 import { addHeadingIds } from "../domain/toc/html-processor.ts";
 import { parseFrontmatter } from "../domain/frontmatter/parser.ts";
 import { tocService } from "./toc-service.ts";
@@ -339,19 +338,17 @@ export class MarkdownService {
    * Markdownを完全にレンダリング
    * ✅ OK: 複数domainを組み合わせたビジネスフロー
    */
-  render(markdown: string, theme: ThemeData): RenderResult {
+  render(markdown: string): RenderResult {
     // 0. YAML Frontmatter解析
     const { data: frontmatter, content } = parseFrontmatter(markdown);
     // 1. Markdown → HTML変換
     const parsed = parseMarkdown(content);
     // 2. XSS対策サニタイズ
     const sanitized = sanitizeHTML(parsed);
-    // 3. 見出しID付与（ToC用）
-    const withHeadingIds = addHeadingIds(sanitized);
-    // 4. テーマ適用
-    const html = applyTheme(withHeadingIds, theme);
-    // 5. TOC生成
-    const tocItems = tocService.generateToc(content);
+    // 3. 見出しID付与 + 見出し抽出（ToCと同一の走査結果を使う）
+    const { html, headings } = addHeadingIds(sanitized);
+    // 4. TOC生成
+    const tocItems = tocService.generateToc(headings);
 
     return { html, rawMarkdown: markdown, content, frontmatter, tocItems };
   }
@@ -382,14 +379,12 @@ domain/
 │   └── mermaid-renderer.ts    # Mermaidダイアグラムレンダリング
 ├── theme/
 │   ├── loader.ts              # テーマ読み込み
-│   ├── applier.ts             # テーマ適用
 │   └── types.ts               # テーマ型定義
 ├── toc/
-│   ├── extractor.ts           # 見出し抽出
-│   ├── tree-builder.ts        # ToC木構造構築
-│   ├── html-processor.ts      # HTML見出しID付与
+│   ├── heading-id.ts          # 見出しID生成
+│   ├── html-processor.ts      # HTML見出しID付与 + 見出し抽出
 │   ├── normalizer.ts          # 見出しレベル正規化
-│   ├── collapse-manager.ts    # 折りたたみ状態管理
+│   ├── tree-builder.ts        # ToC木構造構築
 │   └── types.ts               # ToC型定義
 ├── math/
 │   ├── detector.ts            # 数式検出
@@ -442,20 +437,20 @@ export const sanitizeHTML = (html: string): string => {
   });
 };
 
-// src/domain/theme/applier.ts
-import type { Theme } from "../../shared/types/theme.ts";
+// src/domain/toc/heading-id.ts
 
 /**
- * HTMLにテーマを適用
+ * 見出しテキストからURLフレンドリーなIDを生成
  * ✅ OK: 純粋関数、単一責任
  */
-export const applyTheme = (html: string, theme: Theme): string => {
-  return `
-    <style>${theme.css}</style>
-    <div class="markdown-body theme-${theme.id}">
-      ${html}
-    </div>
-  `;
+export const generateHeadingId = (text: string): string => {
+  return text
+    .trim()
+    .replace(/`/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[/:~*?"<>|\\()[\]{}]+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
 };
 ```
 

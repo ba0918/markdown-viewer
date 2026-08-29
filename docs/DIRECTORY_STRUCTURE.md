@@ -345,19 +345,18 @@ services/
 // services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
 import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
-import { applyTheme } from "../domain/theme/applier.ts";
 import { addHeadingIds } from "../domain/toc/html-processor.ts";
 import { parseFrontmatter } from "../domain/frontmatter/parser.ts";
 import { tocService } from "./toc-service.ts";
 
 export class MarkdownService {
-  render(markdown: string, theme: ThemeData): RenderResult {
+  render(markdown: string): RenderResult {
     const { data: frontmatter, content } = parseFrontmatter(markdown);
     const parsed = parseMarkdown(content);
     const sanitized = sanitizeHTML(parsed);
-    const withHeadingIds = addHeadingIds(sanitized);
-    const html = applyTheme(withHeadingIds, theme);
-    const tocItems = tocService.generateToc(content);
+    // 見出しIDとToCのIDを同一の走査結果から生成する
+    const { html, headings } = addHeadingIds(sanitized);
+    const tocItems = tocService.generateToc(headings);
     return { html, rawMarkdown: markdown, content, frontmatter, tocItems };
   }
 }
@@ -407,19 +406,16 @@ domain/
 ├── theme/
 │   ├── loader.ts              # テーマ読み込み
 │   ├── loader.test.ts
-│   ├── applier.ts             # テーマ適用
-│   ├── applier.test.ts
 │   └── types.ts               # テーマ型定義
 ├── toc/
-│   ├── extractor.ts           # 見出し抽出
-│   ├── extractor.test.ts
+│   ├── heading-id.ts          # 見出しID生成
+│   ├── heading-id.test.ts
+│   ├── html-processor.ts      # HTML見出しID付与 + 見出し抽出
+│   ├── html-processor.test.ts
 │   ├── normalizer.ts          # 見出しレベル正規化
 │   ├── normalizer.test.ts
 │   ├── tree-builder.ts        # ツリー構造構築
-│   ├── html-processor.ts      # TOC用HTML処理
-│   ├── html-processor.test.ts
-│   ├── collapse-manager.ts    # 折りたたみ状態管理
-│   ├── collapse-manager.test.ts
+│   ├── tree-builder.test.ts
 │   └── types.ts               # ToC型定義
 ├── math/
 │   ├── detector.ts            # 数式検出
