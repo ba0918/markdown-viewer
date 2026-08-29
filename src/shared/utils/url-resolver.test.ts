@@ -1,5 +1,9 @@
 import { assertEquals } from "@std/assert";
-import { isRelativeLink, resolveRelativeLink } from "./url-resolver.ts";
+import {
+  isNavigableUrl,
+  isRelativeLink,
+  resolveRelativeLink,
+} from "./url-resolver.ts";
 
 /**
  * 相対リンク判定テスト
@@ -308,4 +312,65 @@ Deno.test("isRelativeLink: FILE:(大文字)は相対リンクではない", () =
 
 Deno.test("isRelativeLink: Data:(混在ケース)は相対リンクではない", () => {
   assertEquals(isRelativeLink("Data:text/html,<h1>test</h1>"), false);
+});
+
+/**
+ * 難読化スキームの相対リンク判定テスト
+ *
+ * new URL() はタブ・改行を除去するため、これらを含む値を「相対リンク」と
+ * 誤判定すると javascript: へ解決されてしまう。
+ */
+
+const TAB_CHAR = String.fromCharCode(9);
+const NEWLINE_CHAR = String.fromCharCode(10);
+
+Deno.test("isRelativeLink: タブで難読化したjavascript:は相対リンクではない", () => {
+  assertEquals(isRelativeLink(`java${TAB_CHAR}script:alert(1)`), false);
+});
+
+Deno.test("isRelativeLink: 改行で難読化したjavascript:は相対リンクではない", () => {
+  assertEquals(isRelativeLink(`java${NEWLINE_CHAR}script:alert(1)`), false);
+});
+
+Deno.test("isRelativeLink: 先頭空白付きjavascript:は相対リンクではない", () => {
+  assertEquals(isRelativeLink(" javascript:alert(1)"), false);
+});
+
+Deno.test("isRelativeLink: 実体参照で難読化したjavascript:は相対リンクではない", () => {
+  assertEquals(isRelativeLink("java&#115;cript:alert(1)"), false);
+});
+
+Deno.test("isRelativeLink: 未知スキーム(ftp:)も相対リンクではない", () => {
+  assertEquals(isRelativeLink("ftp://example.com/a.md"), false);
+});
+
+/**
+ * 遷移先URLの安全性判定テスト
+ */
+
+Deno.test("isNavigableUrl: http/https/fileは遷移可能", () => {
+  assertEquals(isNavigableUrl("http://example.com/a.md"), true);
+  assertEquals(isNavigableUrl("https://example.com/a.md"), true);
+  assertEquals(isNavigableUrl("file:///home/user/a.md"), true);
+});
+
+Deno.test("isNavigableUrl: javascript:/data:/vbscript:は遷移不可", () => {
+  assertEquals(isNavigableUrl("javascript:alert(1)"), false);
+  assertEquals(isNavigableUrl("data:text/html,<h1>x</h1>"), false);
+  assertEquals(isNavigableUrl("vbscript:msgbox"), false);
+});
+
+Deno.test("isNavigableUrl: スキームのない相対URLは遷移不可（解決漏れ検出）", () => {
+  assertEquals(isNavigableUrl("docs/a.md"), false);
+});
+
+Deno.test("多層防御: タブ難読化リンクの解決結果はisNavigableUrlで拒否される", () => {
+  // isRelativeLink が false を返すため通常はここに到達しないが、
+  // 仮に到達しても解決後の検証でブロックされることを保証する
+  const resolved = resolveRelativeLink(
+    "file:///home/user/README.md",
+    `java${TAB_CHAR}script:alert(1)`,
+  );
+  assertEquals(resolved, "javascript:alert(1)");
+  assertEquals(isNavigableUrl(resolved), false);
 });

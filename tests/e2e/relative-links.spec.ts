@@ -144,9 +144,12 @@ test.describe("相対リンクのナビゲーション", () => {
       .first();
     await expect(link).toBeVisible();
 
-    // href属性が空またはブロックされていることを確認
+    // href属性が削除されている（またはjavascript:を含まない）ことを確認。
+    // サニタイザは許可スキーム以外のhrefを属性ごと除去するためnullになる。
     const href = await link.getAttribute("href");
-    expect(href).not.toContain("javascript:");
+    if (href !== null) {
+      expect(href).not.toContain("javascript:");
+    }
 
     // クリックしてもalertが発火しないことを確認
     let alertFired = false;

@@ -68,3 +68,34 @@
 ## 12. Base Tag Attack
 
 <base href="javascript:alert('XSS')//">
+
+## 13. Encoded JavaScript Protocol
+
+<a href="java&#115;cript:alert('XSS')" id="xss-entity-dec">Entity (decimal)</a>
+
+<a href="java&#x73;cript:alert('XSS')" id="xss-entity-hex">Entity (hex)</a>
+
+<a href="java&#115cript:alert('XSS')" id="xss-entity-nosemi">Entity (no
+semicolon)</a>
+
+<a href="&#106;avascript:alert('XSS')" id="xss-entity-first">Entity (first
+char)</a>
+
+## 14. Named Entity Protocol Obfuscation
+
+<a href="java&Tab;script:alert('XSS')" id="xss-named-tab">Named entity (Tab)</a>
+
+<a href="java&NewLine;script:alert('XSS')" id="xss-named-newline">Named entity
+(NewLine)</a>
+
+<a href="javascript&colon;alert('XSS')" id="xss-named-colon">Named entity
+(colon)</a>
+
+<a href="&amp;#106;avascript:alert('XSS')" id="xss-double-encoded">Double
+encoded</a>
+
+## 15. Encoded Protocol in img src
+
+<img src="java&#115;cript:alert('XSS')" alt="entity img">
+
+<img src="da&#116;a:text/html,<script>alert('XSS')</script>" alt="entity data img">
