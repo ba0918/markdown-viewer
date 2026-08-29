@@ -62,23 +62,25 @@ const processCss = async (css: string, from: string): Promise<string> => {
  * - font-display: swap → block（CLS削減）
  */
 const buildFontCss = async (): Promise<string> => {
-  const parts: string[] = [];
+  const perFont: string[] = [];
 
   for (const { pkg, weights } of FONTS) {
     const dir = fontsourceDir(pkg);
+    const cssPerWeight: string[] = [];
     for (const weight of weights) {
       const css = await Deno.readTextFile(`${dir}${weight}.css`);
-      parts.push(
+      cssPerWeight.push(
         css
           .replace(/url\(\.\/files\//g, FONT_URL_PREFIX)
           .replace(/font-display:\s*swap/g, "font-display: block"),
       );
     }
+    // 同一フォントのウェイトは改行1つで連結
+    perFont.push(cssPerWeight.join("\n"));
   }
 
-  // Inter(400,600) と JetBrains Mono(400,500) を「\n」で連結し、
-  // フォントごとの塊は「\n\n」で区切る（従来の出力互換）
-  return `${parts[0]}\n${parts[1]}\n\n${parts[2]}\n${parts[3]}\n`;
+  // フォントごとの塊は空行で区切る
+  return `${perFont.join("\n\n")}\n`;
 };
 
 /** フォントファイル（woff2等）を出力先へコピーする */
