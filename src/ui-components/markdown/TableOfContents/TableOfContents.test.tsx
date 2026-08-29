@@ -146,7 +146,7 @@ Deno.test({
     setupMocks();
 
     const { container } = render(
-      <TableOfContents items={[]} themeId="github" />,
+      <TableOfContents items={[]} />,
     );
 
     // chrome.storage.get の非同期処理を待つ
@@ -178,7 +178,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     // chrome.storage.get の非同期処理を待つ
@@ -209,7 +209,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -251,7 +251,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -293,7 +293,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -341,7 +341,7 @@ Deno.test({
     };
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -381,7 +381,6 @@ Deno.test({
     const { container } = render(
       <TableOfContents
         items={items}
-        themeId="github"
         onTocStateChange={onTocStateChange}
       />,
     );
@@ -413,7 +412,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -455,7 +454,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -502,7 +501,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     // chrome.storage.get + requestAnimationFrame の処理を待つ
@@ -566,7 +565,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -631,7 +630,7 @@ Deno.test({
     ];
 
     const { container } = render(
-      <TableOfContents items={items} themeId="github" />,
+      <TableOfContents items={items} />,
     );
 
     // chrome.storage.get の非同期処理を待つ

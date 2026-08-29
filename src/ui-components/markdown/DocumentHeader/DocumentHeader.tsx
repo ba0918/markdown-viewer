@@ -13,12 +13,11 @@ interface Props {
   currentMode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
   style?: { left: string };
-  themeId: string;
   children?: ComponentChildren; // アクションメニュー用
 }
 
 export const DocumentHeader = (
-  { currentMode, onModeChange, style, themeId, children }: Props,
+  { currentMode, onModeChange, style, children }: Props,
 ) => {
   const handleKeyDown = (event: KeyboardEvent, mode: ViewMode) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -29,7 +28,7 @@ export const DocumentHeader = (
 
   return (
     <header
-      class={`document-header document-header-theme-${themeId}`}
+      class="document-header"
       style={style}
     >
       <div class="document-header-content">

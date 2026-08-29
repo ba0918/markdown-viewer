@@ -1,27 +1,20 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MarkdownService } from "./markdown-service.ts";
-import type { ThemeData } from "../domain/theme/types.ts";
 
 /**
  * Markdown Service テスト
  * ドメイン層の組み合わせをテスト
  *
- * 注: CSSファイルの読み込みはcontent層の責務。
- * services層ではテーマクラスの付与のみをテスト。
+ * 注: テーマの適用（CSS読み込みとbodyクラス付与）はcontent層の責務のため、
+ * services層のテスト対象外。
  */
 
 Deno.test("MarkdownService: 基本的なレンダリング", async () => {
   const service = new MarkdownService();
   const markdown = "# Hello\n\nThis is **bold**.";
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
-  assertStringIncludes(result.html, "theme-light");
-  assertStringIncludes(result.html, "markdown-body");
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<strong>bold</strong>");
   assertEquals(result.rawMarkdown, markdown);
@@ -33,12 +26,8 @@ Deno.test("MarkdownService: 基本的なレンダリング", async () => {
 Deno.test("MarkdownService: XSS防御統合テスト", async () => {
   const service = new MarkdownService();
   const malicious = '[Click me](javascript:alert("XSS"))';
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(malicious, theme);
+  const result = await service.render(malicious);
 
   assertEquals(result.html.includes("javascript:"), false);
   assertStringIncludes(result.html, "Click me");
@@ -61,12 +50,8 @@ console.log('code');
 
 [Link](https://example.com)
 `;
-  const theme: ThemeData = {
-    id: "dark",
-    cssPath: "content/styles/themes/dark.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<h2");
@@ -75,7 +60,6 @@ console.log('code');
   assertStringIncludes(result.html, "<ul");
   assertStringIncludes(result.html, "<code");
   assertStringIncludes(result.html, "https://example.com");
-  assertStringIncludes(result.html, "theme-dark");
   // TOC: H1とH2の2つの見出しから階層構造を生成
   assertEquals(result.tocItems.length, 1); // H1が1つ
   assertEquals(result.tocItems[0].text, "Title");
@@ -86,15 +70,9 @@ console.log('code');
 Deno.test("MarkdownService: 空文字列処理", async () => {
   const service = new MarkdownService();
   const markdown = "";
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
-  assertStringIncludes(result.html, "markdown-body");
-  assertStringIncludes(result.html, "theme-light");
   // TOC: 見出しなし → 空配列
   assertEquals(result.tocItems, []);
 });
@@ -105,12 +83,8 @@ Deno.test("MarkdownService: シンタックスハイライト統合テスト", a
 const hello = "world";
 console.log(hello);
 \`\`\``;
-  const theme: ThemeData = {
-    id: "github",
-    cssPath: "content/styles/themes/github.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   assertStringIncludes(result.html, "hljs");
   assertStringIncludes(result.html, "hello");
@@ -128,12 +102,8 @@ tags: [test, frontmatter]
 # Main Content
 
 This is the actual content.`;
-  const theme: ThemeData = {
-    id: "github",
-    cssPath: "content/styles/themes/github.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   assertEquals(result.html.includes("title: Test Document"), false);
   assertEquals(result.html.includes("---"), false);
@@ -150,12 +120,8 @@ This is the actual content.`;
 Deno.test("MarkdownService: Frontmatter統合テスト - Frontmatterなし", async () => {
   const service = new MarkdownService();
   const markdown = "# No Frontmatter\n\nJust regular content.";
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "No Frontmatter");
@@ -170,26 +136,17 @@ Deno.test("MarkdownService: Frontmatter統合テスト - Frontmatterなし", asy
 Deno.test("MarkdownService: 空白のみのMarkdown → クラッシュしない", async () => {
   const service = new MarkdownService();
   const markdown = "   \n\n  \t  ";
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
-  assertStringIncludes(result.html, "markdown-body");
   assertEquals(result.rawMarkdown, markdown);
 });
 
 Deno.test("MarkdownService: 超長文Markdown（50KB相当）→ OOMしない", async () => {
   const service = new MarkdownService();
   const markdown = "# Section\n\nParagraph **bold** text.\n\n".repeat(1500);
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   assertStringIncludes(result.html, "<h1");
   assertStringIncludes(result.html, "<strong>");
@@ -206,12 +163,8 @@ title: Test
 <script>alert('XSS')</script>
 
 [Click](javascript:alert(1))`;
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = await service.render(markdown, theme);
+  const result = await service.render(markdown);
 
   // Frontmatterは正しく解析
   assertEquals(result.frontmatter.title, "Test");
@@ -265,12 +218,8 @@ Deno.test("MarkdownService: ToCのIDとHTML見出しIDが一致する（記号�
     "## 100% & more",
     "## Plain Heading",
   ].join("\n\n");
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = service.render(markdown, theme);
+  const result = service.render(markdown);
 
   const tocIds = collectTocIds(result.tocItems);
   const headingIds = collectHeadingIds(result.html);
@@ -282,12 +231,8 @@ Deno.test("MarkdownService: ToCのIDとHTML見出しIDが一致する（記号�
 Deno.test("MarkdownService: 重複見出しでもToCのIDとHTML見出しIDが一致する", () => {
   const service = new MarkdownService();
   const markdown = "## ステータス\n\n## ステータス\n\n## ステータス";
-  const theme: ThemeData = {
-    id: "light",
-    cssPath: "content/styles/themes/light.css",
-  };
 
-  const result = service.render(markdown, theme);
+  const result = service.render(markdown);
 
   assertEquals(collectHeadingIds(result.html), collectTocIds(result.tocItems));
 });
