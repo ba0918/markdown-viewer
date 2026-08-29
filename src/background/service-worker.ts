@@ -58,6 +58,18 @@ async function reregisterCustomOriginsInternal() {
 
     for (const item of customOrigins) {
       try {
+        // ユーザーがChromeの設定から権限を取り消している場合がある。
+        // 権限のないオリジンへの登録は必ず失敗するためスキップする。
+        const granted = await chrome.permissions.contains({
+          origins: [item.origin],
+        });
+        if (!granted) {
+          logger.warn(
+            `Skipping content script registration for ${item.origin}: host permission was revoked`,
+          );
+          continue;
+        }
+
         const scriptId = getContentScriptId(item.origin);
         await chrome.scripting.registerContentScripts([{
           id: scriptId,
