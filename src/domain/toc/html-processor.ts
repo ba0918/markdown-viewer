@@ -57,8 +57,8 @@ const toPlainText = (content: string): string =>
  * 4. 重複チェックして必要なら連番付与
  * 5. id属性を追加（属性値としてエスケープ）し、見出しリストへ記録
  *
- * 既にid属性を持つ見出し（Markdown中の生HTML等）はIDを上書きしないが、
- * 後続の自動採番と衝突しないようIDを予約する。
+ * 既にid属性を持つ見出し（Markdown中の生HTML等）はIDを上書きせず、
+ * そのIDで見出しリストへ含める。後続の自動採番との衝突も防ぐ。
  *
  * @param html サニタイズ済みHTML
  * @returns ID付きHTMLと見出しリスト
@@ -78,8 +78,10 @@ export const addHeadingIds = (html: string): HeadingIdResult => {
         const captured = EXISTING_ID_PATTERN.exec(attrs);
         const existingId = captured?.[1] ?? captured?.[2] ?? captured?.[3];
         if (existingId) {
-          // 自動採番が既存IDと衝突しないよう予約だけ行う
-          makeUniqueId(decodeBasicHtmlEntities(existingId), idCounts);
+          const decodedId = decodeBasicHtmlEntities(existingId);
+          // 自動採番が既存IDと衝突しないよう予約し、同じ走査結果でToCにも含める
+          makeUniqueId(decodedId, idCounts);
+          headings.push({ level, text, id: decodedId });
         }
         return match;
       }

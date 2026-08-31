@@ -79,4 +79,12 @@ Deno.test("makeUniqueId", async (t) => {
     assertEquals(makeUniqueId("section-1", idCounts), "section-1");
     assertEquals(makeUniqueId("section-1", idCounts), "section-1-1");
   });
+
+  await t.step("連番候補が既に使われている場合は次の空き番号を使う", () => {
+    const idCounts = new Map<string, number>();
+
+    assertEquals(makeUniqueId("intro-1", idCounts), "intro-1");
+    assertEquals(makeUniqueId("intro", idCounts), "intro");
+    assertEquals(makeUniqueId("intro", idCounts), "intro-2");
+  });
 });

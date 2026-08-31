@@ -21,11 +21,19 @@ export const makeUniqueId = (
   baseId: string,
   idCounts: Map<string, number>,
 ): string => {
-  if (idCounts.has(baseId)) {
-    const count = idCounts.get(baseId)!;
-    idCounts.set(baseId, count + 1);
-    return `${baseId}-${count}`;
+  let count = idCounts.get(baseId) ?? 0;
+  let candidate = count === 0 ? baseId : `${baseId}-${count}`;
+
+  // `intro-1` が先に使われた後で `intro` が重複するケースでも、
+  // 既存IDと衝突しない次の番号まで進める。
+  while (idCounts.has(candidate)) {
+    count += 1;
+    candidate = `${baseId}-${count}`;
   }
-  idCounts.set(baseId, 1);
-  return baseId;
+
+  idCounts.set(baseId, count + 1);
+  if (candidate !== baseId) {
+    idCounts.set(candidate, 1);
+  }
+  return candidate;
 };

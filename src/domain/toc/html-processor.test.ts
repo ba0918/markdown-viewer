@@ -177,16 +177,26 @@ Deno.test("addHeadingIds: IDが空になる見出しは見出しリストに含�
   assertEquals(html.includes("<h1 id="), false);
 });
 
-Deno.test("addHeadingIds: 既存id属性の見出しはIDを上書きせず、採番を予約する", () => {
+Deno.test("addHeadingIds: 既存id属性の見出しもToCに含め、採番を予約する", () => {
   const { html, headings } = addHeadingIds(
     '<h1 id="Intro">Intro</h1><h2>Intro</h2>',
   );
 
-  // 既存IDは維持され、ToCには含めない
-  assertEquals(headings.map((h) => h.id), ["Intro-1"]);
+  // 既存IDは維持され、同じIDでToCにも含まれる
+  assertEquals(headings.map((h) => h.id), ["Intro", "Intro-1"]);
   // 後続の自動採番が既存IDと衝突しない
   assertEquals(html.includes('<h1 id="Intro">'), true);
   assertEquals(html.includes('<h2 id="Intro-1">'), true);
+});
+
+Deno.test("addHeadingIds: 既存の連番IDと後続の自動採番が衝突しない", () => {
+  const { html, headings } = addHeadingIds(
+    '<h1 id="Intro-1">Fixed</h1><h2>Intro</h2><h2>Intro</h2>',
+  );
+
+  assertEquals(headings.map((h) => h.id), ["Intro-1", "Intro", "Intro-2"]);
+  assertEquals(html.includes('<h2 id="Intro-1">Intro</h2>'), false);
+  assertEquals(html.includes('<h2 id="Intro-2">Intro</h2>'), true);
 });
 
 /**
@@ -259,22 +269,22 @@ Deno.test("addHeadingIds: Markdown記法を含む見出しのIDと表示テキ�
  */
 
 Deno.test("addHeadingIds: 既存id属性を全ての記法で検出する", async (t) => {
-  const cases: [string, string][] = [
-    ["ダブルクォート", '<h1 id="Existing">Title</h1>'],
-    ["シングルクォート", "<h1 id='Existing'>Title</h1>"],
-    ["引用符なし", "<h1 id=Existing>Title</h1>"],
-    ["大文字", '<h1 ID="Existing">Title</h1>'],
-    ["値なし", "<h1 id>Title</h1>"],
-    ["空白あり", '<h1 id = "Existing">Title</h1>'],
+  const cases: [string, string, string[]][] = [
+    ["ダブルクォート", '<h1 id="Existing">Title</h1>', ["Existing"]],
+    ["シングルクォート", "<h1 id='Existing'>Title</h1>", ["Existing"]],
+    ["引用符なし", "<h1 id=Existing>Title</h1>", ["Existing"]],
+    ["大文字", '<h1 ID="Existing">Title</h1>', ["Existing"]],
+    ["値なし", "<h1 id>Title</h1>", []],
+    ["空白あり", '<h1 id = "Existing">Title</h1>', ["Existing"]],
   ];
 
-  for (const [desc, html] of cases) {
+  for (const [desc, html, expectedIds] of cases) {
     await t.step(desc, () => {
       const result = addHeadingIds(html);
 
       // 元のHTMLのまま（id属性を追加しない）
       assertEquals(result.html, html);
-      assertEquals(result.headings.length, 0);
+      assertEquals(result.headings.map((heading) => heading.id), expectedIds);
     });
   }
 });
