@@ -124,10 +124,10 @@ https://github.com/ba0918/markdown-viewer
 
 ---
 
-## Version (Initial Release)
+## Version (Current Release)
 
 ```
-0.1.4
+0.1.5
 ```
 
 ---
@@ -135,19 +135,12 @@ https://github.com/ba0918/markdown-viewer
 ## Version Description (What's New)
 
 ```
-Initial release
-
-Features:
-- Secure Markdown rendering (XSS protection via js-xss + CSP)
-- Hot Reload with configurable interval (1s~)
-- 6 themes (Light/Dark/GitHub/Minimal/SolarizedLight/SolarizedDark)
-- GFM support (syntax highlight, Mermaid diagrams, MathJax, Table of Contents)
-- Remote URL support (opt-in, custom domains only)
-- View Raw toggle (rendered / raw Markdown)
-- Frontmatter (YAML) parsing
-- Minimal permissions with full justification
-- Zero data collection
-- 100% open source
+Security and reliability update:
+- Strengthened protection against obfuscated unsafe URLs
+- Fixed Table of Contents links for punctuation, custom IDs, and duplicate headings
+- Fixed duplicate Hot Reload timers and unnecessary settings writes
+- Improved custom-domain permission and content-script registration reliability
+- Updated bundled dependencies with upstream security fixes
 ```
 
 ---

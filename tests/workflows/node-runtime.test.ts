@@ -7,6 +7,7 @@ const MINIMUM_NODE24_MAJOR = new Map([
   ["actions/cache", 5],
   ["actions/upload-artifact", 6],
   ["codecov/codecov-action", 6],
+  ["softprops/action-gh-release", 3],
 ]);
 
 Deno.test("GitHub ActionsはNode.js 24対応版を使う", async () => {
