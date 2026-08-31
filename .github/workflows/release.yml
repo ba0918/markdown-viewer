@@ -6,6 +6,15 @@ on:
     paths: [manifest.json]
   workflow_dispatch:
     inputs:
+      tag_name:
+        description: "Existing release tag for upload-only (e.g., v1.0.0)"
+        required: false
+        type: string
+      upload_only:
+        description: "Upload an existing GitHub Release package to Chrome Web Store"
+        required: false
+        default: false
+        type: boolean
       publish_only:
         description: "Submit the package already uploaded to Chrome Web Store"
         required: false
@@ -108,9 +117,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Download GitHub Release package
+        if: github.event_name == 'workflow_dispatch' && inputs.upload_only == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_REF: ${{ inputs.tag_name }}
+        run: gh release download "$RELEASE_REF" --pattern "markdown-viewer-$RELEASE_REF.zip"
+
       - name: Authenticate to Google Cloud
         id: auth
-        if: github.event_name == 'push' || inputs.publish_only == true
+        if: github.event_name == 'push' || inputs.upload_only == true || inputs.publish_only == true
         uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -121,12 +137,12 @@ jobs:
           export_environment_variables: false
 
       - name: Upload package to Chrome Web Store
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.upload_only == true
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
           CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
-          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
+          RELEASE_REF: ${{ github.event_name == 'push' && steps.version.outputs.tag_name || inputs.tag_name }}
         run: |
           curl --fail-with-body --silent --show-error \
             --request POST \
@@ -136,7 +152,7 @@ jobs:
             "https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload"
 
       - name: Submit Chrome Web Store review
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_only == true
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_only == true && inputs.upload_only != true
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
