@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno ${{ matrix.deno-version }}
         uses: denoland/setup-deno@v2
@@ -31,7 +31,7 @@ jobs:
           deno --version
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/deno
@@ -56,7 +56,7 @@ jobs:
           deno coverage coverage --lcov > coverage.lcov
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         if: matrix.deno-version == '2.x'
         with:
           files: ./coverage.lcov
@@ -83,7 +83,7 @@ jobs:
         # 不安定な場合はplaywright.config.tsのretriesを増やすこと。
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always() && matrix.deno-version == '2.x'
         with:
           name: playwright-report-${{ github.run_number }}
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -105,7 +105,7 @@ jobs:
           deno-version: "2.x"
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/deno
@@ -131,7 +131,7 @@ jobs:
           cat dist/release/manifest.json | grep -E '"version"|"manifest_version"'
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: extension-build-${{ github.run_number }}
           path: dist/release/
@@ -144,7 +144,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
