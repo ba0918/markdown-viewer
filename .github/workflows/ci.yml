@@ -15,11 +15,11 @@ jobs:
 
     strategy:
       matrix:
-        deno-version: ["2.x"]
+        deno-version: ["2.9.5"]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno ${{ matrix.deno-version }}
         uses: denoland/setup-deno@v2
@@ -31,7 +31,7 @@ jobs:
           deno --version
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/deno
@@ -56,8 +56,8 @@ jobs:
           deno coverage coverage --lcov > coverage.lcov
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v5
-        if: matrix.deno-version == '2.x'
+        uses: codecov/codecov-action@v7
+        if: matrix.deno-version == '2.9.5'
         with:
           files: ./coverage.lcov
           flags: unittests
@@ -66,15 +66,15 @@ jobs:
           fail_ci_if_error: false
 
       - name: Setup Playwright
-        if: matrix.deno-version == '2.x'
+        if: matrix.deno-version == '2.9.5'
         run: npx playwright install --with-deps chromium
 
       - name: Build for E2E tests (dev mode)
-        if: matrix.deno-version == '2.x'
+        if: matrix.deno-version == '2.9.5'
         run: deno task build:dev
 
       - name: Run E2E tests
-        if: matrix.deno-version == '2.x'
+        if: matrix.deno-version == '2.9.5'
         run: deno task test:e2e:wsl2
         env:
           CI: true
@@ -83,8 +83,8 @@ jobs:
         # 不安定な場合はplaywright.config.tsのretriesを増やすこと。
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always() && matrix.deno-version == '2.x'
+        uses: actions/upload-artifact@v7
+        if: always() && matrix.deno-version == '2.9.5'
         with:
           name: playwright-report-${{ github.run_number }}
           path: playwright-report/
@@ -97,15 +97,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: "2.x"
+          deno-version: "2.9.5"
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/deno
@@ -131,7 +131,7 @@ jobs:
           cat dist/release/manifest.json | grep -E '"version"|"manifest_version"'
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: extension-build-${{ github.run_number }}
           path: dist/release/
@@ -144,12 +144,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: "2.x"
+          deno-version: "2.9.5"
 
       - name: Check for sensitive files
         run: |
