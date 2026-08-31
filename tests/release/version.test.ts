@@ -15,6 +15,15 @@ const VALID_METADATA = {
 
 Deno.test("release tagのv prefixを正規化する", () => {
   assertEquals(normalizeReleaseVersion("v0.1.5"), "0.1.5");
+  assertEquals(normalizeReleaseVersion("0.1.5"), "0.1.5");
+});
+
+Deno.test("release版がsemver形式でない場合は拒否する", () => {
+  assertThrows(
+    () => normalizeReleaseVersion("release-0.1.5"),
+    Error,
+    "Invalid release version",
+  );
 });
 
 Deno.test("release版とmanifestの版が異なる場合は拒否する", () => {
@@ -22,6 +31,42 @@ Deno.test("release版とmanifestの版が異なる場合は拒否する", () => 
     () => verifyReleaseMetadata({ ...VALID_METADATA, releaseRef: "v0.1.6" }),
     Error,
     "manifest.json",
+  );
+});
+
+Deno.test("PROJECT.mdに版の正本が宣言されていない場合は拒否する", () => {
+  assertThrows(
+    () => verifyReleaseMetadata({ ...VALID_METADATA, projectText: "" }),
+    Error,
+    "PROJECT.md",
+  );
+});
+
+Deno.test("CHANGELOG.mdにrelease見出しがない場合は拒否する", () => {
+  assertThrows(
+    () => verifyReleaseMetadata({ ...VALID_METADATA, changelogText: "" }),
+    Error,
+    "release heading",
+  );
+});
+
+Deno.test("CHANGELOG.mdに比較リンクがない場合は拒否する", () => {
+  assertThrows(
+    () =>
+      verifyReleaseMetadata({
+        ...VALID_METADATA,
+        changelogText: "## [0.1.5] - 2026-08-31",
+      }),
+    Error,
+    "comparison link",
+  );
+});
+
+Deno.test("ストア掲載文の版が異なる場合は拒否する", () => {
+  assertThrows(
+    () => verifyReleaseMetadata({ ...VALID_METADATA, storeListingText: "" }),
+    Error,
+    "STORE_LISTING.md",
   );
 });
 
