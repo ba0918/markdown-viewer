@@ -1,12 +1,11 @@
 name: Release
 
 on:
+  push:
+    branches: [main]
+    paths: [manifest.json]
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for release (e.g., v1.0.0); unused for publish-only"
-        required: false
-        type: string
       publish_only:
         description: "Submit the package already uploaded to Chrome Web Store"
         required: false
@@ -25,19 +24,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Deno
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         uses: denoland/setup-deno@v2
         with:
           deno-version: "2.9.5"
 
       - name: Cache Deno dependencies
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         uses: actions/cache@v6
         with:
           path: |
@@ -49,19 +48,24 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         run: deno install
 
+      - name: Read release version
+        id: version
+        if: github.event_name == 'push'
+        run: echo "tag_name=v$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("manifest.json")).version)')" >> "$GITHUB_OUTPUT"
+
       - name: Verify release metadata
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         env:
-          RELEASE_REF: ${{ inputs.tag_name }}
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
         run: deno task release:verify "$RELEASE_REF"
 
       - name: Ensure release tag is new
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         env:
-          RELEASE_REF: ${{ inputs.tag_name }}
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
         run: |
           if git rev-parse --quiet --verify "refs/tags/$RELEASE_REF"; then
             echo "Release tag already exists: $RELEASE_REF" >&2
@@ -69,36 +73,36 @@ jobs:
           fi
 
       - name: Run linter
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         run: deno task lint
 
       - name: Check code formatting
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         run: deno fmt --check
 
       - name: Run unit tests
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         run: deno task test
 
       - name: Build extension for release
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         run: deno task build
 
       - name: Create extension package
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         env:
-          RELEASE_REF: ${{ inputs.tag_name }}
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
         run: (cd dist/release && zip -r "../../markdown-viewer-$RELEASE_REF.zip" .)
 
       - name: Create GitHub Release
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ inputs.tag_name }}
+          tag_name: ${{ steps.version.outputs.tag_name }}
           target_commitish: ${{ github.sha }}
-          name: "Markdown Viewer ${{ inputs.tag_name }}"
+          name: "Markdown Viewer ${{ steps.version.outputs.tag_name }}"
           body_path: CHANGELOG.md
-          files: markdown-viewer-${{ inputs.tag_name }}.zip
+          files: markdown-viewer-${{ steps.version.outputs.tag_name }}.zip
           draft: false
           prerelease: false
         env:
@@ -106,6 +110,7 @@ jobs:
 
       - name: Authenticate to Google Cloud
         id: auth
+        if: github.event_name == 'push' || inputs.publish_only == true
         uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -116,12 +121,12 @@ jobs:
           export_environment_variables: false
 
       - name: Upload package to Chrome Web Store
-        if: ${{ inputs.publish_only == false }}
+        if: github.event_name == 'push'
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
           CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
-          RELEASE_REF: ${{ inputs.tag_name }}
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
         run: |
           curl --fail-with-body --silent --show-error \
             --request POST \
@@ -131,6 +136,7 @@ jobs:
             "https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload"
 
       - name: Submit Chrome Web Store review
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_only == true
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}

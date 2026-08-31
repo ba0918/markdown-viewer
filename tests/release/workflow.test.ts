@@ -34,7 +34,10 @@ Deno.test("release workflowは手動入力をshellへ直接埋め込まず検証
   assertEquals(releaseJob.if, "github.ref == 'refs/heads/main'");
   assertEquals(checkoutStep?.with?.["fetch-depth"], 0);
   assert(verifyStep?.run);
-  assertEquals(verifyStep.env?.RELEASE_REF, "${{ inputs.tag_name }}");
+  assertEquals(
+    verifyStep.env?.RELEASE_REF,
+    "${{ steps.version.outputs.tag_name }}",
+  );
   assertStringIncludes(verifyStep.run, 'release:verify "$RELEASE_REF"');
   assert(!verifyStep.run.includes("${{"));
   assertStringIncludes(ensureNewTagStep?.run ?? "", "refs/tags/$RELEASE_REF");
