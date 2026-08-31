@@ -2,33 +2,41 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
-  # 手動実行可能
+    branches: [main]
+    paths: [manifest.json]
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for release (e.g., v1.0.0)"
-        required: true
-        type: string
+      publish_only:
+        description: "Submit the package already uploaded to Chrome Web Store"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   release:
-    name: Create Release
+    name: Release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: chrome-web-store
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: Checkout repository
+        if: github.event_name == 'push'
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Deno
+        if: github.event_name == 'push'
         uses: denoland/setup-deno@v2
         with:
           deno-version: "2.9.5"
 
       - name: Cache Deno dependencies
+        if: github.event_name == 'push'
         uses: actions/cache@v6
         with:
           path: |
@@ -40,113 +48,103 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
+        if: github.event_name == 'push'
         run: deno install
 
+      - name: Read release version
+        id: version
+        if: github.event_name == 'push'
+        run: echo "tag_name=v$(deno eval 'console.log(JSON.parse(Deno.readTextFileSync("manifest.json")).version)')" >> "$GITHUB_OUTPUT"
+
+      - name: Verify release metadata
+        if: github.event_name == 'push'
+        env:
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
+        run: deno task release:verify "$RELEASE_REF"
+
+      - name: Ensure release tag is new
+        if: github.event_name == 'push'
+        env:
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
+        run: |
+          if git rev-parse --quiet --verify "refs/tags/$RELEASE_REF"; then
+            echo "Release tag already exists: $RELEASE_REF" >&2
+            exit 1
+          fi
+
       - name: Run linter
+        if: github.event_name == 'push'
         run: deno task lint
 
       - name: Check code formatting
+        if: github.event_name == 'push'
         run: deno fmt --check
 
       - name: Run unit tests
+        if: github.event_name == 'push'
         run: deno task test
 
       - name: Build extension for release
+        if: github.event_name == 'push'
         run: deno task build
 
-      - name: Get version from tag or input
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.tag_name }}"
-          else
-            VERSION="${GITHUB_REF#refs/tags/}"
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
-
-      - name: Update manifest version
-        run: |
-          VERSION_NUMBER="${{ steps.version.outputs.version_number }}"
-          deno eval "
-            const manifest = JSON.parse(await Deno.readTextFile('./dist/release/manifest.json'));
-            manifest.version = '$VERSION_NUMBER';
-            await Deno.writeTextFile('./dist/release/manifest.json', JSON.stringify(manifest, null, 2));
-            console.log('Updated manifest.json version to:', manifest.version);
-          "
-
       - name: Create extension package
-        run: |
-          cd dist/release
-          zip -r "../../markdown-viewer-${{ steps.version.outputs.version }}.zip" .
-          cd ../..
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          {
-            echo "release_notes<<EOF"
-            echo "## 🎉 Release ${{ steps.version.outputs.version }}"
-            echo ""
-            echo "### 📦 Package Information"
-            echo "- **Extension Size**: $(du -sh markdown-viewer-${{ steps.version.outputs.version }}.zip | cut -f1)"
-            echo "- **Build Date**: $(date '+%Y-%m-%d %H:%M:%S UTC')"
-            echo "- **Commit**: ${{ github.sha }}"
-            echo ""
-            echo "### 🔧 Installation"
-            echo "1. Download the \`markdown-viewer-${{ steps.version.outputs.version }}.zip\` file"
-            echo "2. Extract the ZIP file"
-            echo "3. Open Chrome and navigate to \`chrome://extensions/\`"
-            echo "4. Enable \"Developer mode\""
-            echo "5. Click \"Load unpacked\" and select the extracted folder"
-            echo ""
-            echo "### 📊 Build Statistics"
-            find dist/release/ -name "*.js" -exec wc -l {} + | tail -1 | awk '{print "- **Total Lines of Code**: " $1}'
-            echo ""
-            echo "### 🔒 Security Features"
-            echo "✅ XSS protection (js-xss whitelist sanitizer + 13 E2E attack vector tests)"
-            echo "✅ Strict CSP: script-src 'self'; style-src 'self'; object-src 'none'"
-            echo "✅ Chrome Manifest V3 compliant"
-            echo "✅ Minimal permissions (file:// only, https:// optional)"
-            echo "✅ No remote code execution, no analytics, no data collection"
-            echo ""
-            echo "### 🧪 Quality Assurance"
-            echo "✅ All unit tests passed"
-            echo "✅ Deno linter validation passed"
-            echo "✅ Code formatting verified"
-            echo "✅ Security audit completed"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+        if: github.event_name == 'push'
+        env:
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
+        run: (cd dist/release && zip -r "../../markdown-viewer-$RELEASE_REF.zip" .)
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: "Markdown Viewer ${{ steps.version.outputs.version }}"
-          body: ${{ steps.release_notes.outputs.release_notes }}
-          files: |
-            markdown-viewer-${{ steps.version.outputs.version }}.zip
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          target_commitish: ${{ github.sha }}
+          name: "Markdown Viewer ${{ steps.version.outputs.tag_name }}"
+          body_path: CHANGELOG.md
+          files: markdown-viewer-${{ steps.version.outputs.tag_name }}.zip
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Upload to Chrome Web Store (placeholder)
+      - name: Authenticate to Google Cloud
+        id: auth
+        if: github.event_name == 'push' || inputs.publish_only == true
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Upload package to Chrome Web Store
+        if: github.event_name == 'push'
+        env:
+          CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
+          RELEASE_REF: ${{ steps.version.outputs.tag_name }}
         run: |
-          echo "🔄 Chrome Web Store upload placeholder"
-          echo "To complete Chrome Web Store integration:"
-          echo "1. Create Chrome Web Store Developer account"
-          echo "2. Add CHROME_WEB_STORE_* secrets to GitHub"
-          echo "3. Uncomment and configure Chrome Web Store upload action"
-          echo ""
-          echo "Package ready for manual upload: markdown-viewer-${{ steps.version.outputs.version }}.zip"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CWS_ACCESS_TOKEN" \
+            --header "Content-Type: application/zip" \
+            --data-binary "@markdown-viewer-$RELEASE_REF.zip" \
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload"
 
-      # Chrome Web Store upload (commented out - requires setup)
-      # - name: Upload to Chrome Web Store
-      #   uses: mnao305/chrome-extension-upload@v4.0.1
-      #   with:
-      #     file-path: markdown-viewer-${{ steps.version.outputs.version }}.zip
-      #     extension-id: ${{ secrets.CHROME_WEB_STORE_EXTENSION_ID }}
-      #     client-id: ${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}
-      #     client-secret: ${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}
-      #     refresh-token: ${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}
+      - name: Submit Chrome Web Store review
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_only == true
+        env:
+          CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CWS_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"publishType":"DEFAULT_PUBLISH","deployInfos":[{"deployPercentage":100}],"skipReview":false,"blockOnWarnings":true}' \
+            "https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:publish"
