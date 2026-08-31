@@ -83,7 +83,15 @@ import { sanitizeHTML } from "./sanitizer.ts";
 Deno.test("XSS: javascript: protocol", () => {
   const malicious = "<a href=\"javascript:alert('XSS')\">Click</a>";
   const result = sanitizeHTML(malicious);
-  assertEquals(result.includes("javascript:"), false);
+  // 「javascript:を含まないこと」ではなくhref属性の除去を検証する
+  // （エンコードされた値は前者のテストを通過してしまうため）
+  assertEquals(result.includes("href"), false);
+});
+
+Deno.test("XSS: エンコードされたjavascript: protocol", () => {
+  const malicious = "<a href=\"java&#115;cript:alert('XSS')\">Click</a>";
+  const result = sanitizeHTML(malicious);
+  assertEquals(result.includes("href"), false);
 });
 
 Deno.test("XSS: onerror attribute", () => {
@@ -110,6 +118,48 @@ Deno.test("正常なHTML: 画像", () => {
   assertStringIncludes(result, "https://example.com/image.png");
 });
 ```
+
+#### URLスキームの検証（href / src）
+
+`<a href>` と `<img src>` は相対パスを許可する必要があるため、js-xss の
+デフォルト `safeAttrValue` を使わず `onTagAttr` で独自に処理している。 このとき
+**生の属性値に対する前方一致チェックは使ってはならない**。
+
+ブラウザは属性値のHTMLエンティティをデコードし、タブ・改行・制御文字を
+除去してからURLとして解釈する。そのため以下はすべて `javascript:alert(1)`
+として実行される:
+
+| 属性値                         | 手口                     |
+| ------------------------------ | ------------------------ |
+| `java&#115;cript:alert(1)`     | 数値実体参照（10進）     |
+| `java&#x73;cript:alert(1)`     | 数値実体参照（16進）     |
+| `java&#115cript:alert(1)`      | セミコロンなし実体参照   |
+| `java&Tab;script:alert(1)`     | 名前付き実体参照（タブ） |
+| `java&NewLine;script:alert(1)` | 名前付き実体参照（改行） |
+| `javascript&colon;alert(1)`    | コロンの実体参照         |
+| `&amp;#106;avascript:alert(1)` | 多重エンコード           |
+| `java<TAB>script:alert(1)`     | 生の制御文字             |
+
+対策は「正規化してから許可リストで判定する」の2点セット:
+
+```typescript
+// src/shared/utils/url-scheme.ts
+// 1. ブラウザ解釈後の正規形へ正規化（実体参照を不動点までデコード + 制御文字除去）
+const normalized = normalizeUrlAttributeValue(value);
+
+// 2. 拒否リストではなく許可リストで判定（スキームなし = 相対URLは許可）
+//    <a href>: http/https/mailto/tel/ftp
+//    <img src>: http/https/file
+const scheme = getUrlScheme(normalized);
+```
+
+出力時は `&` もエスケープする（`escapeHtml()`）。
+これによりブラウザ側で実体参照が再デコードされて検証をすり抜けることを防ぐ。
+
+> ⚠️ 「出力に `javascript:` という文字列が含まれないこと」を検証するテストは
+> 無意味である。エンコードされたままの出力はテストを通過し、
+> ブラウザ上では実行される。**href属性そのものが除去されること**、 またはE2Eで
+> **`anchor.href` の解決結果**を検証すること。
 
 ### 2. Content Security Policy
 
@@ -285,7 +335,8 @@ test("安全なリンクは保持される", async ({ page }) => {
 実装時に以下を確認：
 
 - [ ] 全てのMarkdown描画でxss (js-xss)使用
-- [ ] `javascript:` プロトコル完全ブロック
+- [ ] `javascript:`
+      プロトコル完全ブロック（実体参照・制御文字による難読化を含む）
 - [ ] イベントハンドラ属性除去
 - [ ] CSP設定が適切
 - [ ] Permissions最小化

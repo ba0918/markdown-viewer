@@ -12,11 +12,18 @@
  * - "/" → "_"
  * - "=" → "" (パディング削除)
  *
+ * btoa()はLatin-1範囲外の文字でthrowするため、先にUTF-8バイト列へ変換する。
+ * （IDNドメイン等の非ASCIIオリジンでもIDを生成できるようにするため）
+ *
  * @param str エンコードする文字列
  * @returns URLセーフなBase64エンコード済み文字列
  */
 export const toUrlSafeBase64 = (str: string): string => {
-  return btoa(str).replace(
+  const bytes = new TextEncoder().encode(str);
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join(
+    "",
+  );
+  return btoa(binary).replace(
     /[+/=]/g,
     (c) => ({ "+": "-", "/": "_", "=": "" }[c] ?? c),
   );

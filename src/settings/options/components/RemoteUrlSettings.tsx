@@ -65,12 +65,22 @@ export const RemoteUrlSettings = () => {
 
       // Content Scriptを動的に登録（共通関数で一意のID生成）
       const scriptId = getContentScriptId(trimmed);
-      await chrome.scripting.registerContentScripts([{
-        id: scriptId,
-        matches: [trimmed],
-        js: ["content.js"],
-        runAt: "document_start",
-      }]);
+      try {
+        await chrome.scripting.registerContentScripts([{
+          id: scriptId,
+          matches: [trimmed],
+          js: ["content.js"],
+          runAt: "document_start",
+        }]);
+      } catch (registerError) {
+        // 登録に失敗したら直前に取得した権限を返上する。
+        // 権限だけ残ると「UIに出ていないのに許可済みのドメイン」が生まれ、
+        // プライバシー上の不整合になるため。
+        await chrome.permissions.remove({ origins: [trimmed] }).catch(() => {
+          // 返上に失敗しても元のエラーを優先して報告する
+        });
+        throw registerError;
+      }
 
       // 保存
       const newOrigin: CustomOrigin = {

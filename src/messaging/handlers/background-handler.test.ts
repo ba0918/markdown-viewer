@@ -269,3 +269,44 @@ Deno.test("Unknown message type: エラーを返す", async () => {
     assertEquals(result.error.includes("Unknown message type"), true);
   }
 });
+
+/**
+ * ルーティング堅牢化テスト
+ *
+ * registry はプレーンオブジェクトのため、Object.prototype のメンバー名を
+ * message.type に渡すと action 以外の関数が呼ばれてしまう。
+ */
+
+Deno.test("handleBackgroundMessage: プロトタイプチェーン上の名前は Unknown message type", async () => {
+  for (const type of ["toString", "constructor", "valueOf", "hasOwnProperty"]) {
+    const response = await handleBackgroundMessage(
+      { type, payload: {} } as unknown as Message,
+    );
+    assertEquals(response.success, false);
+    if (!response.success) {
+      assertEquals(response.error, "Unknown message type");
+    }
+  }
+});
+
+Deno.test("handleBackgroundMessage: type が文字列でない場合も Unknown message type", async () => {
+  for (const type of [undefined, null, 123, {}]) {
+    const response = await handleBackgroundMessage(
+      { type, payload: {} } as unknown as Message,
+    );
+    assertEquals(response.success, false);
+    if (!response.success) {
+      assertEquals(response.error, "Unknown message type");
+    }
+  }
+});
+
+Deno.test("handleBackgroundMessage: message自体がundefinedでもクラッシュしない", async () => {
+  const response = await handleBackgroundMessage(
+    undefined as unknown as Message,
+  );
+  assertEquals(response.success, false);
+  if (!response.success) {
+    assertEquals(response.error, "Unknown message type");
+  }
+});

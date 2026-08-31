@@ -1,69 +1,69 @@
-import * as esbuild from "esbuild";
-
 /**
  * 開発用watchスクリプト
- * ファイル変更を監視して自動リビルド
+ *
+ * ファイル変更を監視して自動リビルドする。
+ * build.ts と同じesbuild設定・アセットパイプラインを共有するため、
+ * watchでだけビルドが壊れることがない。
+ *
+ * 静的アセット（manifest/HTML/CSS/フォント/アイコン）は起動時に1度だけ出力する。
+ * CSSやmanifestを変更した場合は `deno task build:dev` を実行し直すこと。
  */
 
-const commonConfig: Partial<esbuild.BuildOptions> = {
-  bundle: true,
-  format: "esm",
-  target: "chrome120",
-  minify: false, // 開発モードではminify無効化
-  sourcemap: true,
-  define: {
-    "global": "globalThis",
-    "process.env.NODE_ENV": '"development"',
-    "DEBUG": "true",
-  },
-  jsxFactory: "h",
-  jsxFragment: "Fragment",
-  jsxImportSource: "preact",
-};
+import * as esbuild from "esbuild";
+import { exists } from "@std/fs";
+import {
+  createEsbuildConfig,
+  ENTRY_POINTS,
+  outDirFor,
+} from "./lib/esbuild-config.ts";
+import { buildAssets } from "./lib/assets.ts";
+
+const outDir = outDirFor(true);
 
 console.log("👀 Starting watch mode...\n");
 
+let contexts: esbuild.BuildContext[] = [];
+
+/** esbuildコンテキストを破棄してプロセスを終了する */
+const shutdown = async (exitCode: number): Promise<void> => {
+  await Promise.all(contexts.map((ctx) => ctx.dispose()));
+  esbuild.stop();
+  Deno.exit(exitCode);
+};
+
 try {
-  // Background Script
-  const ctxBackground = await esbuild.context({
-    ...commonConfig,
-    entryPoints: ["src/background/service-worker.ts"],
-    outfile: "dist/development/background.js",
-    platform: "browser",
-  });
+  if (!await exists(outDir)) {
+    await Deno.mkdir(outDir, { recursive: true });
+  }
 
-  // Content Script
-  const ctxContent = await esbuild.context({
-    ...commonConfig,
-    entryPoints: ["src/content/index.ts"],
-    outfile: "dist/development/content.js",
-    platform: "browser",
-  });
+  console.log("📄 Building static assets...");
+  await buildAssets(outDir, true);
+  console.log("✅ Static assets built");
 
-  // watch開始
-  await Promise.all([
-    ctxBackground.watch(),
-    ctxContent.watch(),
-  ]);
+  const config = createEsbuildConfig(true);
+
+  contexts = await Promise.all(
+    ENTRY_POINTS.map(({ outfile, entry }) =>
+      esbuild.context({
+        ...config,
+        entryPoints: [entry],
+        outfile: `${outDir}/${outfile}`,
+      })
+    ),
+  );
+
+  await Promise.all(contexts.map((ctx) => ctx.watch()));
 
   console.log("✅ Watch mode started");
-  console.log("📝 Watching for file changes...");
+  console.log(`📝 Watching for file changes... (→ ${outDir})`);
   console.log("   Press Ctrl+C to stop\n");
 
-  // プロセス終了時のクリーンアップ
-  const cleanup = async () => {
+  Deno.addSignalListener("SIGINT", () => {
     console.log("\n🛑 Stopping watch mode...");
-    await ctxBackground.dispose();
-    await ctxContent.dispose();
-    esbuild.stop();
-    Deno.exit(0);
-  };
-
-  // シグナルハンドラ登録
-  Deno.addSignalListener("SIGINT", cleanup);
-  Deno.addSignalListener("SIGTERM", cleanup);
+    shutdown(0);
+  });
+  Deno.addSignalListener("SIGTERM", () => shutdown(0));
 } catch (error) {
   console.error("❌ Watch mode failed:", error);
-  esbuild.stop();
-  Deno.exit(1);
+  await shutdown(1);
 }

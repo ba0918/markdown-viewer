@@ -86,7 +86,7 @@ export const MarkdownViewer = (
 
   return (
     <div
-      class={`markdown-viewer-layout theme-${themeId.value}`}
+      class="markdown-viewer-layout"
       style={{
         // 初期レイアウト確定まで非表示（CLS削減）
         opacity: isLoaded ? "1" : "0",
@@ -100,12 +100,10 @@ export const MarkdownViewer = (
           // ToCが表示されている場合のみ left を調整
           left: isTocVisible ? `${marginLeft - 20}px` : "0",
         }}
-        themeId={themeId.value}
       >
       </DocumentHeader>
       <TableOfContents
         items={tocItems}
-        themeId={themeId.value}
         onTocStateChange={handleTocStateChange}
         initialState={initialTocState}
       />

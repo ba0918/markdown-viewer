@@ -226,7 +226,82 @@ Deno.test("XSS: エンコード済みjavascript:をブロック", async () => {
   const malicious =
     '<a href="&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;alert(1)">Click</a>';
   const result = await sanitizeHTML(malicious);
-  assertEquals(result.includes("javascript:"), false);
+  // 実体参照が出力に残っているとブラウザ側でデコードされ実行される。
+  // href属性そのものが削除されていることを確認する。
+  assertEquals(result.includes("href"), false);
+});
+
+/**
+ * スキーム難読化バイパス回帰テスト
+ *
+ * ブラウザは属性値の実体参照をデコードし、タブ・改行・制御文字を除去してから
+ * URLとして解釈する。生の属性値に対する前方一致チェックはこれらで回避できるため、
+ * 正規化後の値に対する許可リスト判定が必要。
+ */
+
+const TAB_CHAR = String.fromCharCode(9);
+const NEWLINE_CHAR = String.fromCharCode(10);
+
+const OBFUSCATED_SCHEME_VECTORS: [string, string][] = [
+  ["10進実体参照", "java&#115;cript:alert(1)"],
+  ["16進実体参照", "java&#x73;cript:alert(1)"],
+  ["セミコロンなし実体参照", "java&#115cript:alert(1)"],
+  ["先頭文字の実体参照", "&#106;avascript:alert(1)"],
+  ["名前付き実体参照 &Tab;", "java&Tab;script:alert(1)"],
+  ["名前付き実体参照 &NewLine;", "java&NewLine;script:alert(1)"],
+  ["コロンの実体参照", "javascript&colon;alert(1)"],
+  ["多重エンコード", "&amp;#106;avascript:alert(1)"],
+  ["生タブ文字", `java${TAB_CHAR}script:alert(1)`],
+  ["生改行文字", `java${NEWLINE_CHAR}script:alert(1)`],
+  ["先頭空白", " javascript:alert(1)"],
+  ["vbscript", "vb&#115;cript:msgbox(1)"],
+];
+
+for (const [label, payload] of OBFUSCATED_SCHEME_VECTORS) {
+  Deno.test(`XSS: aタグのhref難読化スキームをブロック (${label})`, () => {
+    const result = sanitizeHTML(`<a href="${payload}">Click</a>`);
+    assertEquals(result.includes("href"), false, result);
+  });
+
+  Deno.test(`XSS: imgタグのsrc難読化スキームをブロック (${label})`, () => {
+    const result = sanitizeHTML(`<img src="${payload}" alt="x">`);
+    assertEquals(result.includes("src"), false, result);
+  });
+}
+
+Deno.test("XSS: 未知のスキームは許可リスト方式でブロックされる", () => {
+  const result = sanitizeHTML('<a href="chrome-extension://abc/x.html">x</a>');
+  assertEquals(result.includes("href"), false, result);
+});
+
+Deno.test("XSS: aタグのhrefでfile:はブロックされる（ナビゲーション防止）", () => {
+  const result = sanitizeHTML('<a href="file:///etc/passwd">x</a>');
+  assertEquals(result.includes("href"), false, result);
+});
+
+Deno.test("正常系: クエリパラメータの&amp;が二重エスケープされない", () => {
+  const result = sanitizeHTML(
+    '<a href="https://example.com/?a=1&amp;b=2">x</a>',
+  );
+  assertStringIncludes(result, 'href="https://example.com/?a=1&amp;b=2"');
+});
+
+Deno.test("正常系: mailto:/tel:リンクは保持される", () => {
+  assertStringIncludes(
+    sanitizeHTML('<a href="mailto:user@example.com">mail</a>'),
+    'href="mailto:user@example.com"',
+  );
+  assertStringIncludes(
+    sanitizeHTML('<a href="tel:+81312345678">tel</a>'),
+    'href="tel:+81312345678"',
+  );
+});
+
+Deno.test("正常系: フラグメントリンクは保持される", () => {
+  assertStringIncludes(
+    sanitizeHTML('<a href="#section-1">jump</a>'),
+    'href="#section-1"',
+  );
 });
 
 /**

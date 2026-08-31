@@ -287,28 +287,27 @@ Deno.test("GFM: テーブル", () => {
 });
 ```
 
-#### domain/theme/applier.ts
+#### domain/toc/html-processor.ts
 
 ```typescript
-// src/domain/theme/applier.ts
-import type { Theme } from "../../shared/types/theme.ts";
+// src/domain/toc/html-processor.ts
+import { generateHeadingId } from "./heading-id.ts";
+import type { TocHeading } from "./types.ts";
 
-export interface ThemeData {
-  id: string;
-  css: string;
+export interface HeadingIdResult {
+  html: string;
+  headings: TocHeading[];
 }
 
 /**
- * HTMLにテーマを適用
+ * 見出しタグにid属性を付与し、同時に見出しリストを返す
  * 純粋関数として実装
+ *
+ * ToCのIDとid属性を同一の走査結果から生成することで、
+ * 両者がズレてToCリンクが機能しなくなるのを構造的に防ぐ。
  */
-export const applyTheme = (html: string, theme: ThemeData): string => {
-  return `
-    <style>${theme.css}</style>
-    <div class="markdown-body theme-${theme.id}">
-      ${html}
-    </div>
-  `;
+export const addHeadingIds = (html: string): HeadingIdResult => {
+  // ...
 };
 ```
 
@@ -318,7 +317,8 @@ export const applyTheme = (html: string, theme: ThemeData): string => {
 // src/services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
 import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
-import { applyTheme, type ThemeData } from "../domain/theme/applier.ts";
+import { addHeadingIds } from "../domain/toc/html-processor.ts";
+import { tocService } from "./toc-service.ts";
 
 /**
  * Markdownレンダリングサービス
@@ -328,15 +328,18 @@ export class MarkdownService {
   /**
    * Markdownを完全にレンダリング
    */
-  async render(markdown: string, theme: ThemeData): Promise<string> {
+  render(markdown: string): RenderResult {
     // 1. Markdown解析（domain/markdown）
     const parsed = parseMarkdown(markdown);
 
     // 2. サニタイズ（domain/markdown）
     const sanitized = sanitizeHTML(parsed);
 
-    // 3. テーマ適用（domain/theme）
-    return applyTheme(sanitized, theme);
+    // 3. 見出しID付与 + 見出し抽出（domain/toc）
+    const { html, headings } = addHeadingIds(sanitized);
+
+    // 4. ToC生成（services/toc-service）
+    return { html, tocItems: tocService.generateToc(headings) };
   }
 }
 

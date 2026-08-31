@@ -19,11 +19,14 @@ export const handleBackgroundMessage = async (
   _sender?: { tab?: { id?: number } },
 ): Promise<MessageResponse> => {
   try {
-    const action = registry[message.type];
-    if (!action) {
+    // Object.hasOwn でプロトタイプチェーン（toString, constructor 等）への
+    // 意図しないヒットを防ぐ。message.type は外部入力のため必須。
+    const type = message?.type;
+    if (typeof type !== "string" || !Object.hasOwn(registry, type)) {
       return { success: false, error: "Unknown message type" };
     }
-    return await action(message.payload);
+    const action = registry[type];
+    return await action(message?.payload);
   } catch (error) {
     return {
       success: false,

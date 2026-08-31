@@ -24,9 +24,8 @@ export const handleBackgroundMessage = async (message: Message) => {
       // ❌ ここでMarkdown処理 → 死亡フラグ
       const parsed = marked.parse(message.payload.markdown);
       const sanitized = xss(parsed);
-      const theme = await chrome.storage.sync.get("theme");
-      const styled = applyTheme(sanitized, theme);
-      return { success: true, data: styled };
+      const { html, headings } = addHeadingIds(sanitized);
+      return { success: true, data: { html, headings } };
   }
 };
 ```
@@ -185,15 +184,16 @@ export const parseMarkdown = (markdown: string): string => {
 
 // src/services/markdown-service.ts
 import { parseMarkdown } from "../domain/markdown/parser.ts";
-import { loadTheme } from "../domain/theme/loader.ts";
-import { applyTheme } from "../domain/theme/applier.ts";
+import { sanitizeHTML } from "../domain/markdown/sanitizer.ts";
+import { addHeadingIds } from "../domain/toc/html-processor.ts";
 
 export class MarkdownService {
-  async render(markdown: string, themeId?: string): Promise<string> {
+  render(markdown: string): RenderResult {
     // ✅ services層でdomainを組み合わせる
-    const theme = await loadTheme(themeId);
     const parsed = parseMarkdown(markdown);
-    return applyTheme(parsed, theme);
+    const sanitized = sanitizeHTML(parsed);
+    const { html, headings } = addHeadingIds(sanitized);
+    return { html, headings };
   }
 }
 ```
@@ -443,12 +443,12 @@ Deno.test("formatTable: 基本的な整形", () => {
 import { formatTable } from "../domain/markdown/table-formatter.ts";
 
 export class MarkdownService {
-  async render(markdown: string, themeId?: string): Promise<string> {
-    const theme = await loadTheme(themeId);
+  render(markdown: string): RenderResult {
     const parsed = parseMarkdown(markdown);
     const sanitized = sanitizeHTML(parsed);
     const formatted = formatTable(sanitized); // ← 追加
-    return applyTheme(formatted, theme);
+    const { html, headings } = addHeadingIds(formatted);
+    return { html, headings };
   }
 }
 
@@ -585,9 +585,8 @@ export const handleBackgroundMessage = async (message: Message) => {
       // ❌ messagingでMarkdown処理 → 死亡フラグ
       const parsed = marked.parse(message.payload.markdown);
       const sanitized = xss(parsed);
-      const theme = await loadTheme(message.payload.themeId);
-      const styled = applyTheme(sanitized, theme);
-      return { success: true, data: styled };
+      const { html, headings } = addHeadingIds(sanitized);
+      return { success: true, data: { html, headings } };
   }
 };
 

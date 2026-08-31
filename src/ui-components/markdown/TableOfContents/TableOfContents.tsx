@@ -44,8 +44,6 @@ const persistTocState = (state: TocState): void => {
 interface Props {
   /** TOCアイテムリスト */
   items: TocItem[];
-  /** 現在のテーマID */
-  themeId: string;
   /** ToC状態変更時のコールバック（レイアウト調整用） */
   onTocStateChange?: (state: TocState) => void;
   /** ToC初期状態（CLS削減用、指定時はChrome Storage読み込みをスキップ） */
@@ -66,7 +64,6 @@ interface Props {
  */
 export const TableOfContents = ({
   items,
-  themeId: _themeId,
   onTocStateChange,
   initialState,
 }: Props) => {

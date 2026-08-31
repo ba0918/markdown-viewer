@@ -1,13 +1,14 @@
 import { markdownService } from "../../../services/markdown-service.ts";
-import { loadTheme } from "../../../domain/theme/loader.ts";
 import { validateThemeId } from "./validate-theme.ts";
-import type { Theme } from "../../../shared/types/theme.ts";
 import type { ActionHandler } from "../action-types.ts";
 
 /**
  * RENDER_MARKDOWN アクション
  *
- * Markdownテキストを受け取り、テーマ適用済みHTMLにレンダリングする。
+ * Markdownテキストを受け取り、サニタイズ済みHTMLにレンダリングする。
+ *
+ * themeIdはレンダリング結果に影響しない（テーマ適用はcontent層の責務）が、
+ * 不正な値を早期に弾くため他アクションと同様にバリデーションする。
  */
 export const createRenderMarkdownAction = (): ActionHandler => {
   return (payload: unknown) => {
@@ -25,8 +26,7 @@ export const createRenderMarkdownAction = (): ActionHandler => {
         error: "Invalid payload: invalid themeId",
       };
     }
-    const theme = loadTheme(p.themeId as Theme | undefined);
-    const result = markdownService.render(p.markdown, theme);
+    const result = markdownService.render(p.markdown);
     return { success: true, data: result };
   };
 };

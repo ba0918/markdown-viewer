@@ -53,6 +53,55 @@ test.describe("XSS Protection", () => {
     }
   });
 
+  test("エンコードされたjavascript:プロトコルが無効化される", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-attack.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    // 実体参照・制御文字で難読化したスキームを含むリンク。
+    // ブラウザは属性値をデコードしてからURLとして解釈するため、
+    // 出力にエンコード済み文字列が残っていると実行されてしまう。
+    const obfuscatedIds = [
+      "xss-entity-dec",
+      "xss-entity-hex",
+      "xss-entity-nosemi",
+      "xss-entity-first",
+      "xss-named-tab",
+      "xss-named-newline",
+      "xss-named-colon",
+      "xss-double-encoded",
+    ];
+
+    for (const id of obfuscatedIds) {
+      const anchor = page.locator(`a#${id}`);
+      if ((await anchor.count()) === 0) continue;
+
+      // ブラウザがデコード済みのURLとして解釈した結果を検証する
+      const resolved = await anchor.evaluate((el) =>
+        (el as HTMLAnchorElement).href
+      );
+      expect(resolved, `#${id} must not resolve to javascript:`).not.toMatch(
+        /^javascript:/i,
+      );
+    }
+  });
+
+  test("エンコードされたプロトコルのimg srcが無効化される", async ({ page, testServerUrl }) => {
+    await openMarkdownFile(
+      page,
+      `${testServerUrl}/tests/e2e/fixtures/xss-attack.md`,
+    );
+    await expectMarkdownRendered(page);
+
+    const imgs = await page.locator("img").all();
+    for (const img of imgs) {
+      const resolved = await img.evaluate((el) => (el as HTMLImageElement).src);
+      expect(resolved).not.toMatch(/^(javascript|vbscript|data):/i);
+    }
+  });
+
   test("SVGインジェクションのonloadイベントハンドラが削除される", async ({ page }) => {
     const maliciousMarkdown = `
 # SVG XSS Test
