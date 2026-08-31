@@ -4,32 +4,40 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "Tag name for release (e.g., v1.0.0)"
-        required: true
+        description: "Tag name for release (e.g., v1.0.0); unused for publish-only"
+        required: false
         type: string
+      publish_only:
+        description: "Submit the package already uploaded to Chrome Web Store"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  prepare:
-    name: Prepare release package
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: chrome-web-store
     permissions:
-      contents: read
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+      contents: write
+      id-token: write
 
     steps:
       - name: Checkout repository
+        if: ${{ inputs.publish_only == false }}
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Deno
+        if: ${{ inputs.publish_only == false }}
         uses: denoland/setup-deno@v2
         with:
           deno-version: "2.9.5"
 
       - name: Cache Deno dependencies
+        if: ${{ inputs.publish_only == false }}
         uses: actions/cache@v6
         with:
           path: |
@@ -41,19 +49,19 @@ jobs:
             ${{ runner.os }}-deno-
 
       - name: Install dependencies
+        if: ${{ inputs.publish_only == false }}
         run: deno install
 
       - name: Verify release metadata
-        id: version
+        if: ${{ inputs.publish_only == false }}
         env:
           RELEASE_REF: ${{ inputs.tag_name }}
-        run: |
-          deno task release:verify "$RELEASE_REF"
-          echo "version=$RELEASE_REF" >> "$GITHUB_OUTPUT"
+        run: deno task release:verify "$RELEASE_REF"
 
       - name: Ensure release tag is new
+        if: ${{ inputs.publish_only == false }}
         env:
-          RELEASE_REF: ${{ steps.version.outputs.version }}
+          RELEASE_REF: ${{ inputs.tag_name }}
         run: |
           if git rev-parse --quiet --verify "refs/tags/$RELEASE_REF"; then
             echo "Release tag already exists: $RELEASE_REF" >&2
@@ -61,98 +69,40 @@ jobs:
           fi
 
       - name: Run linter
+        if: ${{ inputs.publish_only == false }}
         run: deno task lint
 
       - name: Check code formatting
+        if: ${{ inputs.publish_only == false }}
         run: deno fmt --check
 
       - name: Run unit tests
+        if: ${{ inputs.publish_only == false }}
         run: deno task test
 
       - name: Build extension for release
+        if: ${{ inputs.publish_only == false }}
         run: deno task build
 
-      - name: Create extension package and checksum
-        env:
-          RELEASE_REF: ${{ steps.version.outputs.version }}
-        run: |
-          PACKAGE="markdown-viewer-$RELEASE_REF.zip"
-          (cd dist/release && zip -r "../../$PACKAGE" .)
-          sha256sum "$PACKAGE" > "$PACKAGE.sha256"
-
-      - name: Upload release package
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-package
-          path: |
-            markdown-viewer-*.zip
-            *.sha256
-          if-no-files-found: error
-          retention-days: 7
-
-  github-release:
-    name: Create GitHub Release
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-    needs: prepare
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Download release package
-        uses: actions/download-artifact@v7
-        with:
-          name: release-package
-
-      - name: Verify package checksum
+      - name: Create extension package
+        if: ${{ inputs.publish_only == false }}
         env:
           RELEASE_REF: ${{ inputs.tag_name }}
-        run: sha256sum --check "markdown-viewer-$RELEASE_REF.zip.sha256"
+        run: (cd dist/release && zip -r "../../markdown-viewer-$RELEASE_REF.zip" .)
 
       - name: Create GitHub Release
+        if: ${{ inputs.publish_only == false }}
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ needs.prepare.outputs.version }}
+          tag_name: ${{ inputs.tag_name }}
           target_commitish: ${{ github.sha }}
-          name: "Markdown Viewer ${{ needs.prepare.outputs.version }}"
+          name: "Markdown Viewer ${{ inputs.tag_name }}"
           body_path: CHANGELOG.md
-          files: markdown-viewer-${{ needs.prepare.outputs.version }}.zip
+          files: markdown-viewer-${{ inputs.tag_name }}.zip
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-  cws-upload:
-    name: Upload to Chrome Web Store
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-    needs: github-release
-    runs-on: ubuntu-latest
-    environment: chrome-web-store
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: "2.9.5"
-
-      - name: Download release package
-        uses: actions/download-artifact@v7
-        with:
-          name: release-package
-
-      - name: Verify package checksum
-        env:
-          RELEASE_REF: ${{ inputs.tag_name }}
-        run: sha256sum --check "markdown-viewer-$RELEASE_REF.zip.sha256"
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -166,47 +116,29 @@ jobs:
           export_environment_variables: false
 
       - name: Upload package to Chrome Web Store
+        if: ${{ inputs.publish_only == false }}
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
           CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
           RELEASE_REF: ${{ inputs.tag_name }}
-        run: deno task cws:upload "markdown-viewer-$RELEASE_REF.zip" "${RELEASE_REF#v}"
-
-  cws-publish:
-    name: Submit Chrome Web Store review
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-    needs: cws-upload
-    runs-on: ubuntu-latest
-    environment: chrome-web-store
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: "2.9.5"
-
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v3
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
-          create_credentials_file: false
-          export_environment_variables: false
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CWS_ACCESS_TOKEN" \
+            --header "Content-Type: application/zip" \
+            --data-binary "@markdown-viewer-$RELEASE_REF.zip" \
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload"
 
       - name: Submit Chrome Web Store review
         env:
           CWS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
           CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
-          RELEASE_REF: ${{ inputs.tag_name }}
-        run: deno task cws:publish "${RELEASE_REF#v}"
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CWS_ACCESS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"publishType":"DEFAULT_PUBLISH","deployInfos":[{"deployPercentage":100}],"skipReview":false,"blockOnWarnings":true}' \
+            "https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:publish"

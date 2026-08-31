@@ -11,9 +11,6 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "release:verify": "deno run --allow-read scripts/verify-release.ts",
-    "cws:status": "deno run --allow-env=CWS_ACCESS_TOKEN,CWS_PUBLISHER_ID,CWS_EXTENSION_ID --allow-net=chromewebstore.googleapis.com scripts/chrome-web-store.ts status",
-    "cws:upload": "deno run --allow-env=CWS_ACCESS_TOKEN,CWS_PUBLISHER_ID,CWS_EXTENSION_ID --allow-read --allow-net=chromewebstore.googleapis.com scripts/chrome-web-store.ts upload",
-    "cws:publish": "deno run --allow-env=CWS_ACCESS_TOKEN,CWS_PUBLISHER_ID,CWS_EXTENSION_ID --allow-net=chromewebstore.googleapis.com scripts/chrome-web-store.ts publish",
     "bundle": "deno task build && deno run --allow-all scripts/bundle.ts",
     "setup-hooks": "deno run --allow-run --allow-read scripts/setup-hooks.ts"
   },
