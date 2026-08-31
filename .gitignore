@@ -56,3 +56,6 @@ docs/internal/
 # Session management (timestamped-plan skill)
 docs/cycles/
 docs/status.md
+
+# Agent Artifact Store
+/.agents/artifacts/
