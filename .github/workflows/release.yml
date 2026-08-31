@@ -122,7 +122,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_REF: ${{ inputs.tag_name }}
-        run: gh release download "$RELEASE_REF" --pattern "markdown-viewer-$RELEASE_REF.zip"
+        run: gh release download "$RELEASE_REF" --repo "$GITHUB_REPOSITORY" --pattern "markdown-viewer-$RELEASE_REF.zip"
 
       - name: Authenticate to Google Cloud
         id: auth
