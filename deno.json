@@ -42,7 +42,7 @@
     "esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@types/chrome": "npm:@types/chrome@^0.1.36",
-    "@playwright/test": "npm:@playwright/test@^1.61.1",
+    "@playwright/test": "npm:@playwright/test@^1.64.0",
     "@types/node": "npm:@types/node@^25.2.3"
   },
   "exclude": [

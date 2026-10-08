@@ -14,7 +14,7 @@
     "jsr:@std/yaml@^1.1.1": "1.1.2",
     "npm:@fontsource/inter@^5.2.8": "5.2.8",
     "npm:@fontsource/jetbrains-mono@^5.2.8": "5.2.8",
-    "npm:@playwright/test@^1.61.1": "1.61.1",
+    "npm:@playwright/test@^1.64.0": "1.64.0",
     "npm:@preact/signals@^2.9.4": "2.9.4_preact@10.29.7",
     "npm:@types/chrome@~0.1.36": "0.1.36",
     "npm:@types/node@^25.2.3": "25.2.3",
@@ -244,8 +244,8 @@
         "@chevrotain/types"
       ]
     },
-    "@playwright/test@1.61.1": {
-      "integrity": "sha512-8nKv6+0RJSL9FE4jYOEGXnPeM/Hg12qZpmqzZjRh3qM0Y7c3z1mrOTfFLids72RDQYVh9WpLEfR5WdpNX4fkig==",
+    "@playwright/test@1.64.0": {
+      "integrity": "sha512-oTN9FNYuN6bqQMwiho6jJKLCG2/QOYCixGXuCjRmzOq23eODeukuY2XiAVoVpAECbuezMt1MHQjAiQxK8F+Y+g==",
       "dependencies": [
         "playwright"
       ],
@@ -1003,11 +1003,6 @@
     "esm@3.2.25": {
       "integrity": "sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA=="
     },
-    "fsevents@2.3.2": {
-      "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
-      "os": ["darwin"],
-      "scripts": true
-    },
     "function-bind@1.1.2": {
       "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
     },
@@ -1187,17 +1182,14 @@
     "pify@2.3.0": {
       "integrity": "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="
     },
-    "playwright-core@1.61.1": {
-      "integrity": "sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==",
+    "playwright-core@1.64.0": {
+      "integrity": "sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg==",
       "bin": true
     },
-    "playwright@1.61.1": {
-      "integrity": "sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==",
+    "playwright@1.64.0": {
+      "integrity": "sha512-kVzTnYFYEyQ9RGzBjNCd2+yEqWmVbxl3AHPynv3qQ6JTjv4a+kwRcnqQwIpuP3NnrnIrE/Q6wWAIAvMfIE2/Yg==",
       "dependencies": [
         "playwright-core"
-      ],
-      "optionalDependencies": [
-        "fsevents"
       ],
       "bin": true
     },
@@ -1570,7 +1562,7 @@
       "jsr:@std/yaml@^1.1.1",
       "npm:@fontsource/inter@^5.2.8",
       "npm:@fontsource/jetbrains-mono@^5.2.8",
-      "npm:@playwright/test@^1.61.1",
+      "npm:@playwright/test@^1.64.0",
       "npm:@preact/signals@^2.9.4",
       "npm:@types/chrome@~0.1.36",
       "npm:@types/node@^25.2.3",
@@ -1587,7 +1579,7 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@playwright/test@^1.61.1",
+        "npm:@playwright/test@^1.64.0",
         "npm:@types/node@^25.2.3",
         "npm:cssnano@^7.1.8",
         "npm:linkedom@~0.18.13",
