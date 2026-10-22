@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 
-const DENO_VERSION = "2.9.5";
+const DENO_VERSION = "2.9.8";
 
 const MINIMUM_NODE24_MAJOR = new Map([
   ["actions/checkout", 5],
